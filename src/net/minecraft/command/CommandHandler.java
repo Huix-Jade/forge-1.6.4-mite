@@ -979,131 +979,124 @@ public class CommandHandler implements ICommandManager {
                            return 1;
                         }
 
-                        if (par2Str.equals("noliquid")) {
-                           i1 = player.getBlockPosX();
-                           y = player.getBlockPosZ();
-                           z = player.getFootBlockPosY();
-                           radius = 64;
+                         switch (par2Str) {
+                             case "noliquid" -> {
+                                 i1 = player.getBlockPosX();
+                                 y = player.getBlockPosZ();
+                                 z = player.getFootBlockPosY();
+                                 radius = 64;
 
-                           for(dx_ = -radius; dx_ <= radius; ++dx_) {
-                              for(dy = -radius; dy <= radius; ++dy) {
-                                 for(dz = -radius; dz <= radius; ++dz) {
-                                    if (world.getBlockMaterial(i1 + dx_, z + dz, y + dy).isLiquid()) {
-                                       world.setBlock(i1 + dx_, z + dz, y + dy, Block.stone.blockID, 0, 2);
-                                    }
+                                 for (dx_ = -radius; dx_ <= radius; ++dx_) {
+                                     for (dy = -radius; dy <= radius; ++dy) {
+                                         for (dz = -radius; dz <= radius; ++dz) {
+                                             if (world.getBlockMaterial(i1 + dx_, z + dz, y + dy).isLiquid()) {
+                                                 world.setBlock(i1 + dx_, z + dz, y + dy, Block.stone.blockID, 0, 2);
+                                             }
+                                         }
+                                     }
                                  }
-                              }
-                           }
 
-                           return 1;
-                        }
+                                 return 1;
+                             }
+                             case "spawn animals" -> {
+                                 i1 = world.getAnimalSpawner().trySpawningPeacefulMobs(world, EnumCreatureType.animal);
+                                 par1ICommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(i1 + " animals were spawned").setColor(EnumChatFormatting.YELLOW));
+                                 return 1;
+                             }
+                             case "spawn squids" -> {
+                                 i1 = world.getAnimalSpawner().trySpawningPeacefulMobs(world, EnumCreatureType.aquatic);
+                                 par1ICommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(i1 + " squids were spawned").setColor(EnumChatFormatting.YELLOW));
+                                 return 1;
+                             }
+                             case "spawn bats" -> {
+                                 i1 = world.getAnimalSpawner().trySpawningPeacefulMobs(world, EnumCreatureType.ambient);
+                                 par1ICommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(i1 + " bats were spawned").setColor(EnumChatFormatting.YELLOW));
+                                 return 1;
+                             }
+                             case "spawn mobs" -> {
+                                 i1 = world.getAnimalSpawner().trySpawningHostileMobs(world, false);
+                                 i1 += world.getAnimalSpawner().trySpawningHostileMobs(world, true);
+                                 par1ICommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(i1 + " mobs were spawned").setColor(EnumChatFormatting.YELLOW));
+                                 return 1;
+                             }
+                             case "bb" -> {
+                                 Entity.apply_MITE_bb_limits_checking = !Entity.apply_MITE_bb_limits_checking;
+                                 par1ICommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("MITE BB limits checking is now " + (Entity.apply_MITE_bb_limits_checking ? "enabled" : "disabled")).setColor(EnumChatFormatting.YELLOW));
+                                 return 1;
+                             }
+                             case "tile entities" -> {
+                                 TileEntity.printTileEntitiesList("Loaded Entities on Server", world.loadedTileEntityList);
+                                 player.sendPacket(new Packet85SimpleSignal(EnumSignal.loaded_tile_entities));
+                                 return 1;
+                             }
+                             case "weather" -> {
+                                 i1 = world.getDayOfWorld();
+                                 world.generateWeatherReport(i1, i1 + 31);
+                                 return 1;
+                             }
+                         }
 
-                        if (par2Str.equals("spawn animals")) {
-                           i1 = world.getAnimalSpawner().trySpawningPeacefulMobs(world, EnumCreatureType.animal);
-                           par1ICommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(i1 + " animals were spawned").setColor(EnumChatFormatting.YELLOW));
-                           return 1;
-                        }
-
-                        if (par2Str.equals("spawn squids")) {
-                           i1 = world.getAnimalSpawner().trySpawningPeacefulMobs(world, EnumCreatureType.aquatic);
-                           par1ICommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(i1 + " squids were spawned").setColor(EnumChatFormatting.YELLOW));
-                           return 1;
-                        }
-
-                        if (par2Str.equals("spawn bats")) {
-                           i1 = world.getAnimalSpawner().trySpawningPeacefulMobs(world, EnumCreatureType.ambient);
-                           par1ICommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(i1 + " bats were spawned").setColor(EnumChatFormatting.YELLOW));
-                           return 1;
-                        }
-
-                        if (par2Str.equals("spawn mobs")) {
-                           i1 = world.getAnimalSpawner().trySpawningHostileMobs(world, false);
-                           i1 += world.getAnimalSpawner().trySpawningHostileMobs(world, true);
-                           par1ICommandSender.sendChatToPlayer(ChatMessageComponent.createFromText(i1 + " mobs were spawned").setColor(EnumChatFormatting.YELLOW));
-                           return 1;
-                        }
-
-                        if (par2Str.equals("bb")) {
-                           Entity.apply_MITE_bb_limits_checking = !Entity.apply_MITE_bb_limits_checking;
-                           par1ICommandSender.sendChatToPlayer(ChatMessageComponent.createFromText("MITE BB limits checking is now " + (Entity.apply_MITE_bb_limits_checking ? "enabled" : "disabled")).setColor(EnumChatFormatting.YELLOW));
-                           return 1;
-                        }
-
-                        if (par2Str.equals("tile entities")) {
-                           TileEntity.printTileEntitiesList("Loaded Entities on Server", world.loadedTileEntityList);
-                           player.sendPacket(new Packet85SimpleSignal(EnumSignal.loaded_tile_entities));
-                           return 1;
-                        }
-
-                        if (par2Str.equals("weather")) {
-                           i1 = world.getDayOfWorld();
-                           world.generateWeatherReport(i1, i1 + 31);
-                           return 1;
-                        }
-
-                        long seed;
+                         long seed;
                         CaveNetworkGenerator cg;
-                        if (par2Str.equals("cavern")) {
-                           seed = world.rand.nextLong();
-                           Debug.println("Using seed " + seed);
-                           cg = new CaveNetworkGenerator(new CaveNetworkStub(0, 0, 64, 48, 64, seed, world.rand.nextInt(2) == 0, true, true));
-                           cg.apply(world, player.getBlockPosX(), player.getFootBlockPosY(), player.getBlockPosZ());
-                           return 1;
-                        }
-
-                        if (par2Str.equals("cavern+")) {
-                           seed = world.rand.nextLong();
-                           seed = 6160391524653987290L;
-                           Debug.println("Using seed " + seed);
-                           cg = new CaveNetworkGenerator(new CaveNetworkStub(0, 0, 64, 48, 64, seed, true, true, true));
-                           cg.apply(world, player.getBlockPosX(), player.getFootBlockPosY(), player.getBlockPosZ());
-                           return 1;
-                        }
-
-                        if (par2Str.equals("cavern!")) {
-                           CaveNetworkGenerator caveNetworkGenerator = new CaveNetworkGenerator(new CaveNetworkStub(-14, 29, 64, 48, 64, 2617667064333438329L, true, true, true));
-                           caveNetworkGenerator.apply(world, player.getBlockPosX(), player.getFootBlockPosY(), player.getBlockPosZ());
-                           return 1;
-                        }
-
-                        if (par2Str.equals("drill")) {
-                           for(i1 = 10; i1 < player.getFootBlockPosY(); ++i1) {
-                              world.setBlockToAir(player.getBlockPosX(), i1, player.getBlockPosZ());
-                           }
-
-                           player.setPositionAndUpdate((double)player.getBlockPosX() + 0.5, 10.5, (double)player.getBlockPosZ() + 0.5);
-                           i1 = player.getBlockPosX();
-                           y = player.getBlockPosY();
-                           z = player.getBlockPosZ();
-                           radius = 5;
-
-                           for(dx_ = -radius; dx_ <= radius; ++dx_) {
-                              for(dy = -radius; dy <= radius; ++dy) {
-                                 for(dz = -radius; dz <= radius; ++dz) {
-                                    world.setBlockToAir(i1 + dx_, y + dy, z + dz);
+                         switch (par2Str) {
+                             case "cavern" -> {
+                                 seed = world.rand.nextLong();
+                                 Debug.println("Using seed " + seed);
+                                 cg = new CaveNetworkGenerator(new CaveNetworkStub(0, 0, 64, 48, 64, seed, world.rand.nextInt(2) == 0, true, true));
+                                 cg.apply(world, player.getBlockPosX(), player.getFootBlockPosY(), player.getBlockPosZ());
+                                 return 1;
+                             }
+                             case "cavern+" -> {
+                                 seed = world.rand.nextLong();
+//                           seed = 6160391524653987290L;
+                                 Debug.println("Using seed " + seed);
+                                 cg = new CaveNetworkGenerator(new CaveNetworkStub(0, 0, 64, 48, 64, seed, true, true, true));
+                                 cg.apply(world, player.getBlockPosX(), player.getFootBlockPosY(), player.getBlockPosZ());
+                                 return 1;
+                             }
+                             case "cavern!" -> {
+                                 CaveNetworkGenerator caveNetworkGenerator = new CaveNetworkGenerator(new CaveNetworkStub(-14, 29, 64, 48, 64, 2617667064333438329L, true, true, true));
+                                 caveNetworkGenerator.apply(world, player.getBlockPosX(), player.getFootBlockPosY(), player.getBlockPosZ());
+                                 return 1;
+                             }
+                             case "drill" -> {
+                                 for (i1 = 10; i1 < player.getFootBlockPosY(); ++i1) {
+                                     world.setBlockToAir(player.getBlockPosX(), i1, player.getBlockPosZ());
                                  }
-                              }
-                           }
 
-                           player.inventory.addItemStackToInventoryOrDropIt(new ItemStack(Item.flintAndSteel));
+                                 player.setPositionAndUpdate((double) player.getBlockPosX() + 0.5, 10.5, (double) player.getBlockPosZ() + 0.5);
+                                 i1 = player.getBlockPosX();
+                                 y = player.getBlockPosY();
+                                 z = player.getBlockPosZ();
+                                 radius = 5;
 
-                           for(dx_ = 0; dx_ < 4; ++dx_) {
-                              for(dy = 0; dy < 5; ++dy) {
-                                 if (dx_ == 0 || dx_ == 3 || dy == 0 || dy == 4) {
-                                    world.setBlock(i1 - 1 + dx_, y - 5 + dy, z - 5, Block.obsidian.blockID);
+                                 for (dx_ = -radius; dx_ <= radius; ++dx_) {
+                                     for (dy = -radius; dy <= radius; ++dy) {
+                                         for (dz = -radius; dz <= radius; ++dz) {
+                                             world.setBlockToAir(i1 + dx_, y + dy, z + dz);
+                                         }
+                                     }
                                  }
-                              }
-                           }
 
-                           return 1;
-                        }
+                                 player.inventory.addItemStackToInventoryOrDropIt(new ItemStack(Item.flintAndSteel));
 
-                        if (par2Str.equals("teleport")) {
-                           player.setPosition(-2404.5, 53.0, -613.5);
-                           return 1;
-                        }
+                                 for (dx_ = 0; dx_ < 4; ++dx_) {
+                                     for (dy = 0; dy < 5; ++dy) {
+                                         if (dx_ == 0 || dx_ == 3 || dy == 0 || dy == 4) {
+                                             world.setBlock(i1 - 1 + dx_, y - 5 + dy, z - 5, Block.obsidian.blockID);
+                                         }
+                                     }
+                                 }
 
-                        if (player.isZevimrgvInTournament() && par2Str.equals("see")) {
+                                 return 1;
+                             }
+                             case "teleport" -> {
+                                 player.setPosition(-2404.5, 53.0, -613.5);
+                                 return 1;
+                             }
+                         }
+
+                         if (player.isZevimrgvInTournament() && par2Str.equals("see")) {
                            player.sendPacket(new Packet85SimpleSignal(EnumSignal.see));
                            return 1;
                         }
