@@ -1131,8 +1131,9 @@ public final class RenderGlobal implements IWorldAccess {
       return (double)this.theWorld.provider.getCloudHeight() - viewer_pos_y + 0.33000001311302185 > -4.5;
    }
 
-   public void renderCloudsFancy_MITE(float par1) {
-      GL11.glShadeModel(7424);
+   public void renderCloudsFancy_MITE(float par1)
+   {
+      GL11.glShadeModel(GL11.GL_FLAT);
       Vec3 rgb = this.theWorld.getCloudColour(par1);
       float r = (float)rgb.xCoord;
       float g = (float)rgb.yCoord;
@@ -1148,32 +1149,42 @@ public final class RenderGlobal implements IWorldAccess {
       float var12 = this.theWorld.provider.getCloudHeight() - var2 + 0.33F;
       boolean player_can_see_cloud_tops = this.canViewerSeeCloudTopsFancy((double)var2);
       boolean player_can_see_cloud_bottoms = this.canViewerSeeCloudBottomsFancy((double)var2);
-      if (this.clouds_recompiling_step == 0) {
+
+      if (this.clouds_recompiling_step == 0)
+      {
          this.compileCloudsFancy(par1, var8, (double)var2, var10);
          this.clouds_recompiling_step = -1;
-      } else if (Math.abs(this.last_cloud_compile_x - var8) > 2.0 || Math.abs(this.last_cloud_compile_z - var10) > 2.0 || this.last_cloud_compile_has_cloud_tops != player_can_see_cloud_tops || this.last_cloud_compile_has_cloud_bottoms != player_can_see_cloud_bottoms) {
+      }
+      else if (Math.abs(this.last_cloud_compile_x - var8) > 2.0D || Math.abs(this.last_cloud_compile_z - var10) > 2.0D || this.last_cloud_compile_has_cloud_tops != player_can_see_cloud_tops || this.last_cloud_compile_has_cloud_bottoms != player_can_see_cloud_bottoms)
+      {
          this.clouds_recompiling_step = 0;
       }
 
-      if (player_can_see_cloud_tops && player_can_see_cloud_bottoms) {
-         GL11.glDisable(2884);
-      } else {
-         GL11.glEnable(2884);
+      if (player_can_see_cloud_tops && player_can_see_cloud_bottoms)
+      {
+         GL11.glDisable(GL11.GL_CULL_FACE);
+      }
+      else
+      {
+         GL11.glEnable(GL11.GL_CULL_FACE);
       }
 
-      GL11.glFogf(2915, -16.0F);
-      GL11.glFogf(2916, 384.0F);
+      GL11.glFogf(GL11.GL_FOG_START, -16.0F);
+      GL11.glFogf(GL11.GL_FOG_END, 384.0F);
       this.mc.entityRenderer.setupCameraTransform(par1, 0, true);
       GL11.glPushMatrix();
       GL11.glScalef(var4, 1.0F, var4);
       GL11.glTranslated(-(var8 - this.last_cloud_compile_x), (double)(-var2), -(var10 - this.last_cloud_compile_z));
       GL11.glCallList(this.clouds_display_list[0]);
-      if (this.last_cloud_compile_has_cloud_tops) {
+
+      if (this.last_cloud_compile_has_cloud_tops)
+      {
          GL11.glColor4f(r, g, b, 0.8F);
          GL11.glCallList(this.clouds_display_list[1]);
       }
 
-      if (this.last_cloud_compile_has_cloud_bottoms) {
+      if (this.last_cloud_compile_has_cloud_bottoms)
+      {
          GL11.glColor4f(r * 0.7F, g * 0.7F, b * 0.7F, 0.8F);
          GL11.glCallList(this.clouds_display_list[2]);
       }
@@ -1185,10 +1196,10 @@ public final class RenderGlobal implements IWorldAccess {
       GL11.glPopMatrix();
       GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
       this.mc.entityRenderer.setupCameraTransform(par1, 0, false);
-      GL11.glFogf(2915, 64.0F);
-      GL11.glFogf(2916, 256.0F);
-      GL11.glEnable(2884);
-      GL11.glShadeModel(7425);
+      GL11.glFogf(GL11.GL_FOG_START, 64.0F);
+      GL11.glFogf(GL11.GL_FOG_END, 256.0F);
+      GL11.glEnable(GL11.GL_CULL_FACE);
+      GL11.glShadeModel(GL11.GL_SMOOTH);
    }
 
    public void renderClouds(float par1) {
@@ -1301,44 +1312,47 @@ public final class RenderGlobal implements IWorldAccess {
       return false;
    }
 
-   public void renderCloudsFancy(float par1) {
-      GL11.glDisable(2884);
+   public void renderCloudsFancy(float par1)
+   {
+      GL11.glDisable(GL11.GL_CULL_FACE);
       float var2 = (float)(this.mc.renderViewEntity.lastTickPosY + (this.mc.renderViewEntity.posY - this.mc.renderViewEntity.lastTickPosY) * (double)par1);
       Tessellator var3 = Tessellator.instance;
       float var4 = 12.0F;
       float var5 = 4.0F;
       double var6 = (double)((float)this.cloudTickCounter + par1);
-      double var8 = (this.mc.renderViewEntity.prevPosX + (this.mc.renderViewEntity.posX - this.mc.renderViewEntity.prevPosX) * (double)par1 + var6 * 0.029999999329447746) / (double)var4;
-      double var10 = (this.mc.renderViewEntity.prevPosZ + (this.mc.renderViewEntity.posZ - this.mc.renderViewEntity.prevPosZ) * (double)par1) / (double)var4 + 0.33000001311302185;
+      double var8 = (this.mc.renderViewEntity.prevPosX + (this.mc.renderViewEntity.posX - this.mc.renderViewEntity.prevPosX) * (double)par1 + var6 * 0.029999999329447746D) / (double)var4;
+      double var10 = (this.mc.renderViewEntity.prevPosZ + (this.mc.renderViewEntity.posZ - this.mc.renderViewEntity.prevPosZ) * (double)par1) / (double)var4 + 0.33000001311302185D;
       float var12 = this.theWorld.provider.getCloudHeight() - var2 + 0.33F;
-      int var13 = MathHelper.floor_double(var8 / 2048.0);
-      int var14 = MathHelper.floor_double(var10 / 2048.0);
+      int var13 = MathHelper.floor_double(var8 / 2048.0D);
+      int var14 = MathHelper.floor_double(var10 / 2048.0D);
       var8 -= (double)(var13 * 2048);
       var10 -= (double)(var14 * 2048);
       this.renderEngine.bindTexture(locationCloudsPng);
-      GL11.glEnable(3042);
-      GL11.glBlendFunc(770, 771);
+      GL11.glEnable(GL11.GL_BLEND);
+      GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
       Vec3 var15 = this.theWorld.getCloudColour(par1);
       float var16 = (float)var15.xCoord;
       float var17 = (float)var15.yCoord;
       float var18 = (float)var15.zCoord;
       float var19;
-      float var21;
       float var20;
-      if (this.mc.gameSettings.anaglyph) {
+      float var21;
+
+      if (this.mc.gameSettings.anaglyph)
+      {
          var19 = (var16 * 30.0F + var17 * 59.0F + var18 * 11.0F) / 100.0F;
-         var20 = (var16 * 30.0F + var17 * 70.0F) / 100.0F;
-         var21 = (var16 * 30.0F + var18 * 70.0F) / 100.0F;
+         var21 = (var16 * 30.0F + var17 * 70.0F) / 100.0F;
+         var20 = (var16 * 30.0F + var18 * 70.0F) / 100.0F;
          var16 = var19;
-         var17 = var20;
-         var18 = var21;
+         var17 = var21;
+         var18 = var20;
       }
 
-      var19 = (float)(var8 * 0.0);
-      var20 = (float)(var10 * 0.0);
-      var21 = 0.00390625F;
-      var19 = (float)MathHelper.floor_double(var8) * var21;
-      var20 = (float)MathHelper.floor_double(var10) * var21;
+      var19 = (float)(var8 * 0.0D);
+      var21 = (float)(var10 * 0.0D);
+      var20 = 0.00390625F;
+      var19 = (float)MathHelper.floor_double(var8) * var20;
+      var21 = (float)MathHelper.floor_double(var10) * var20;
       float var22 = (float)(var8 - (double)MathHelper.floor_double(var8));
       float var23 = (float)(var10 - (double)MathHelper.floor_double(var10));
       byte var24 = 8;
@@ -1346,88 +1360,112 @@ public final class RenderGlobal implements IWorldAccess {
       float var26 = 9.765625E-4F;
       GL11.glScalef(var4, 1.0F, var4);
 
-      for(int var27 = 0; var27 < 2; ++var27) {
-         if (var27 == 0) {
+      for (int var27 = 0; var27 < 2; ++var27)
+      {
+         if (var27 == 0)
+         {
             GL11.glColorMask(false, false, false, false);
-         } else if (this.mc.gameSettings.anaglyph) {
-            if (EntityRenderer.anaglyphField == 0) {
+         }
+         else if (this.mc.gameSettings.anaglyph)
+         {
+            if (EntityRenderer.anaglyphField == 0)
+            {
                GL11.glColorMask(false, true, true, true);
-            } else {
+            }
+            else
+            {
                GL11.glColorMask(true, false, false, true);
             }
-         } else {
+         }
+         else
+         {
             GL11.glColorMask(true, true, true, true);
          }
 
-         for(int var28 = -var25 + 1; var28 <= var25; ++var28) {
-            for(int var29 = -var25 + 1; var29 <= var25; ++var29) {
+         for (int var28 = -var25 + 1; var28 <= var25; ++var28)
+         {
+            for (int var29 = -var25 + 1; var29 <= var25; ++var29)
+            {
                var3.startDrawingQuads();
                float var30 = (float)(var28 * var24);
                float var31 = (float)(var29 * var24);
                float var32 = var30 - var22;
                float var33 = var31 - var23;
-               if (var12 > -var5 - 1.0F) {
+
+               if (var12 > -var5 - 1.0F)
+               {
                   var3.setColorRGBA_F(var16 * 0.7F, var17 * 0.7F, var18 * 0.7F, 0.8F);
                   var3.setNormal(0.0F, -1.0F, 0.0F);
-                  var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var24), (double)((var30 + 0.0F) * var21 + var19), (double)((var31 + (float)var24) * var21 + var20));
-                  var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + 0.0F), (double)(var33 + (float)var24), (double)((var30 + (float)var24) * var21 + var19), (double)((var31 + (float)var24) * var21 + var20));
-                  var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + 0.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var24) * var21 + var19), (double)((var31 + 0.0F) * var21 + var20));
-                  var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + 0.0F), (double)((var30 + 0.0F) * var21 + var19), (double)((var31 + 0.0F) * var21 + var20));
+                  var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var24), (double)((var30 + 0.0F) * var20 + var19), (double)((var31 + (float)var24) * var20 + var21));
+                  var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + 0.0F), (double)(var33 + (float)var24), (double)((var30 + (float)var24) * var20 + var19), (double)((var31 + (float)var24) * var20 + var21));
+                  var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + 0.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var24) * var20 + var19), (double)((var31 + 0.0F) * var20 + var21));
+                  var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + 0.0F), (double)((var30 + 0.0F) * var20 + var19), (double)((var31 + 0.0F) * var20 + var21));
                }
 
-               if (var12 <= var5 + 1.0F) {
+               if (var12 <= var5 + 1.0F)
+               {
                   var3.setColorRGBA_F(var16, var17, var18, 0.8F);
                   var3.setNormal(0.0F, 1.0F, 0.0F);
-                  var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + var5 - var26), (double)(var33 + (float)var24), (double)((var30 + 0.0F) * var21 + var19), (double)((var31 + (float)var24) * var21 + var20));
-                  var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + var5 - var26), (double)(var33 + (float)var24), (double)((var30 + (float)var24) * var21 + var19), (double)((var31 + (float)var24) * var21 + var20));
-                  var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + var5 - var26), (double)(var33 + 0.0F), (double)((var30 + (float)var24) * var21 + var19), (double)((var31 + 0.0F) * var21 + var20));
-                  var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + var5 - var26), (double)(var33 + 0.0F), (double)((var30 + 0.0F) * var21 + var19), (double)((var31 + 0.0F) * var21 + var20));
+                  var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + var5 - var26), (double)(var33 + (float)var24), (double)((var30 + 0.0F) * var20 + var19), (double)((var31 + (float)var24) * var20 + var21));
+                  var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + var5 - var26), (double)(var33 + (float)var24), (double)((var30 + (float)var24) * var20 + var19), (double)((var31 + (float)var24) * var20 + var21));
+                  var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + var5 - var26), (double)(var33 + 0.0F), (double)((var30 + (float)var24) * var20 + var19), (double)((var31 + 0.0F) * var20 + var21));
+                  var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + var5 - var26), (double)(var33 + 0.0F), (double)((var30 + 0.0F) * var20 + var19), (double)((var31 + 0.0F) * var20 + var21));
                }
 
                var3.setColorRGBA_F(var16 * 0.9F, var17 * 0.9F, var18 * 0.9F, 0.8F);
                int var34;
-               if (var28 > -1) {
+
+               if (var28 > -1)
+               {
                   var3.setNormal(-1.0F, 0.0F, 0.0F);
 
-                  for(var34 = 0; var34 < var24; ++var34) {
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var24), (double)((var30 + (float)var34 + 0.5F) * var21 + var19), (double)((var31 + (float)var24) * var21 + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 0.0F), (double)(var12 + var5), (double)(var33 + (float)var24), (double)((var30 + (float)var34 + 0.5F) * var21 + var19), (double)((var31 + (float)var24) * var21 + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 0.0F), (double)(var12 + var5), (double)(var33 + 0.0F), (double)((var30 + (float)var34 + 0.5F) * var21 + var19), (double)((var31 + 0.0F) * var21 + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var34 + 0.5F) * var21 + var19), (double)((var31 + 0.0F) * var21 + var20));
+                  for (var34 = 0; var34 < var24; ++var34)
+                  {
+                     var3.addVertexWithUV((double)(var32 + (float)var34 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var24), (double)((var30 + (float)var34 + 0.5F) * var20 + var19), (double)((var31 + (float)var24) * var20 + var21));
+                     var3.addVertexWithUV((double)(var32 + (float)var34 + 0.0F), (double)(var12 + var5), (double)(var33 + (float)var24), (double)((var30 + (float)var34 + 0.5F) * var20 + var19), (double)((var31 + (float)var24) * var20 + var21));
+                     var3.addVertexWithUV((double)(var32 + (float)var34 + 0.0F), (double)(var12 + var5), (double)(var33 + 0.0F), (double)((var30 + (float)var34 + 0.5F) * var20 + var19), (double)((var31 + 0.0F) * var20 + var21));
+                     var3.addVertexWithUV((double)(var32 + (float)var34 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var34 + 0.5F) * var20 + var19), (double)((var31 + 0.0F) * var20 + var21));
                   }
                }
 
-               if (var28 <= 1) {
+               if (var28 <= 1)
+               {
                   var3.setNormal(1.0F, 0.0F, 0.0F);
 
-                  for(var34 = 0; var34 < var24; ++var34) {
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 1.0F - var26), (double)(var12 + 0.0F), (double)(var33 + (float)var24), (double)((var30 + (float)var34 + 0.5F) * var21 + var19), (double)((var31 + (float)var24) * var21 + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 1.0F - var26), (double)(var12 + var5), (double)(var33 + (float)var24), (double)((var30 + (float)var34 + 0.5F) * var21 + var19), (double)((var31 + (float)var24) * var21 + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 1.0F - var26), (double)(var12 + var5), (double)(var33 + 0.0F), (double)((var30 + (float)var34 + 0.5F) * var21 + var19), (double)((var31 + 0.0F) * var21 + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 1.0F - var26), (double)(var12 + 0.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var34 + 0.5F) * var21 + var19), (double)((var31 + 0.0F) * var21 + var20));
+                  for (var34 = 0; var34 < var24; ++var34)
+                  {
+                     var3.addVertexWithUV((double)(var32 + (float)var34 + 1.0F - var26), (double)(var12 + 0.0F), (double)(var33 + (float)var24), (double)((var30 + (float)var34 + 0.5F) * var20 + var19), (double)((var31 + (float)var24) * var20 + var21));
+                     var3.addVertexWithUV((double)(var32 + (float)var34 + 1.0F - var26), (double)(var12 + var5), (double)(var33 + (float)var24), (double)((var30 + (float)var34 + 0.5F) * var20 + var19), (double)((var31 + (float)var24) * var20 + var21));
+                     var3.addVertexWithUV((double)(var32 + (float)var34 + 1.0F - var26), (double)(var12 + var5), (double)(var33 + 0.0F), (double)((var30 + (float)var34 + 0.5F) * var20 + var19), (double)((var31 + 0.0F) * var20 + var21));
+                     var3.addVertexWithUV((double)(var32 + (float)var34 + 1.0F - var26), (double)(var12 + 0.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var34 + 0.5F) * var20 + var19), (double)((var31 + 0.0F) * var20 + var21));
                   }
                }
 
                var3.setColorRGBA_F(var16 * 0.8F, var17 * 0.8F, var18 * 0.8F, 0.8F);
-               if (var29 > -1) {
+
+               if (var29 > -1)
+               {
                   var3.setNormal(0.0F, 0.0F, -1.0F);
 
-                  for(var34 = 0; var34 < var24; ++var34) {
-                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + var5), (double)(var33 + (float)var34 + 0.0F), (double)((var30 + 0.0F) * var21 + var19), (double)((var31 + (float)var34 + 0.5F) * var21 + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + var5), (double)(var33 + (float)var34 + 0.0F), (double)((var30 + (float)var24) * var21 + var19), (double)((var31 + (float)var34 + 0.5F) * var21 + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + 0.0F), (double)(var33 + (float)var34 + 0.0F), (double)((var30 + (float)var24) * var21 + var19), (double)((var31 + (float)var34 + 0.5F) * var21 + var20));
-                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var34 + 0.0F), (double)((var30 + 0.0F) * var21 + var19), (double)((var31 + (float)var34 + 0.5F) * var21 + var20));
+                  for (var34 = 0; var34 < var24; ++var34)
+                  {
+                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + var5), (double)(var33 + (float)var34 + 0.0F), (double)((var30 + 0.0F) * var20 + var19), (double)((var31 + (float)var34 + 0.5F) * var20 + var21));
+                     var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + var5), (double)(var33 + (float)var34 + 0.0F), (double)((var30 + (float)var24) * var20 + var19), (double)((var31 + (float)var34 + 0.5F) * var20 + var21));
+                     var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + 0.0F), (double)(var33 + (float)var34 + 0.0F), (double)((var30 + (float)var24) * var20 + var19), (double)((var31 + (float)var34 + 0.5F) * var20 + var21));
+                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var34 + 0.0F), (double)((var30 + 0.0F) * var20 + var19), (double)((var31 + (float)var34 + 0.5F) * var20 + var21));
                   }
                }
 
-               if (var29 <= 1) {
+               if (var29 <= 1)
+               {
                   var3.setNormal(0.0F, 0.0F, 1.0F);
 
-                  for(var34 = 0; var34 < var24; ++var34) {
-                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + var5), (double)(var33 + (float)var34 + 1.0F - var26), (double)((var30 + 0.0F) * var21 + var19), (double)((var31 + (float)var34 + 0.5F) * var21 + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + var5), (double)(var33 + (float)var34 + 1.0F - var26), (double)((var30 + (float)var24) * var21 + var19), (double)((var31 + (float)var34 + 0.5F) * var21 + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + 0.0F), (double)(var33 + (float)var34 + 1.0F - var26), (double)((var30 + (float)var24) * var21 + var19), (double)((var31 + (float)var34 + 0.5F) * var21 + var20));
-                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var34 + 1.0F - var26), (double)((var30 + 0.0F) * var21 + var19), (double)((var31 + (float)var34 + 0.5F) * var21 + var20));
+                  for (var34 = 0; var34 < var24; ++var34)
+                  {
+                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + var5), (double)(var33 + (float)var34 + 1.0F - var26), (double)((var30 + 0.0F) * var20 + var19), (double)((var31 + (float)var34 + 0.5F) * var20 + var21));
+                     var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + var5), (double)(var33 + (float)var34 + 1.0F - var26), (double)((var30 + (float)var24) * var20 + var19), (double)((var31 + (float)var34 + 0.5F) * var20 + var21));
+                     var3.addVertexWithUV((double)(var32 + (float)var24), (double)(var12 + 0.0F), (double)(var33 + (float)var34 + 1.0F - var26), (double)((var30 + (float)var24) * var20 + var19), (double)((var31 + (float)var34 + 0.5F) * var20 + var21));
+                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var34 + 1.0F - var26), (double)((var30 + 0.0F) * var20 + var19), (double)((var31 + (float)var34 + 0.5F) * var20 + var21));
                   }
                }
 
@@ -1437,22 +1475,21 @@ public final class RenderGlobal implements IWorldAccess {
       }
 
       GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-      GL11.glDisable(3042);
-      GL11.glEnable(2884);
+      GL11.glDisable(GL11.GL_BLEND);
+      GL11.glEnable(GL11.GL_CULL_FACE);
    }
 
-   public void renderCloudSide(float par1, int side, double x, double z, boolean player_can_see_cloud_tops, boolean player_can_see_cloud_bottoms) {
+   public void renderCloudSide(float par1, int side, double x, double z, boolean player_can_see_cloud_tops, boolean player_can_see_cloud_bottoms)
+   {
       float var2 = 0.0F;
       Tessellator var3 = Tessellator.instance;
       float var5 = 4.0F;
       double var10000 = (double)((float)this.cloudTickCounter + par1);
-      double var8 = x;
-      double var10 = z;
       float var12 = this.theWorld.provider.getCloudHeight() - 0.0F + 0.33F;
-      int var13 = MathHelper.floor_double(var8 / 2048.0);
-      int var14 = MathHelper.floor_double(var10 / 2048.0);
-      var8 -= (double)(var13 * 2048);
-      var10 -= (double)(var14 * 2048);
+      int var13 = MathHelper.floor_double(x / 2048.0D);
+      int var14 = MathHelper.floor_double(z / 2048.0D);
+      double var8 = x - (double)(var13 * 2048);
+      double var10 = z - (double)(var14 * 2048);
       this.renderEngine.bindTexture(locationCloudsPng);
       Vec3 var15 = this.theWorld.getCloudColour(par1);
       float var16 = (float)var15.xCoord;
@@ -1463,19 +1500,30 @@ public final class RenderGlobal implements IWorldAccess {
       float var20 = (float)MathHelper.floor_double(var10) * 0.00390625F;
       float var22 = (float)(var8 - (double)MathHelper.floor_double(var8));
       float var23 = (float)(var10 - (double)MathHelper.floor_double(var10));
+      boolean var24 = true;
+      boolean var25 = true;
       float var26 = 9.765625E-4F;
       boolean first_pass = side == -1;
-      if (first_pass) {
-         GL11.glDisable(3042);
+
+      if (first_pass)
+      {
+         GL11.glDisable(GL11.GL_BLEND);
          GL11.glColorMask(false, false, false, false);
-      } else {
-         GL11.glEnable(3042);
-         GL11.glBlendFunc(770, 771);
+      }
+      else
+      {
+         GL11.glEnable(GL11.GL_BLEND);
+         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
          GL11.glColorMask(true, true, true, true);
       }
 
       var3.draw_in_groups = true;
       int[] rawBuffer = var3.rawBuffer;
+      boolean u0 = false;
+      boolean u1 = false;
+      boolean v0 = false;
+      boolean v1 = false;
+      boolean v2 = false;
       int cloud_top_y = Float.floatToRawIntBits(var12 + 4.0F);
       int cloud_bottom_y = Float.floatToRawIntBits(var12);
       int cloud_bottom_y_spaced = player_can_see_cloud_bottoms && player_can_see_cloud_tops ? cloud_bottom_y : Float.floatToRawIntBits(var12 - 0.01F);
@@ -1489,47 +1537,55 @@ public final class RenderGlobal implements IWorldAccess {
       float var31;
       float var32;
       float var33;
-      int u0;
-      int u1;
-      int v0;
-      int v2;
-      if (first_pass || side == 0) {
+      int var62;
+      int var63;
+      int var64;
+      int var65;
+
+      if (first_pass || side == 0)
+      {
          var3.startDrawingQuads();
          var3.hasTexture = true;
          GL11.glNormal3f(0.0F, 1.0F, 0.0F);
          int y1 = Float.floatToRawIntBits(var12 + 4.0F - 9.765625E-4F);
 
-         for(var28 = -5; var28 <= 5; ++var28) {
+         for (var28 = -5; var28 <= 5; ++var28)
+         {
             var30 = (float)(var28 * 8);
-            u0 = Float.floatToRawIntBits(var30 * 0.00390625F + var19);
-            u1 = Float.floatToRawIntBits((var30 + 8.0F) * 0.00390625F + var19);
+            var62 = Float.floatToRawIntBits(var30 * 0.00390625F + var19);
+            var63 = Float.floatToRawIntBits((var30 + 8.0F) * 0.00390625F + var19);
 
-            for(var29 = -5; var29 <= 5; ++var29) {
+            for (var29 = -5; var29 <= 5; ++var29)
+            {
                var31 = (float)(var29 * 8);
                var32 = var30 - var22;
                var33 = var31 - var23;
-               v0 = Float.floatToRawIntBits((var31 + 8.0F) * 0.00390625F + var20);
-               v2 = Float.floatToRawIntBits(var31 * 0.00390625F + var20);
+               var64 = Float.floatToRawIntBits((var31 + 8.0F) * 0.00390625F + var20);
+               var65 = Float.floatToRawIntBits(var31 * 0.00390625F + var20);
                x0 = Float.floatToRawIntBits(var32);
                x1 = Float.floatToRawIntBits(var32 + 8.0F);
                z0 = Float.floatToRawIntBits(var33 + 8.0F);
                z2 = Float.floatToRawIntBits(var33);
-               if (RenderingScheme.current == 0) {
+
+               if (RenderingScheme.current == 0)
+               {
                   var3.setColorRGBA_F(var16, var17, var18, 0.8F);
                   var3.setNormal(0.0F, 1.0F, 0.0F);
                   var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 4.0F - 9.765625E-4F), (double)(var33 + 8.0F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var31 + 8.0F) * 0.00390625F + var20));
                   var3.addVertexWithUV((double)(var32 + 8.0F), (double)(var12 + 4.0F - 9.765625E-4F), (double)(var33 + 8.0F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var31 + 8.0F) * 0.00390625F + var20));
                   var3.addVertexWithUV((double)(var32 + 8.0F), (double)(var12 + 4.0F - 9.765625E-4F), (double)(var33 + 0.0F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var31 + 0.0F) * 0.00390625F + var20));
                   var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 4.0F - 9.765625E-4F), (double)(var33 + 0.0F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var31 + 0.0F) * 0.00390625F + var20));
-               } else {
-                  rawBuffer[var3.rawBufferIndex + 3] = u0;
-                  rawBuffer[var3.rawBufferIndex + 11] = u1;
-                  rawBuffer[var3.rawBufferIndex + 19] = u1;
-                  rawBuffer[var3.rawBufferIndex + 27] = u0;
-                  rawBuffer[var3.rawBufferIndex + 4] = v0;
-                  rawBuffer[var3.rawBufferIndex + 12] = v0;
-                  rawBuffer[var3.rawBufferIndex + 20] = v2;
-                  rawBuffer[var3.rawBufferIndex + 28] = v2;
+               }
+               else
+               {
+                  rawBuffer[var3.rawBufferIndex + 3] = var62;
+                  rawBuffer[var3.rawBufferIndex + 11] = var63;
+                  rawBuffer[var3.rawBufferIndex + 19] = var63;
+                  rawBuffer[var3.rawBufferIndex + 27] = var62;
+                  rawBuffer[var3.rawBufferIndex + 4] = var64;
+                  rawBuffer[var3.rawBufferIndex + 12] = var64;
+                  rawBuffer[var3.rawBufferIndex + 20] = var65;
+                  rawBuffer[var3.rawBufferIndex + 28] = var65;
                   rawBuffer[var3.rawBufferIndex + 0] = x0;
                   rawBuffer[var3.rawBufferIndex + 8] = x1;
                   rawBuffer[var3.rawBufferIndex + 16] = x1;
@@ -1545,7 +1601,9 @@ public final class RenderGlobal implements IWorldAccess {
                   var3.rawBufferIndex += 32;
                   var3.addedVertices += 4;
                   var3.vertexCount += 4;
-                  if (var3.rawBufferIndex >= 2097120) {
+
+                  if (var3.rawBufferIndex >= 2097120)
+                  {
                      var3.draw();
                      var3.isDrawing = true;
                   }
@@ -1556,50 +1614,61 @@ public final class RenderGlobal implements IWorldAccess {
          var3.draw();
       }
 
-      if (first_pass || side == 1) {
+      if (first_pass || side == 1)
+      {
          var3.startDrawingQuads();
          var3.hasTexture = true;
          GL11.glNormal3f(0.0F, -1.0F, 0.0F);
 
-         for(var28 = -5; var28 <= 5; ++var28) {
+         for (var28 = -5; var28 <= 5; ++var28)
+         {
             var30 = (float)(var28 * 8);
-            u0 = Float.floatToRawIntBits(var30 * 0.00390625F + var19);
-            u1 = Float.floatToRawIntBits((var30 + 8.0F) * 0.00390625F + var19);
+            var62 = Float.floatToRawIntBits(var30 * 0.00390625F + var19);
+            var63 = Float.floatToRawIntBits((var30 + 8.0F) * 0.00390625F + var19);
 
-            for(var29 = -5; var29 <= 5; ++var29) {
-               boolean tight_bottom = var28 <= -3 || var28 >= 3 || var29 <= -3 || var29 >= 3;
+            for (var29 = -5; var29 <= 5; ++var29)
+            {
+               boolean var66 = var28 <= -3 || var28 >= 3 || var29 <= -3 || var29 >= 3;
                int y0;
-               if (tight_bottom) {
+
+               if (var66)
+               {
                   y0 = cloud_bottom_y;
-               } else {
+               }
+               else
+               {
                   y0 = cloud_bottom_y_spaced;
                }
 
                var32 = (float)(var29 * 8);
                var33 = var30 - var22;
-               float v1 = var32 - var23;
-               v0 = Float.floatToRawIntBits((var32 + 8.0F) * 0.00390625F + var20);
-               v2 = Float.floatToRawIntBits(var32 * 0.00390625F + var20);
-               x0 = Float.floatToRawIntBits(v1);
-               x1 = Float.floatToRawIntBits(v1 + 8.0F);
-               z0 = Float.floatToRawIntBits(v1 + 8.0F);
-               z2 = Float.floatToRawIntBits(v1);
-               if (RenderingScheme.current == 0) {
+               float var34 = var32 - var23;
+               var64 = Float.floatToRawIntBits((var32 + 8.0F) * 0.00390625F + var20);
+               var65 = Float.floatToRawIntBits(var32 * 0.00390625F + var20);
+               x0 = Float.floatToRawIntBits(var33);
+               x1 = Float.floatToRawIntBits(var33 + 8.0F);
+               z0 = Float.floatToRawIntBits(var34 + 8.0F);
+               z2 = Float.floatToRawIntBits(var34);
+
+               if (RenderingScheme.current == 0)
+               {
                   var3.setColorRGBA_F(var16 * 0.7F, var17 * 0.7F, var18 * 0.7F, 0.8F);
                   var3.setNormal(0.0F, -1.0F, 0.0F);
-                  var3.addVertexWithUV((double)(v1 + 0.0F), (double)(var12 + 0.0F), (double)(v1 + 0.0F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var32 + 0.0F) * 0.00390625F + var20));
-                  var3.addVertexWithUV((double)(v1 + 8.0F), (double)(var12 + 0.0F), (double)(v1 + 0.0F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var32 + 0.0F) * 0.00390625F + var20));
-                  var3.addVertexWithUV((double)(v1 + 8.0F), (double)(var12 + 0.0F), (double)(v1 + 8.0F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var32 + 8.0F) * 0.00390625F + var20));
-                  var3.addVertexWithUV((double)(v1 + 0.0F), (double)(var12 + 0.0F), (double)(v1 + 8.0F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var32 + 8.0F) * 0.00390625F + var20));
-               } else {
-                  rawBuffer[var3.rawBufferIndex + 3] = u0;
-                  rawBuffer[var3.rawBufferIndex + 11] = u0;
-                  rawBuffer[var3.rawBufferIndex + 19] = u1;
-                  rawBuffer[var3.rawBufferIndex + 27] = u1;
-                  rawBuffer[var3.rawBufferIndex + 4] = v0;
-                  rawBuffer[var3.rawBufferIndex + 12] = v2;
-                  rawBuffer[var3.rawBufferIndex + 20] = v2;
-                  rawBuffer[var3.rawBufferIndex + 28] = v0;
+                  var3.addVertexWithUV((double)(var33 + 0.0F), (double)(var12 + 0.0F), (double)(var34 + 0.0F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var32 + 0.0F) * 0.00390625F + var20));
+                  var3.addVertexWithUV((double)(var33 + 8.0F), (double)(var12 + 0.0F), (double)(var34 + 0.0F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var32 + 0.0F) * 0.00390625F + var20));
+                  var3.addVertexWithUV((double)(var33 + 8.0F), (double)(var12 + 0.0F), (double)(var34 + 8.0F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var32 + 8.0F) * 0.00390625F + var20));
+                  var3.addVertexWithUV((double)(var33 + 0.0F), (double)(var12 + 0.0F), (double)(var34 + 8.0F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var32 + 8.0F) * 0.00390625F + var20));
+               }
+               else
+               {
+                  rawBuffer[var3.rawBufferIndex + 3] = var62;
+                  rawBuffer[var3.rawBufferIndex + 11] = var62;
+                  rawBuffer[var3.rawBufferIndex + 19] = var63;
+                  rawBuffer[var3.rawBufferIndex + 27] = var63;
+                  rawBuffer[var3.rawBufferIndex + 4] = var64;
+                  rawBuffer[var3.rawBufferIndex + 12] = var65;
+                  rawBuffer[var3.rawBufferIndex + 20] = var65;
+                  rawBuffer[var3.rawBufferIndex + 28] = var64;
                   rawBuffer[var3.rawBufferIndex + 0] = x0;
                   rawBuffer[var3.rawBufferIndex + 8] = x0;
                   rawBuffer[var3.rawBufferIndex + 16] = x1;
@@ -1615,7 +1684,9 @@ public final class RenderGlobal implements IWorldAccess {
                   var3.rawBufferIndex += 32;
                   var3.addedVertices += 4;
                   var3.vertexCount += 4;
-                  if (var3.rawBufferIndex >= 2097120) {
+
+                  if (var3.rawBufferIndex >= 2097120)
+                  {
                      var3.draw();
                      var3.isDrawing = true;
                   }
@@ -1627,42 +1698,51 @@ public final class RenderGlobal implements IWorldAccess {
       }
 
       float z_plane;
-      int var34;
-      if (first_pass || side == 2) {
+      int var67;
+
+      if (first_pass || side == 2)
+      {
          var3.startDrawingQuads();
          var3.hasTexture = true;
          GL11.glNormal3f(-1.0F, 0.0F, 0.0F);
 
-         for(var28 = -1; var28 <= 5; ++var28) {
+         for (var28 = -1; var28 <= 5; ++var28)
+         {
             var30 = (float)(var28 * 8);
 
-            for(var29 = -5; var29 <= 5; ++var29) {
+            for (var29 = -5; var29 <= 5; ++var29)
+            {
                var31 = (float)(var29 * 8);
                var32 = var30 - var22;
                var33 = var31 - var23;
-               v0 = Float.floatToRawIntBits((var31 + 8.0F) * 0.00390625F + var20);
-               v2 = Float.floatToRawIntBits(var31 * 0.00390625F + var20);
+               var64 = Float.floatToRawIntBits((var31 + 8.0F) * 0.00390625F + var20);
+               var65 = Float.floatToRawIntBits(var31 * 0.00390625F + var20);
                z0 = Float.floatToRawIntBits(var33 + 8.0F);
                z2 = Float.floatToRawIntBits(var33);
 
-               for(var34 = 0; var34 < 8; ++var34) {
-                  z_plane = var32 + (float)var34;
-                  u0 = Float.floatToRawIntBits((var30 + (float)var34 + 0.5F) * 0.00390625F + var19);
+               for (var67 = 0; var67 < 8; ++var67)
+               {
+                  z_plane = var32 + (float)var67;
+                  var62 = Float.floatToRawIntBits((var30 + (float)var67 + 0.5F) * 0.00390625F + var19);
                   x0 = Float.floatToRawIntBits(z_plane);
-                  if (RenderingScheme.current == 0) {
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + 8.0F), (double)((var30 + (float)var34 + 0.5F) * 0.00390625F + var19), (double)((var31 + 8.0F) * 0.00390625F + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 0.0F), (double)(var12 + 4.0F), (double)(var33 + 8.0F), (double)((var30 + (float)var34 + 0.5F) * 0.00390625F + var19), (double)((var31 + 8.0F) * 0.00390625F + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 0.0F), (double)(var12 + 4.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var34 + 0.5F) * 0.00390625F + var19), (double)((var31 + 0.0F) * 0.00390625F + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var34 + 0.5F) * 0.00390625F + var19), (double)((var31 + 0.0F) * 0.00390625F + var20));
-                  } else {
-                     rawBuffer[var3.rawBufferIndex + 3] = u0;
-                     rawBuffer[var3.rawBufferIndex + 11] = u0;
-                     rawBuffer[var3.rawBufferIndex + 19] = u0;
-                     rawBuffer[var3.rawBufferIndex + 27] = u0;
-                     rawBuffer[var3.rawBufferIndex + 4] = v0;
-                     rawBuffer[var3.rawBufferIndex + 12] = v0;
-                     rawBuffer[var3.rawBufferIndex + 20] = v2;
-                     rawBuffer[var3.rawBufferIndex + 28] = v2;
+
+                  if (RenderingScheme.current == 0)
+                  {
+                     var3.addVertexWithUV((double)(var32 + (float)var67 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + 8.0F), (double)((var30 + (float)var67 + 0.5F) * 0.00390625F + var19), (double)((var31 + 8.0F) * 0.00390625F + var20));
+                     var3.addVertexWithUV((double)(var32 + (float)var67 + 0.0F), (double)(var12 + 4.0F), (double)(var33 + 8.0F), (double)((var30 + (float)var67 + 0.5F) * 0.00390625F + var19), (double)((var31 + 8.0F) * 0.00390625F + var20));
+                     var3.addVertexWithUV((double)(var32 + (float)var67 + 0.0F), (double)(var12 + 4.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var67 + 0.5F) * 0.00390625F + var19), (double)((var31 + 0.0F) * 0.00390625F + var20));
+                     var3.addVertexWithUV((double)(var32 + (float)var67 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var67 + 0.5F) * 0.00390625F + var19), (double)((var31 + 0.0F) * 0.00390625F + var20));
+                  }
+                  else
+                  {
+                     rawBuffer[var3.rawBufferIndex + 3] = var62;
+                     rawBuffer[var3.rawBufferIndex + 11] = var62;
+                     rawBuffer[var3.rawBufferIndex + 19] = var62;
+                     rawBuffer[var3.rawBufferIndex + 27] = var62;
+                     rawBuffer[var3.rawBufferIndex + 4] = var64;
+                     rawBuffer[var3.rawBufferIndex + 12] = var64;
+                     rawBuffer[var3.rawBufferIndex + 20] = var65;
+                     rawBuffer[var3.rawBufferIndex + 28] = var65;
                      rawBuffer[var3.rawBufferIndex + 0] = x0;
                      rawBuffer[var3.rawBufferIndex + 8] = x0;
                      rawBuffer[var3.rawBufferIndex + 16] = x0;
@@ -1678,7 +1758,9 @@ public final class RenderGlobal implements IWorldAccess {
                      var3.rawBufferIndex += 32;
                      var3.addedVertices += 4;
                      var3.vertexCount += 4;
-                     if (var3.rawBufferIndex >= 2097120) {
+
+                     if (var3.rawBufferIndex >= 2097120)
+                     {
                         var3.draw();
                         var3.isDrawing = true;
                      }
@@ -1690,41 +1772,49 @@ public final class RenderGlobal implements IWorldAccess {
          var3.draw();
       }
 
-      if (first_pass || side == 2) {
+      if (first_pass || side == 2)
+      {
          var3.startDrawingQuads();
          var3.hasTexture = true;
          GL11.glNormal3f(1.0F, 0.0F, 0.0F);
 
-         for(var28 = -5; var28 < 1; ++var28) {
+         for (var28 = -5; var28 < 1; ++var28)
+         {
             var30 = (float)(var28 * 8);
 
-            for(var29 = -5; var29 <= 5; ++var29) {
+            for (var29 = -5; var29 <= 5; ++var29)
+            {
                var31 = (float)(var29 * 8);
                var32 = var30 - var22;
                var33 = var31 - var23;
-               v0 = Float.floatToRawIntBits((var31 + 8.0F) * 0.00390625F + var20);
-               v2 = Float.floatToRawIntBits(var31 * 0.00390625F + var20);
+               var64 = Float.floatToRawIntBits((var31 + 8.0F) * 0.00390625F + var20);
+               var65 = Float.floatToRawIntBits(var31 * 0.00390625F + var20);
                z0 = Float.floatToRawIntBits(var33 + 8.0F);
                z2 = Float.floatToRawIntBits(var33);
 
-               for(var34 = 0; var34 < 8; ++var34) {
-                  z_plane = var32 + (float)var34 + 1.0F - 9.765625E-4F;
-                  u0 = Float.floatToRawIntBits((var30 + (float)var34 + 0.5F) * 0.00390625F + var19);
+               for (var67 = 0; var67 < 8; ++var67)
+               {
+                  z_plane = var32 + (float)var67 + 1.0F - 9.765625E-4F;
+                  var62 = Float.floatToRawIntBits((var30 + (float)var67 + 0.5F) * 0.00390625F + var19);
                   x0 = Float.floatToRawIntBits(z_plane);
-                  if (RenderingScheme.current == 0) {
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 1.0F - 9.765625E-4F), (double)(var12 + 0.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var34 + 0.5F) * 0.00390625F + var19), (double)((var31 + 0.0F) * 0.00390625F + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 1.0F - 9.765625E-4F), (double)(var12 + 4.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var34 + 0.5F) * 0.00390625F + var19), (double)((var31 + 0.0F) * 0.00390625F + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 1.0F - 9.765625E-4F), (double)(var12 + 4.0F), (double)(var33 + 8.0F), (double)((var30 + (float)var34 + 0.5F) * 0.00390625F + var19), (double)((var31 + 8.0F) * 0.00390625F + var20));
-                     var3.addVertexWithUV((double)(var32 + (float)var34 + 1.0F - 9.765625E-4F), (double)(var12 + 0.0F), (double)(var33 + 8.0F), (double)((var30 + (float)var34 + 0.5F) * 0.00390625F + var19), (double)((var31 + 8.0F) * 0.00390625F + var20));
-                  } else {
-                     rawBuffer[var3.rawBufferIndex + 3] = u0;
-                     rawBuffer[var3.rawBufferIndex + 11] = u0;
-                     rawBuffer[var3.rawBufferIndex + 19] = u0;
-                     rawBuffer[var3.rawBufferIndex + 27] = u0;
-                     rawBuffer[var3.rawBufferIndex + 4] = v0;
-                     rawBuffer[var3.rawBufferIndex + 12] = v2;
-                     rawBuffer[var3.rawBufferIndex + 20] = v2;
-                     rawBuffer[var3.rawBufferIndex + 28] = v0;
+
+                  if (RenderingScheme.current == 0)
+                  {
+                     var3.addVertexWithUV((double)(var32 + (float)var67 + 1.0F - 9.765625E-4F), (double)(var12 + 0.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var67 + 0.5F) * 0.00390625F + var19), (double)((var31 + 0.0F) * 0.00390625F + var20));
+                     var3.addVertexWithUV((double)(var32 + (float)var67 + 1.0F - 9.765625E-4F), (double)(var12 + 4.0F), (double)(var33 + 0.0F), (double)((var30 + (float)var67 + 0.5F) * 0.00390625F + var19), (double)((var31 + 0.0F) * 0.00390625F + var20));
+                     var3.addVertexWithUV((double)(var32 + (float)var67 + 1.0F - 9.765625E-4F), (double)(var12 + 4.0F), (double)(var33 + 8.0F), (double)((var30 + (float)var67 + 0.5F) * 0.00390625F + var19), (double)((var31 + 8.0F) * 0.00390625F + var20));
+                     var3.addVertexWithUV((double)(var32 + (float)var67 + 1.0F - 9.765625E-4F), (double)(var12 + 0.0F), (double)(var33 + 8.0F), (double)((var30 + (float)var67 + 0.5F) * 0.00390625F + var19), (double)((var31 + 8.0F) * 0.00390625F + var20));
+                  }
+                  else
+                  {
+                     rawBuffer[var3.rawBufferIndex + 3] = var62;
+                     rawBuffer[var3.rawBufferIndex + 11] = var62;
+                     rawBuffer[var3.rawBufferIndex + 19] = var62;
+                     rawBuffer[var3.rawBufferIndex + 27] = var62;
+                     rawBuffer[var3.rawBufferIndex + 4] = var64;
+                     rawBuffer[var3.rawBufferIndex + 12] = var65;
+                     rawBuffer[var3.rawBufferIndex + 20] = var65;
+                     rawBuffer[var3.rawBufferIndex + 28] = var64;
                      rawBuffer[var3.rawBufferIndex + 0] = x0;
                      rawBuffer[var3.rawBufferIndex + 8] = x0;
                      rawBuffer[var3.rawBufferIndex + 16] = x0;
@@ -1740,7 +1830,9 @@ public final class RenderGlobal implements IWorldAccess {
                      var3.rawBufferIndex += 32;
                      var3.addedVertices += 4;
                      var3.vertexCount += 4;
-                     if (var3.rawBufferIndex >= 2097120) {
+
+                     if (var3.rawBufferIndex >= 2097120)
+                     {
                         var3.draw();
                         var3.isDrawing = true;
                      }
@@ -1752,41 +1844,49 @@ public final class RenderGlobal implements IWorldAccess {
          var3.draw();
       }
 
-      if (first_pass || side == 3) {
+      if (first_pass || side == 3)
+      {
          var3.startDrawingQuads();
          var3.hasTexture = true;
          GL11.glNormal3f(0.0F, 0.0F, -1.0F);
 
-         for(var28 = -5; var28 <= 5; ++var28) {
+         for (var28 = -5; var28 <= 5; ++var28)
+         {
             var30 = (float)(var28 * 8);
-            u0 = Float.floatToRawIntBits(var30 * 0.00390625F + var19);
-            u1 = Float.floatToRawIntBits((var30 + 8.0F) * 0.00390625F + var19);
+            var62 = Float.floatToRawIntBits(var30 * 0.00390625F + var19);
+            var63 = Float.floatToRawIntBits((var30 + 8.0F) * 0.00390625F + var19);
 
-            for(var29 = -1; var29 <= 5; ++var29) {
+            for (var29 = -1; var29 <= 5; ++var29)
+            {
                var31 = (float)(var29 * 8);
                var32 = var30 - var22;
                var33 = var31 - var23;
                x0 = Float.floatToRawIntBits(var32);
                x1 = Float.floatToRawIntBits(var32 + 8.0F);
 
-               for(var34 = 0; var34 < 8; ++var34) {
-                  z_plane = var33 + (float)var34;
-                  v0 = Float.floatToRawIntBits((var31 + (float)var34 + 0.5F) * 0.00390625F + var20);
+               for (var67 = 0; var67 < 8; ++var67)
+               {
+                  z_plane = var33 + (float)var67;
+                  var64 = Float.floatToRawIntBits((var31 + (float)var67 + 0.5F) * 0.00390625F + var20);
                   z0 = Float.floatToRawIntBits(z_plane);
-                  if (RenderingScheme.current == 0) {
-                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 4.0F), (double)(var33 + (float)var34 + 0.0F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var31 + (float)var34 + 0.5F) * 0.00390625F + var20));
-                     var3.addVertexWithUV((double)(var32 + 8.0F), (double)(var12 + 4.0F), (double)(var33 + (float)var34 + 0.0F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var31 + (float)var34 + 0.5F) * 0.00390625F + var20));
-                     var3.addVertexWithUV((double)(var32 + 8.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var34 + 0.0F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var31 + (float)var34 + 0.5F) * 0.00390625F + var20));
-                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var34 + 0.0F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var31 + (float)var34 + 0.5F) * 0.00390625F + var20));
-                  } else {
-                     rawBuffer[var3.rawBufferIndex + 3] = u0;
-                     rawBuffer[var3.rawBufferIndex + 11] = u1;
-                     rawBuffer[var3.rawBufferIndex + 19] = u1;
-                     rawBuffer[var3.rawBufferIndex + 27] = u0;
-                     rawBuffer[var3.rawBufferIndex + 4] = v0;
-                     rawBuffer[var3.rawBufferIndex + 12] = v0;
-                     rawBuffer[var3.rawBufferIndex + 20] = v0;
-                     rawBuffer[var3.rawBufferIndex + 28] = v0;
+
+                  if (RenderingScheme.current == 0)
+                  {
+                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 4.0F), (double)(var33 + (float)var67 + 0.0F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var31 + (float)var67 + 0.5F) * 0.00390625F + var20));
+                     var3.addVertexWithUV((double)(var32 + 8.0F), (double)(var12 + 4.0F), (double)(var33 + (float)var67 + 0.0F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var31 + (float)var67 + 0.5F) * 0.00390625F + var20));
+                     var3.addVertexWithUV((double)(var32 + 8.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var67 + 0.0F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var31 + (float)var67 + 0.5F) * 0.00390625F + var20));
+                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var67 + 0.0F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var31 + (float)var67 + 0.5F) * 0.00390625F + var20));
+                  }
+                  else
+                  {
+                     rawBuffer[var3.rawBufferIndex + 3] = var62;
+                     rawBuffer[var3.rawBufferIndex + 11] = var63;
+                     rawBuffer[var3.rawBufferIndex + 19] = var63;
+                     rawBuffer[var3.rawBufferIndex + 27] = var62;
+                     rawBuffer[var3.rawBufferIndex + 4] = var64;
+                     rawBuffer[var3.rawBufferIndex + 12] = var64;
+                     rawBuffer[var3.rawBufferIndex + 20] = var64;
+                     rawBuffer[var3.rawBufferIndex + 28] = var64;
                      rawBuffer[var3.rawBufferIndex + 0] = x0;
                      rawBuffer[var3.rawBufferIndex + 8] = x1;
                      rawBuffer[var3.rawBufferIndex + 16] = x1;
@@ -1802,7 +1902,9 @@ public final class RenderGlobal implements IWorldAccess {
                      var3.rawBufferIndex += 32;
                      var3.addedVertices += 4;
                      var3.vertexCount += 4;
-                     if (var3.rawBufferIndex >= 2097120) {
+
+                     if (var3.rawBufferIndex >= 2097120)
+                     {
                         var3.draw();
                         var3.isDrawing = true;
                      }
@@ -1814,41 +1916,49 @@ public final class RenderGlobal implements IWorldAccess {
          var3.draw();
       }
 
-      if (first_pass || side == 3) {
+      if (first_pass || side == 3)
+      {
          var3.startDrawingQuads();
          var3.hasTexture = true;
          GL11.glNormal3f(0.0F, 0.0F, 1.0F);
 
-         for(var28 = -5; var28 <= 5; ++var28) {
+         for (var28 = -5; var28 <= 5; ++var28)
+         {
             var30 = (float)(var28 * 8);
-            u0 = Float.floatToRawIntBits(var30 * 0.00390625F + var19);
-            u1 = Float.floatToRawIntBits((var30 + 8.0F) * 0.00390625F + var19);
+            var62 = Float.floatToRawIntBits(var30 * 0.00390625F + var19);
+            var63 = Float.floatToRawIntBits((var30 + 8.0F) * 0.00390625F + var19);
 
-            for(var29 = -5; var29 < 1; ++var29) {
+            for (var29 = -5; var29 < 1; ++var29)
+            {
                var31 = (float)(var29 * 8);
                var32 = var30 - var22;
                var33 = var31 - var23;
                x0 = Float.floatToRawIntBits(var32);
                x1 = Float.floatToRawIntBits(var32 + 8.0F);
 
-               for(var34 = 0; var34 < 8; ++var34) {
-                  z_plane = var33 + (float)var34 + 1.0F - 9.765625E-4F;
-                  v0 = Float.floatToRawIntBits((var31 + (float)var34 + 0.5F) * 0.00390625F + var20);
+               for (var67 = 0; var67 < 8; ++var67)
+               {
+                  z_plane = var33 + (float)var67 + 1.0F - 9.765625E-4F;
+                  var64 = Float.floatToRawIntBits((var31 + (float)var67 + 0.5F) * 0.00390625F + var20);
                   z0 = Float.floatToRawIntBits(z_plane);
-                  if (RenderingScheme.current == 0) {
-                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var34 + 1.0F - 9.765625E-4F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var31 + (float)var34 + 0.5F) * 0.00390625F + var20));
-                     var3.addVertexWithUV((double)(var32 + 8.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var34 + 1.0F - 9.765625E-4F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var31 + (float)var34 + 0.5F) * 0.00390625F + var20));
-                     var3.addVertexWithUV((double)(var32 + 8.0F), (double)(var12 + 4.0F), (double)(var33 + (float)var34 + 1.0F - 9.765625E-4F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var31 + (float)var34 + 0.5F) * 0.00390625F + var20));
-                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 4.0F), (double)(var33 + (float)var34 + 1.0F - 9.765625E-4F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var31 + (float)var34 + 0.5F) * 0.00390625F + var20));
-                  } else {
-                     rawBuffer[var3.rawBufferIndex + 3] = u0;
-                     rawBuffer[var3.rawBufferIndex + 11] = u0;
-                     rawBuffer[var3.rawBufferIndex + 19] = u1;
-                     rawBuffer[var3.rawBufferIndex + 27] = u1;
-                     rawBuffer[var3.rawBufferIndex + 4] = v0;
-                     rawBuffer[var3.rawBufferIndex + 12] = v0;
-                     rawBuffer[var3.rawBufferIndex + 20] = v0;
-                     rawBuffer[var3.rawBufferIndex + 28] = v0;
+
+                  if (RenderingScheme.current == 0)
+                  {
+                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var67 + 1.0F - 9.765625E-4F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var31 + (float)var67 + 0.5F) * 0.00390625F + var20));
+                     var3.addVertexWithUV((double)(var32 + 8.0F), (double)(var12 + 0.0F), (double)(var33 + (float)var67 + 1.0F - 9.765625E-4F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var31 + (float)var67 + 0.5F) * 0.00390625F + var20));
+                     var3.addVertexWithUV((double)(var32 + 8.0F), (double)(var12 + 4.0F), (double)(var33 + (float)var67 + 1.0F - 9.765625E-4F), (double)((var30 + 8.0F) * 0.00390625F + var19), (double)((var31 + (float)var67 + 0.5F) * 0.00390625F + var20));
+                     var3.addVertexWithUV((double)(var32 + 0.0F), (double)(var12 + 4.0F), (double)(var33 + (float)var67 + 1.0F - 9.765625E-4F), (double)((var30 + 0.0F) * 0.00390625F + var19), (double)((var31 + (float)var67 + 0.5F) * 0.00390625F + var20));
+                  }
+                  else
+                  {
+                     rawBuffer[var3.rawBufferIndex + 3] = var62;
+                     rawBuffer[var3.rawBufferIndex + 11] = var62;
+                     rawBuffer[var3.rawBufferIndex + 19] = var63;
+                     rawBuffer[var3.rawBufferIndex + 27] = var63;
+                     rawBuffer[var3.rawBufferIndex + 4] = var64;
+                     rawBuffer[var3.rawBufferIndex + 12] = var64;
+                     rawBuffer[var3.rawBufferIndex + 20] = var64;
+                     rawBuffer[var3.rawBufferIndex + 28] = var64;
                      rawBuffer[var3.rawBufferIndex + 0] = x0;
                      rawBuffer[var3.rawBufferIndex + 8] = x0;
                      rawBuffer[var3.rawBufferIndex + 16] = x1;
@@ -1864,7 +1974,9 @@ public final class RenderGlobal implements IWorldAccess {
                      var3.rawBufferIndex += 32;
                      var3.addedVertices += 4;
                      var3.vertexCount += 4;
-                     if (var3.rawBufferIndex >= 2097120) {
+
+                     if (var3.rawBufferIndex >= 2097120)
+                     {
                         var3.draw();
                         var3.isDrawing = true;
                      }
@@ -1877,7 +1989,7 @@ public final class RenderGlobal implements IWorldAccess {
       }
 
       var3.draw_in_groups = true;
-      GL11.glDisable(3042);
+      GL11.glDisable(GL11.GL_BLEND);
    }
 
    public boolean updateRenderers(EntityLivingBase par1EntityLivingBase, boolean par2) {
