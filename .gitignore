@@ -2,4 +2,7 @@
 /out/
 /runtime/
 /.idea/
-MITE-UltimateElement.jar
+/1.6.4-MITE.jar
+/libs
+/resources
+/run
