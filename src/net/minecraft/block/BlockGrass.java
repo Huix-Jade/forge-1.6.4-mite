@@ -108,7 +108,7 @@ public final class BlockGrass extends Block {
       int attempts;
       if (block_light_value < 4) {
          attempts = world.getBlockId(x, y + 1, z);
-         if (lightOpacity[attempts] > 2) {
+         if (world.getBlockLightOpacity(x, y + 1, z) > 2) {
             Block block_above = Block.getBlock(attempts);
             if (block_above != blockSnow && block_above != ice) {
                return world.setBlock(x, y, z, dirt.blockID);
@@ -122,7 +122,8 @@ public final class BlockGrass extends Block {
             if (this.isLegalAt(world, try_x, try_y, try_z, 0)) {
                int block_above_id = world.getBlockId(try_x, try_y + 1, try_z);
                Block block = Block.blocksList[world.getBlockId(try_x, try_y, try_z)];
-               if ((block == Block.dirt || block == Block.grass) && world.getBlockLightValue(try_x, try_y + 1, try_z) >= 4 && Block.lightOpacity[block_above_id] <= 2) {
+               if ((block == Block.dirt || block == Block.grass) && world.getBlockLightValue(try_x, try_y + 1, try_z) >= 4
+                       && world.getBlockLightOpacity(try_x, try_y + 1, try_z) <= 2) {
                   if (block == Block.grass) {
                      if (((WorldServer)world).fast_forwarding) {
                         return false;

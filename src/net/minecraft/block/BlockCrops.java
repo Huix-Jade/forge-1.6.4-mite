@@ -1,5 +1,6 @@
 package net.minecraft.block;
 
+import java.util.ArrayList;
 import java.util.Random;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.creativetab.CreativeTabs;
@@ -12,6 +13,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.ForgeDirection;
 
 public class BlockCrops extends BlockGrowingPlant {
    protected int num_growth_stages;
@@ -115,10 +118,14 @@ public class BlockCrops extends BlockGrowingPlant {
 
                   if (rand.nextInt((int)(25.0F / growth_rate) + 1) == 0) {
                      world.setBlockMetadataWithNotify(x, y, z, this.incrementGrowth(metadata), 2);
-                     if (rand.nextInt(256) == 0 && Block.blocksList[world.getBlockId(x, y - 1, z)] == Block.tilledField) {
-                        metadata = world.getBlockMetadata(x, y - 1, z);
-                        if (BlockFarmland.isFertilized(metadata)) {
-                           world.setBlockMetadataWithNotify(x, y - 1, z, BlockFarmland.setFertilized(metadata, false), 2);
+                     int blockId = world.getBlockId(x, y - 1, z);
+                     if (rand.nextInt(256) == 0 ) {
+                        if (blocksList[blockId] != null
+                                && blocksList[blockId].canSustainPlant(world, x, y - 1, z, ForgeDirection.UP, this)) {
+                           metadata = world.getBlockMetadata(x, y - 1, z);
+                           if (BlockFarmland.isFertilized(metadata)) {
+                              world.setBlockMetadataWithNotify(x, y - 1, z, BlockFarmland.setFertilized(metadata, false), 2);
+                           }
                         }
                      }
 
@@ -377,5 +384,20 @@ public class BlockCrops extends BlockGrowingPlant {
 
    public static void playCropPopSound(BlockBreakInfo info) {
       info.playSoundEffectAtBlock("random.pop", 0.05F, ((info.world.rand.nextFloat() - info.world.rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+   }
+
+   @Override
+   public EnumPlantType getPlantType(World world, int x, int y, int z) {
+      return EnumPlantType.Crop;
+   }
+
+   @Override
+   public int getPlantID(World world, int x, int y, int z) {
+      return EnumPlantType.Crop.ordinal();
+   }
+
+   @Override
+   public int getPlantMetadata(World world, int x, int y, int z) {
+      return this.getDefaultMetadata(world, x, y, z);
    }
 }

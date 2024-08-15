@@ -17,6 +17,9 @@ import net.minecraft.util.EnumFace;
 import net.minecraft.world.EnumGameType;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.event.ForgeEventFactory;
+
+import java.util.ArrayList;
 
 public class ItemInWorldManager {
    public World theWorld;
@@ -175,8 +178,15 @@ public class ItemInWorldManager {
                      if (block_was_removed && player_can_damage_block) {
                         this.thisPlayerMP.addStat(StatList.mineBlockStatArray[block.blockID], 1);
                         if (block_break_info.wasSilkHarvested()) {
+                           ArrayList<ItemStack> items = new ArrayList<ItemStack>();
+                           items.add(new ItemStack(block));
+                           ForgeEventFactory.fireBlockHarvesting(items, block_break_info);
                            block.dropBlockAsItself(block_break_info);
+
                         } else {
+                           ArrayList<ItemStack> items = new ArrayList<>();
+                           items.add(new ItemStack(block));
+                           ForgeEventFactory.fireBlockHarvesting(items, block_break_info);
                            block.dropBlockAsEntityItem(block_break_info);
                         }
 

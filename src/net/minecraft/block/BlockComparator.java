@@ -213,4 +213,17 @@ public class BlockComparator extends BlockRedstoneLogic implements ITileEntityPr
       metadata |= direction.isSouth() ? 0 : (direction.isWest() ? 1 : (direction.isNorth() ? 2 : (direction.isEast() ? 3 : -1)));
       return metadata;
    }
+
+   @Override
+   public void onNeighborTileChange(World world, int x, int y, int z, int tileX, int tileY, int tileZ)
+   {
+      if(y == tileY)
+         onNeighborBlockChange(world, x, y, z, world.getBlockId(tileX, tileY, tileZ));
+   }
+
+   @Override
+   public boolean weakTileChanges()
+   {
+      return true;
+   }
 }

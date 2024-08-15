@@ -17,6 +17,8 @@ import net.minecraft.util.EnumFace;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.IPlantable;
 
 public final class BlockFarmland extends Block {
    private Icon[] icon_array;
@@ -149,10 +151,17 @@ public final class BlockFarmland extends Block {
 
    public boolean isLegalAt(World world, int x, int y, int z, int metadata) {
       Block block_above = world.getBlockWithRefreshedBounds(x, y + 1, z);
+
+      if (block_above instanceof IPlantable && canSustainPlant(world, x, y, z, ForgeDirection.UP, (IPlantable)block_above)) {
+         return true;
+      }
+
       if (block_above instanceof BlockBush) {
          return false;
       } else {
-         return block_above == null || block_above instanceof BlockGrowingPlant || block_above == Block.mushroomBrown || block_above.minY[Minecraft.getThreadIndex()] > 0.0;
+         return block_above == null || block_above instanceof BlockGrowingPlant
+                 || block_above == Block.mushroomBrown
+                 || block_above.minY[Minecraft.getThreadIndex()] > 0.0;
       }
    }
 

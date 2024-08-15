@@ -15,8 +15,10 @@ import net.minecraft.util.EnumFace;
 import net.minecraft.util.Icon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.IPlantable;
 
-public final class BlockCactus extends Block {
+public final class BlockCactus extends Block implements IPlantable {
    private Icon cactusTopIcon;
    private Icon cactusBottomIcon;
 
@@ -94,7 +96,8 @@ public final class BlockCactus extends Block {
    }
 
    public boolean isLegalAt(World world, int x, int y, int z, int metadata) {
-      if (!world.getNeighborBlockMaterial(x, y, z, EnumFace.WEST).isSolid() && !world.getNeighborBlockMaterial(x, y, z, EnumFace.EAST).isSolid() && !world.getNeighborBlockMaterial(x, y, z, EnumFace.NORTH).isSolid() && !world.getNeighborBlockMaterial(x, y, z, EnumFace.SOUTH).isSolid()) {
+      if (!world.getNeighborBlockMaterial(x, y, z, EnumFace.WEST).isSolid() && !world.getNeighborBlockMaterial(x, y, z, EnumFace.EAST).isSolid()
+              && !world.getNeighborBlockMaterial(x, y, z, EnumFace.NORTH).isSolid() && !world.getNeighborBlockMaterial(x, y, z, EnumFace.SOUTH).isSolid()) {
          int new_height = 1;
          int dy = 0;
 
@@ -113,6 +116,24 @@ public final class BlockCactus extends Block {
 
    public boolean isLegalOn(int metadata, Block block_below, int block_below_metadata) {
       return block_below == cactus || block_below == sand;
+   }
+
+   @Override
+   public EnumPlantType getPlantType(World world, int x, int y, int z)
+   {
+      return EnumPlantType.Desert;
+   }
+
+   @Override
+   public int getPlantID(World world, int x, int y, int z)
+   {
+      return blockID;
+   }
+
+   @Override
+   public int getPlantMetadata(World world, int x, int y, int z)
+   {
+      return -1;
    }
 
    public boolean onNotLegal(World world, int x, int y, int z, int metadata) {

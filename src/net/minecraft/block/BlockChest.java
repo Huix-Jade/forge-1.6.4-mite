@@ -25,6 +25,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.StringHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeDirection;
 
 public class BlockChest extends BlockDirectionalWithTileEntity {
    private final Random random = new Random();
@@ -295,15 +296,24 @@ public class BlockChest extends BlockDirectionalWithTileEntity {
       Object var5 = (TileEntityChest)par1World.getBlockTileEntity(par2, par3, par4);
       if (var5 == null) {
          return null;
-      } else if (par1World.isBlockNormalCube(par2, par3 + 1, par4)) {
+      } else if (par1World.isBlockSolidOnSide(par2, par3 + 1, par4, ForgeDirection.DOWN)) {
          return null;
       } else if (isOcelotBlockingChest(par1World, par2, par3, par4)) {
          return null;
-      } else if (par1World.getBlockId(par2 - 1, par3, par4) == this.blockID && (par1World.isBlockNormalCube(par2 - 1, par3 + 1, par4) || isOcelotBlockingChest(par1World, par2 - 1, par3, par4))) {
+      }
+      else if (par1World.getBlockId(par2 - 1, par3, par4) == this.blockID && (par1World.isBlockSolidOnSide(par2 - 1, par3 + 1, par4, DOWN) || isOcelotBlockingChest(par1World, par2 - 1, par3, par4)))
+      {
          return null;
-      } else if (par1World.getBlockId(par2 + 1, par3, par4) == this.blockID && (par1World.isBlockNormalCube(par2 + 1, par3 + 1, par4) || isOcelotBlockingChest(par1World, par2 + 1, par3, par4))) {
+      }
+      else if (par1World.getBlockId(par2 + 1, par3, par4) == this.blockID && (par1World.isBlockSolidOnSide(par2 + 1, par3 + 1, par4, DOWN) || isOcelotBlockingChest(par1World, par2 + 1, par3, par4)))
+      {
          return null;
-      } else if (par1World.getBlockId(par2, par3, par4 - 1) != this.blockID || !par1World.isBlockNormalCube(par2, par3 + 1, par4 - 1) && !isOcelotBlockingChest(par1World, par2, par3, par4 - 1)) {
+      }
+      else if (par1World.getBlockId(par2, par3, par4 - 1) == this.blockID && (par1World.isBlockSolidOnSide(par2, par3 + 1, par4 - 1, DOWN) || isOcelotBlockingChest(par1World, par2, par3, par4 - 1)))
+      {
+         return null;
+      }
+      else if (par1World.getBlockId(par2, par3, par4 + 1) == this.blockID && (par1World.isBlockSolidOnSide(par2, par3 + 1, par4 + 1, DOWN) || isOcelotBlockingChest(par1World, par2, par3, par4 + 1))) {
          if (par1World.getBlockId(par2, par3, par4 + 1) != this.blockID || !par1World.isBlockNormalCube(par2, par3 + 1, par4 + 1) && !isOcelotBlockingChest(par1World, par2, par3, par4 + 1)) {
             if (this instanceof BlockStrongbox) {
                return (IInventory)var5;
@@ -326,8 +336,8 @@ public class BlockChest extends BlockDirectionalWithTileEntity {
 
                return (IInventory)var5;
             }
-         } else {
-            return null;
+      } else {
+         return null;
          }
       } else {
          return null;

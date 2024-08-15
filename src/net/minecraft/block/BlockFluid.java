@@ -44,7 +44,7 @@ public abstract class BlockFluid extends Block {
 
          for(int var8 = -1; var8 <= 1; ++var8) {
             for(int var9 = -1; var9 <= 1; ++var9) {
-               int var10 = par1IBlockAccess.getBiomeGenForCoords(par2 + var9, par4 + var8).waterColorMultiplier;
+               int var10 = par1IBlockAccess.getBiomeGenForCoords(par2 + var9, par4 + var8).getWaterColorMultiplier();
                var5 += (var10 & 16711680) >> 16;
                var6 += (var10 & '\uff00') >> 8;
                var7 += var10 & 255;

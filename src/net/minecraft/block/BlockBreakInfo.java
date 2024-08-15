@@ -42,6 +42,8 @@ public class BlockBreakInfo {
    private AxisAlignedBB drop_bounds;
    private static AxisAlignedBB drop_bounds_default = AxisAlignedBB.getBoundingBox(0.0, 0.0, 0.0, 1.0, 1.0, 1.0).scale(0.5);
 
+   public float chance = 1.0F;
+
    public BlockBreakInfo(World world, int x, int y, int z) {
       if (world.isRemote) {
          Minecraft.setErrorMessage("BlockBreakInfo: Why creating this object on client?", true);
@@ -72,6 +74,7 @@ public class BlockBreakInfo {
       this.block = Block.getBlock(block_id);
       this.metadata = metadata;
    }
+
 
    public BlockBreakInfo setMetadata(int metadata) {
       this.metadata = metadata;

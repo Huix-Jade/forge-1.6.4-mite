@@ -14,6 +14,8 @@ public class BlockBaseRailLogic {
    private List railChunkPosition;
    final BlockRailBase theRail;
 
+   private final boolean canMakeSlopes;
+
    public BlockBaseRailLogic(BlockRailBase par1BlockRailBase, World par2World, int par3, int par4, int par5) {
       this.theRail = par1BlockRailBase;
       this.railChunkPosition = new ArrayList();
@@ -22,13 +24,11 @@ public class BlockBaseRailLogic {
       this.railY = par4;
       this.railZ = par5;
       int var6 = par2World.getBlockId(par3, par4, par5);
-      int var7 = par2World.getBlockMetadata(par3, par4, par5);
-      if (((BlockRailBase)Block.blocksList[var6]).isPowered) {
-         this.isStraightRail = true;
-         var7 &= -9;
-      } else {
-         this.isStraightRail = false;
-      }
+
+      BlockRailBase target = (BlockRailBase)Block.blocksList[var6];
+      int var7 = target.getBasicRailMetadata(par2World, null, par3, par4, par5);
+      isStraightRail = !target.isFlexibleRail(par2World, par3, par4, par5);
+      canMakeSlopes = target.canMakeSlopes(par2World, par3, par4, par5);
 
       this.setBasicRail(var7);
    }
@@ -169,7 +169,7 @@ public class BlockBaseRailLogic {
          }
       }
 
-      if (var6 == 0) {
+      if (var6 == 0 && canMakeSlopes) {
          if (BlockRailBase.isRailBlockAt(this.logicWorld, this.railX, this.railY + 1, this.railZ - 1)) {
             var6 = 4;
          }
@@ -179,7 +179,7 @@ public class BlockBaseRailLogic {
          }
       }
 
-      if (var6 == 1) {
+      if (var6 == 1 && canMakeSlopes) {
          if (BlockRailBase.isRailBlockAt(this.logicWorld, this.railX + 1, this.railY + 1, this.railZ)) {
             var6 = 2;
          }
@@ -289,7 +289,7 @@ public class BlockBaseRailLogic {
          }
       }
 
-      if (var7 == 0) {
+      if (var7 == 0 && canMakeSlopes) {
          if (BlockRailBase.isRailBlockAt(this.logicWorld, this.railX, this.railY + 1, this.railZ - 1)) {
             var7 = 4;
          }
@@ -299,7 +299,7 @@ public class BlockBaseRailLogic {
          }
       }
 
-      if (var7 == 1) {
+      if (var7 == 1 && canMakeSlopes) {
          if (BlockRailBase.isRailBlockAt(this.logicWorld, this.railX + 1, this.railY + 1, this.railZ)) {
             var7 = 2;
          }

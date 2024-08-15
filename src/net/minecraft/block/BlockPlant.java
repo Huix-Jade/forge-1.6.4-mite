@@ -6,8 +6,9 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.EntityCow;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.IPlantable;
 
-public abstract class BlockPlant extends Block {
+public abstract class BlockPlant extends Block implements IPlantable {
    protected BlockPlant(int id, Material material) {
       this(id, material, (new BlockConstants()).setNeverHidesAdjacentFaces().setNotAlwaysLegal());
    }

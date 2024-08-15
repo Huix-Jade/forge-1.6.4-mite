@@ -5,7 +5,13 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.passive.EntityCow;
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.passive.EntitySheep;
+import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.IPlantable;
+import static net.minecraftforge.common.EnumPlantType.*;
 
 public class BlockFlower extends BlockPlant {
    protected BlockFlower(int id, Material material) {
@@ -36,5 +42,33 @@ public class BlockFlower extends BlockPlant {
 
    public int getPatchSize(BiomeGenBase biome) {
       return biome.isSwampBiome() ? 16 : 32;
+   }
+
+   @Override
+   public EnumPlantType getPlantType(World world, int x, int y, int z)
+   {
+      if (blockID == crops.blockID        ) return Crop;
+      if (blockID == deadBush.blockID     ) return Desert;
+      if (blockID == waterlily.blockID    ) return Water;
+      if (blockID == mushroomRed.blockID  ) return Cave;
+      if (blockID == mushroomBrown.blockID) return Cave;
+      if (blockID == netherStalk.blockID  ) return Nether;
+      if (blockID == sapling.blockID      ) return Plains;
+      if (blockID == melonStem.blockID    ) return Crop;
+      if (blockID == pumpkinStem.blockID  ) return Crop;
+      if (blockID == tallGrass.blockID    ) return Plains;
+      return Plains;
+   }
+
+   @Override
+   public int getPlantID(World world, int x, int y, int z)
+   {
+      return blockID;
+   }
+
+   @Override
+   public int getPlantMetadata(World world, int x, int y, int z)
+   {
+      return world.getBlockMetadata(x, y, z);
    }
 }

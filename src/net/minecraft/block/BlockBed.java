@@ -39,7 +39,7 @@ public final class BlockBed extends BlockDirectional implements IBlockWithPartne
       return metadata >= 0 && metadata < 4 || metadata >= 8 && metadata < 12;
    }
 
-   public final EnumDirection getDirectionFacing(int metadata) {
+   public EnumDirection getDirectionFacing(int metadata) {
       int direction = metadata & 3;
       if (direction == 0) {
          return EnumDirection.NORTH;
