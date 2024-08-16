@@ -11,18 +11,22 @@ import net.minecraft.client.renderer.tileentity.TileEntitySkullRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemArmor;
-import net.minecraft.item.ItemBow;
-import net.minecraft.item.ItemFishingRod;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.scoreboard.Score;
 import net.minecraft.scoreboard.ScoreObjective;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.EnumItemInUseAction;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.ForgeHooksClient;
+import net.minecraftforge.client.IItemRenderer;
+import net.minecraftforge.client.MinecraftForgeClient;
+import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.common.MinecraftForge;
 import org.lwjgl.opengl.GL11;
+
+import static net.minecraftforge.client.IItemRenderer.ItemRenderType.EQUIPPED;
+import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.BLOCK_3D;
 
 public class RenderPlayer extends RendererLivingEntity {
 	private static final ResourceLocation steveTextures = new ResourceLocation("textures/entity/steve.png");
@@ -39,12 +43,17 @@ public class RenderPlayer extends RendererLivingEntity {
 	}
 
 	protected int setArmorModel(AbstractClientPlayer par1AbstractClientPlayer, int par2, float par3) {
-		ItemStack var4 = par1AbstractClientPlayer.inventory.armorItemInSlot(3 - par2);
-		if (var4 != null) {
-			Item var5 = var4.getItem();
-			if (var5 instanceof ItemArmor) {
-				ItemArmor var6 = (ItemArmor)var5;
-				this.bindTexture(RenderBiped.func_110857_a(var6, par2));
+		ItemStack itemstack = par1AbstractClientPlayer.inventory.armorItemInSlot(3 - par2);
+		RenderPlayerEvent.SetArmorModel event = new RenderPlayerEvent.SetArmorModel(par1AbstractClientPlayer, this, 3 - par2, par3, itemstack);
+		MinecraftForge.EVENT_BUS.post(event);
+		if (event.result != -1)
+		{
+			return event.result;
+		}
+		if (itemstack != null) {
+			Item var5 = itemstack.getItem();
+			if (var5 instanceof ItemArmor var6) {
+				this.bindTexture(RenderBiped.getArmorResource(par1AbstractClientPlayer, itemstack, par2, null));
 				ModelBiped var7 = par2 == 2 ? this.modelArmor : this.modelArmorChestplate;
 				var7.bipedHead.showModel = par2 == 0;
 				var7.bipedHeadwear.showModel = par2 == 0;
@@ -53,18 +62,21 @@ public class RenderPlayer extends RendererLivingEntity {
 				var7.bipedLeftArm.showModel = par2 == 1;
 				var7.bipedRightLeg.showModel = par2 == 2 || par2 == 3;
 				var7.bipedLeftLeg.showModel = par2 == 2 || par2 == 3;
+				var7 = ForgeHooksClient.getArmorModel(par1AbstractClientPlayer, itemstack, par2, var7);
 				this.setRenderPassModel(var7);
 				var7.onGround = this.mainModel.onGround;
 				var7.isRiding = this.mainModel.isRiding;
 				var7.isChild = this.mainModel.isChild;
 				float var8 = 1.0F;
-				if (var6.getArmorMaterial() == Material.leather) {
-					int var9 = var6.getColor(var4);
+				//Move outside if to allow for more then just CLOTH
+				int var9 = var6.getColor(itemstack);
+				if (var9 != -1)
+				{
 					float var10 = (float)(var9 >> 16 & 255) / 255.0F;
 					float var11 = (float)(var9 >> 8 & 255) / 255.0F;
 					float var12 = (float)(var9 & 255) / 255.0F;
 					GL11.glColor3f(var8 * var10, var8 * var11, var8 * var12);
-					if (var4.isItemEnchanted()) {
+					if (itemstack.isItemEnchanted()) {
 						return 31;
 					}
 
@@ -72,7 +84,7 @@ public class RenderPlayer extends RendererLivingEntity {
 				}
 
 				GL11.glColor3f(var8, var8, var8);
-				if (var4.isItemEnchanted()) {
+				if (itemstack.isItemEnchanted()) {
 					return 15;
 				}
 
@@ -88,7 +100,7 @@ public class RenderPlayer extends RendererLivingEntity {
 		if (var4 != null) {
 			Item var5 = var4.getItem();
 			if (var5 instanceof ItemArmor) {
-				this.bindTexture(RenderBiped.func_110858_a((ItemArmor)var5, par2, "overlay"));
+				this.bindTexture(RenderBiped.getArmorResource(par1AbstractClientPlayer, var4, par2, "overlay"));
 				float var6 = 1.0F;
 				GL11.glColor3f(var6, var6, var6);
 			}
@@ -97,6 +109,7 @@ public class RenderPlayer extends RendererLivingEntity {
 	}
 
 	public void func_130009_a(AbstractClientPlayer par1AbstractClientPlayer, double par2, double par4, double par6, float par8, float par9) {
+		if (MinecraftForge.EVENT_BUS.post(new RenderPlayerEvent.Pre(par1AbstractClientPlayer, this, par9))) return;
 		float var10 = 1.0F;
 		GL11.glColor3f(var10, var10, var10);
 		ItemStack var11 = par1AbstractClientPlayer.inventory.getCurrentItemStack();
@@ -120,6 +133,7 @@ public class RenderPlayer extends RendererLivingEntity {
 		this.modelArmorChestplate.aimedBow = this.modelArmor.aimedBow = this.modelBipedMain.aimedBow = false;
 		this.modelArmorChestplate.isSneak = this.modelArmor.isSneak = this.modelBipedMain.isSneak = false;
 		this.modelArmorChestplate.heldItemRight = this.modelArmor.heldItemRight = this.modelBipedMain.heldItemRight = 0;
+		MinecraftForge.EVENT_BUS.post(new RenderPlayerEvent.Post(par1AbstractClientPlayer, this, par9));
 	}
 
 	protected ResourceLocation func_110817_a(AbstractClientPlayer par1AbstractClientPlayer) {
@@ -127,33 +141,44 @@ public class RenderPlayer extends RendererLivingEntity {
 	}
 
 	protected void renderSpecials(AbstractClientPlayer par1AbstractClientPlayer, float par2) {
+		RenderPlayerEvent.Specials.Pre event = new RenderPlayerEvent.Specials.Pre(par1AbstractClientPlayer, this, par2);
+		if (MinecraftForge.EVENT_BUS.post(event))
+		{
+			return;
+		}
+
 		float var3 = 1.0F;
 		GL11.glColor3f(var3, var3, var3);
 		super.renderEquippedItems(par1AbstractClientPlayer, par2);
 		super.renderArrowsStuckInEntity(par1AbstractClientPlayer, par2);
-		ItemStack var4 = par1AbstractClientPlayer.inventory.armorItemInSlot(3);
-		if (var4 != null) {
+		ItemStack itemstack = par1AbstractClientPlayer.inventory.armorItemInSlot(3);
+		if (itemstack != null && event.renderHelmet) {
 			GL11.glPushMatrix();
 			this.modelBipedMain.bipedHead.postRender(0.0625F);
 			float var5;
-			if (var4.getItem().itemID < 256) {
-				if (RenderBlocks.renderItemIn3d(Block.blocksList[var4.itemID].getRenderType())) {
+			if (itemstack != null && itemstack.getItem() instanceof ItemBlock)
+			{
+				IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(itemstack, EQUIPPED);
+				boolean is3D = (customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, itemstack, BLOCK_3D));
+
+				if (is3D || RenderBlocks.renderItemIn3d(Block.blocksList[itemstack.itemID].getRenderType()))
+				{
 					var5 = 0.625F;
 					GL11.glTranslatef(0.0F, -0.25F, 0.0F);
 					GL11.glRotatef(90.0F, 0.0F, 1.0F, 0.0F);
 					GL11.glScalef(var5, -var5, -var5);
 				}
 
-				this.renderManager.itemRenderer.renderItem(par1AbstractClientPlayer, var4, 0);
-			} else if (var4.getItem().itemID == Item.skull.itemID) {
+				this.renderManager.itemRenderer.renderItem(par1AbstractClientPlayer, itemstack, 0);
+			} else if (itemstack.getItem().itemID == Item.skull.itemID) {
 				var5 = 1.0625F;
 				GL11.glScalef(var5, -var5, -var5);
 				String var6 = "";
-				if (var4.hasTagCompound() && var4.getTagCompound().hasKey("SkullOwner")) {
-					var6 = var4.getTagCompound().getString("SkullOwner");
+				if (itemstack.hasTagCompound() && itemstack.getTagCompound().hasKey("SkullOwner")) {
+					var6 = itemstack.getTagCompound().getString("SkullOwner");
 				}
 
-				TileEntitySkullRenderer.skullRenderer.func_82393_a(-0.5F, 0.0F, -0.5F, 1, 180.0F, var4.getItemSubtype(), var6);
+				TileEntitySkullRenderer.skullRenderer.func_82393_a(-0.5F, 0.0F, -0.5F, 1, 180.0F, itemstack.getItemSubtype(), var6);
 			}
 
 			GL11.glPopMatrix();
@@ -183,6 +208,7 @@ public class RenderPlayer extends RendererLivingEntity {
 		boolean var24 = par1AbstractClientPlayer.getTextureCape().isTextureUploaded();
 		boolean var25 = !par1AbstractClientPlayer.isInvisible();
 		boolean var26 = !par1AbstractClientPlayer.getHideCape();
+		var24 = event.renderCape && var24;
 		if (var24 && var25 && var26) {
 			this.bindTexture(par1AbstractClientPlayer.getLocationCape());
 			GL11.glPushMatrix();
@@ -223,7 +249,7 @@ public class RenderPlayer extends RendererLivingEntity {
 		}
 
 		ItemStack var28 = par1AbstractClientPlayer.inventory.getCurrentItemStack();
-		if (var28 != null) {
+		if (var28 != null && event.renderItem) {
 			GL11.glPushMatrix();
 			this.modelBipedMain.bipedRightArm.postRender(0.0625F);
 			GL11.glTranslatef(-0.0625F, 0.4375F, 0.0625F);
@@ -239,7 +265,12 @@ public class RenderPlayer extends RendererLivingEntity {
 			}
 
 			float var31;
-			if (var28.itemID < 256 && RenderBlocks.renderItemIn3d(Block.blocksList[var28.itemID].getRenderType())) {
+			IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(var28, EQUIPPED);
+			boolean is3D = (customRenderer != null && customRenderer.shouldUseRenderHelper(EQUIPPED, var28, BLOCK_3D));
+			boolean isBlock = var28.itemID < Block.blocksList.length && var28.getItemSpriteNumber() == 0;
+
+			if (is3D || (isBlock && RenderBlocks.renderItemIn3d(Block.blocksList[var28.itemID].getRenderType())))
+			{
 				var31 = 0.5F;
 				GL11.glTranslatef(0.0F, 0.1875F, -0.3125F);
 				var31 *= 0.75F;
@@ -284,7 +315,7 @@ public class RenderPlayer extends RendererLivingEntity {
 			int var33;
 			float var32;
 			if (var28.getItem().requiresMultipleRenderPasses()) {
-				for(var33 = 0; var33 <= 1; ++var33) {
+				for(var33 = 0; var33 <= var28.getItem().getRenderPasses(var28.getItemDamage()); ++var33) {
 					int var11 = var28.getItem().getColorFromItemStack(var28, var33);
 					var32 = (float)(var11 >> 16 & 255) / 255.0F;
 					var13 = (float)(var11 >> 8 & 255) / 255.0F;
@@ -306,6 +337,7 @@ public class RenderPlayer extends RendererLivingEntity {
 			GL11.glPopMatrix();
 		}
 
+		MinecraftForge.EVENT_BUS.post(new RenderPlayerEvent.Specials.Post(par1AbstractClientPlayer, this, par2));
 	}
 
 	protected void renderPlayerScale(AbstractClientPlayer par1AbstractClientPlayer, float par2) {

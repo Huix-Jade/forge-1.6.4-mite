@@ -22,9 +22,9 @@ public class EntityFireworkStarterFX extends EntityFX {
       this.particleMaxAge = 8;
       if (var15 != null) {
          this.fireworkExplosions = var15.getTagList("Explosions");
-         if (this.fireworkExplosions.tagCount() == 0) {
+         if (this.fireworkExplosions != null && this.fireworkExplosions.tagCount() == 0) {
             this.fireworkExplosions = null;
-         } else {
+         } else if (this.fireworkExplosions != null) {
             this.particleMaxAge = this.fireworkExplosions.tagCount() * 2 - 1;
 
             for(int var16 = 0; var16 < this.fireworkExplosions.tagCount(); ++var16) {

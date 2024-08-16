@@ -31,6 +31,7 @@ import net.minecraft.entity.EntityWoodSpider;
 import net.minecraft.entity.IMerchant;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.item.EntityBoat;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityMinecart;
 import net.minecraft.entity.item.EntityMinecartHopper;
 import net.minecraft.entity.monster.EntityCreeper;
@@ -143,6 +144,10 @@ import net.minecraft.world.WorldProviderEnd;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.PlayerDropsEvent;
+import net.minecraftforge.event.world.ChunkWatchEvent;
 
 public final class EntityPlayerMP extends EntityPlayer implements ICrafting {
    private String translator = "en_US";
@@ -200,17 +205,20 @@ public final class EntityPlayerMP extends EntityPlayer implements ICrafting {
       super(par2World, par3Str);
       par4ItemInWorldManager.thisPlayerMP = this;
       this.theItemInWorldManager = par4ItemInWorldManager;
-      this.renderDistance = par1MinecraftServer.getConfigurationManager().getViewDistance();
-      ChunkCoordinates var5 = par2World.getSpawnPoint();
+      if (par1MinecraftServer == null) //ToDo: Remove this in 1.7, Fake players shouldn't be used purely client side.
+         this.renderDistance = 0;
+      else
+         this.renderDistance = par1MinecraftServer.getConfigurationManager().getViewDistance();
+      ChunkCoordinates var5 = par2World.provider.getRandomizedSpawnPoint();
       int var6 = var5.posX;
       int var7 = var5.posZ;
       int var8 = var5.posY;
-      if (!par2World.provider.hasNoSky && par2World.getWorldInfo().getGameType() != EnumGameType.ADVENTURE) {
-         int var9 = Math.max(5, par1MinecraftServer.getSpawnProtectionSize() - 6);
-         var6 += this.rand.nextInt(var9 * 2) - var9;
-         var7 += this.rand.nextInt(var9 * 2) - var9;
-         var8 = par2World.getTopSolidOrLiquidBlockMITE(var6, var7, true);
-      }
+//      if (!par2World.provider.hasNoSky && par2World.getWorldInfo().getGameType() != EnumGameType.ADVENTURE) {
+//         int var9 = Math.max(5, par1MinecraftServer.getSpawnProtectionSize() - 6);
+//         var6 += this.rand.nextInt(var9 * 2) - var9;
+//         var7 += this.rand.nextInt(var9 * 2) - var9;
+//         var8 = par2World.getTopSolidOrLiquidBlockMITE(var6, var7, true);
+//      }
 
       this.mcServer = par1MinecraftServer;
       this.stepHeight = 0.0F;
@@ -862,7 +870,8 @@ public final class EntityPlayerMP extends EntityPlayer implements ICrafting {
       }
 
       this.openContainer.detectAndSendChanges();
-      if (!this.worldObj.isRemote && !this.openContainer.canInteractWith(this)) {
+      if (!this.worldObj.isRemote && !ForgeHooks.canInteractWith(this, this.openContainer))
+      {
          this.closeScreen();
          this.openContainer = this.inventoryContainer;
       }
@@ -925,6 +934,7 @@ public final class EntityPlayerMP extends EntityPlayer implements ICrafting {
             while(var11.hasNext()) {
                var10 = (Chunk)var11.next();
                this.getServerForPlayer().getEntityTracker().func_85172_a(this, var10);
+               MinecraftForge.EVENT_BUS.post(new ChunkWatchEvent.Watch(var10.getChunkCoordIntPair(), this));
             }
          }
       }
@@ -1031,9 +1041,23 @@ public final class EntityPlayerMP extends EntityPlayer implements ICrafting {
    }
 
    public void onDeath(DamageSource par1DamageSource) {
+      if (ForgeHooks.onLivingDeath(this, par1DamageSource)) return;
       this.mcServer.getConfigurationManager().sendChatMsg(this.func_110142_aN().func_94546_b());
       if (!this.worldObj.getGameRules().getGameRuleBooleanValue("keepInventory")) {
+         captureDrops = true;
+         capturedDrops.clear();
+
          this.inventory.dropAllItems();
+
+         captureDrops = false;
+         PlayerDropsEvent event = new PlayerDropsEvent(this, par1DamageSource, capturedDrops, recentlyHit > 0);
+         if (!MinecraftForge.EVENT_BUS.post(event))
+         {
+            for (EntityItem item : capturedDrops)
+            {
+               joinEntityItemWithWorld(item);
+            }
+         }
       }
 
       Collection var2 = this.worldObj.getScoreboard().func_96520_a(ScoreObjectiveCriteria.deathCount);

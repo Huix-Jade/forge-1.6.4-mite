@@ -16,6 +16,8 @@ import net.minecraft.client.settings.GameSettings;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MathHelper;
+import net.minecraftforge.client.event.sound.*;
+import net.minecraftforge.common.MinecraftForge;
 import org.apache.commons.io.FileUtils;
 import paulscode.sound.SoundSystem;
 import paulscode.sound.SoundSystemConfig;
@@ -41,13 +43,16 @@ public class SoundManager implements ResourceManagerReloadListener {
    public SoundsMITE sounds_MITE;
    public static boolean muted;
 
+   public static int MUSIC_INTERVAL = 12000;
+
    public SoundManager(ResourceManager par1ResourceManager, GameSettings par2GameSettings, File par3File) {
-      this.ticksBeforeMusic = this.rand.nextInt(12000);
+      this.ticksBeforeMusic = this.rand.nextInt(MUSIC_INTERVAL);
       this.options = par2GameSettings;
       this.fileAssets = par3File;
       this.soundPoolSounds = new SoundPool(par1ResourceManager, "sound", true);
       this.soundPoolStreaming = new SoundPool(par1ResourceManager, "records", false);
       this.soundPoolMusic = new SoundPool(par1ResourceManager, "music", true);
+      MinecraftForge.EVENT_BUS.post(new SoundSetupEvent(this));
 
       try {
          SoundSystemConfig.addLibrary(LibraryLWJGLOpenAL.class);
@@ -67,6 +72,7 @@ public class SoundManager implements ResourceManagerReloadListener {
       this.cleanup();
       this.sounds_MITE.load();
       this.tryToSetLibraryAndCodecs();
+      MinecraftForge.EVENT_BUS.post(new SoundLoadEvent(this));
    }
 
    private void loadSounds() {
@@ -164,8 +170,9 @@ public class SoundManager implements ResourceManagerReloadListener {
                --this.ticksBeforeMusic;
             } else {
                SoundPoolEntry var1 = this.soundPoolMusic.getRandomSound();
+               var1 = SoundEvent.getResult(new PlayBackgroundMusicEvent(this, var1));
                if (var1 != null) {
-                  this.ticksBeforeMusic = this.rand.nextInt(12000) + 12000;
+                  this.ticksBeforeMusic = this.rand.nextInt(MUSIC_INTERVAL) + MUSIC_INTERVAL;
                   this.sndSystem.backgroundMusic("BgMusic", var1.getSoundUrl(), var1.getSoundName(), false);
                   this.sndSystem.setVolume("BgMusic", this.options.musicVolume);
                   this.sndSystem.play("BgMusic");
@@ -221,6 +228,7 @@ public class SoundManager implements ResourceManagerReloadListener {
 
             if (par1Str != null) {
                SoundPoolEntry var6 = this.soundPoolStreaming.getRandomSoundFromSoundPool(par1Str);
+               var6 = SoundEvent.getResult(new PlayStreamingEvent(this, var6, par1Str, par2, par3, par4));
                if (var6 != null) {
                   if (this.sndSystem.playing("BgMusic")) {
                      this.sndSystem.stop("BgMusic");
@@ -228,6 +236,7 @@ public class SoundManager implements ResourceManagerReloadListener {
 
                   this.sndSystem.newStreamingSource(true, var5, var6.getSoundUrl(), var6.getSoundName(), false, par2, par3, par4, 2, 64.0F);
                   this.sndSystem.setVolume(var5, 0.5F * this.options.soundVolume);
+                  MinecraftForge.EVENT_BUS.post(new PlayStreamingSourceEvent(this, var5, par2, par3, par4));
                   this.sndSystem.play(var5);
                }
             }
@@ -346,6 +355,7 @@ public class SoundManager implements ResourceManagerReloadListener {
       if (!Main.is_MITE_DS && !muted) {
          if (this.loaded && this.options.soundVolume != 0.0F) {
             SoundPoolEntry var7 = this.soundPoolSounds.getRandomSoundFromSoundPool(par1Str);
+            var7 = SoundEvent.getResult(new PlaySoundEffectEvent(this, var7, par1Str, par2, par3));
             if (var7 == null) {
                this.soundFailed(par1Str);
             }
@@ -422,6 +432,7 @@ public class SoundManager implements ResourceManagerReloadListener {
                   par2 *= 0.25F;
                   this.sndSystem.setPitch(var5, par3);
                   this.sndSystem.setVolume(var5, par2 * this.options.soundVolume);
+                  MinecraftForge.EVENT_BUS.post(new PlaySoundEffectSourceEvent(this, var5));
                   this.sndSystem.play(var5);
                }
             }

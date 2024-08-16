@@ -10,6 +10,8 @@ import net.minecraft.util.Damage;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumParticle;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.EnderTeleportEvent;
 
 public class EntityEnderPearl extends EntityThrowable {
    public EntityEnderPearl(World par1World) {
@@ -34,16 +36,19 @@ public class EntityEnderPearl extends EntityThrowable {
       }
 
       if (!this.worldObj.isRemote) {
-         if (this.getThrower() != null && this.getThrower() instanceof EntityPlayerMP) {
-            EntityPlayerMP var3 = (EntityPlayerMP)this.getThrower();
-            if (!var3.playerNetServerHandler.connectionClosed && var3.worldObj == this.worldObj) {
-               if (this.getThrower().isRiding()) {
-                  this.getThrower().mountEntity((Entity)null);
-               }
+         if (this.getThrower() != null && this.getThrower() instanceof EntityPlayerMP var3) {
+             if (!var3.playerNetServerHandler.connectionClosed && var3.worldObj == this.worldObj) {
+               EnderTeleportEvent event = new EnderTeleportEvent(var3, this.posX, this.posY, this.posZ, 5.0F);
+               if (!MinecraftForge.EVENT_BUS.post(event)) {
+                  if (this.getThrower().isRiding())
+                  {
+                     this.getThrower().mountEntity((Entity)null);
+                  }
 
-               this.getThrower().setPositionAndUpdate(this.posX, this.posY, this.posZ);
-               this.getThrower().fallDistance = 0.0F;
-               this.playSound("mob.endermen.portal", 1.0F, 1.0F);
+                  this.getThrower().setPositionAndUpdate(this.posX, this.posY, this.posZ);
+                  this.getThrower().fallDistance = 0.0F;
+                  this.playSound("mob.endermen.portal", 1.0F, 1.0F);
+               }
             }
          }
 

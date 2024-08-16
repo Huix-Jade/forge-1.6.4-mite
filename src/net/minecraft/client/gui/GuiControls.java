@@ -4,6 +4,7 @@ import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.client.GuiControlsScrollPanel;
 
 public class GuiControls extends GuiScreen {
    private GuiScreen parentScreen;
@@ -11,6 +12,8 @@ public class GuiControls extends GuiScreen {
    private GameSettings options;
    private int buttonId = -1;
    private int page_index;
+
+   private GuiControlsScrollPanel scrollPane;
 
    public GuiControls(GuiScreen par1GuiScreen, GameSettings par2GameSettings) {
       this.parentScreen = par1GuiScreen;
@@ -32,15 +35,12 @@ public class GuiControls extends GuiScreen {
    }
 
    public void initGui() {
-      int left_border = this.getLeftBorder();
-
-      for(int id = 0; id < this.options.keyBindings.length; ++id) {
-         this.buttonList.add(new GuiSmallButton(id, this.getKeybindButtonPosX(id), this.getKeybindButtonPosY(id), 70, 20, this.options.getOptionDisplayString(id)));
-      }
 
       this.setKeybindButtonVisibilities();
       this.buttonList.add(new GuiButton(201, this.width / 2 - 100, this.height / 6 + 168 - 24, I18n.getString("gui.nextPage")));
+      scrollPane = new GuiControlsScrollPanel(this, options, mc);
       this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168, I18n.getString("gui.done")));
+      scrollPane.registerScrollButtons(7, 8);
       this.screenTitle = I18n.getString("controls.title");
    }
 
@@ -56,10 +56,6 @@ public class GuiControls extends GuiScreen {
    }
 
    protected void actionPerformed(GuiButton par1GuiButton) {
-      for(int var2 = 0; var2 < this.options.keyBindings.length; ++var2) {
-         ((GuiButton)this.buttonList.get(var2)).displayString = this.options.getOptionDisplayString(var2);
-      }
-
       if (par1GuiButton.id == 200) {
          this.mc.displayGuiScreen(this.parentScreen);
       } else if (par1GuiButton.id == 201) {
@@ -68,32 +64,25 @@ public class GuiControls extends GuiScreen {
          }
 
          this.setKeybindButtonVisibilities();
-      } else {
-         this.buttonId = par1GuiButton.id;
-         par1GuiButton.displayString = "> " + this.options.getOptionDisplayString(par1GuiButton.id) + " <";
       }
 
    }
 
-   protected void mouseClicked(int par1, int par2, int par3) {
-      if (this.buttonId >= 0) {
-         this.options.setKeyBinding(this.buttonId, -100 + par3);
-         ((GuiButton)this.buttonList.get(this.buttonId)).displayString = this.options.getOptionDisplayString(this.buttonId);
-         this.buttonId = -1;
-         KeyBinding.resetKeyBindingArrayAndHash();
-      } else {
-         super.mouseClicked(par1, par2, par3);
-      }
-
-   }
+//   protected void mouseClicked(int par1, int par2, int par3) {
+//      if (this.buttonId >= 0) {
+//         this.options.setKeyBinding(this.buttonId, -100 + par3);
+//         ((GuiButton)this.buttonList.get(this.buttonId)).displayString = this.options.getOptionDisplayString(this.buttonId);
+//         this.buttonId = -1;
+//         KeyBinding.resetKeyBindingArrayAndHash();
+//      } else {
+//         super.mouseClicked(par1, par2, par3);
+//      }
+//
+//   }
 
    protected void keyTyped(char par1, int par2) {
-      if (this.buttonId >= 0) {
-         this.options.setKeyBinding(this.buttonId, par2);
-         ((GuiButton)this.buttonList.get(this.buttonId)).displayString = this.options.getOptionDisplayString(this.buttonId);
-         this.buttonId = -1;
-         KeyBinding.resetKeyBindingArrayAndHash();
-      } else {
+      if (scrollPane.keyTyped(par1, par2))
+      {
          super.keyTyped(par1, par2);
       }
 
@@ -101,6 +90,7 @@ public class GuiControls extends GuiScreen {
 
    public void drawScreen(int par1, int par2, float par3) {
       this.drawDefaultBackground();
+      /* Forge Start: Moved all rendering to GuiControlsScrollPanel
       this.drawCenteredString(this.fontRenderer, this.screenTitle, this.width / 2, 20, 16777215);
       int var4 = this.getLeftBorder();
       int var5 = 0;
@@ -131,9 +121,11 @@ public class GuiControls extends GuiScreen {
                ++var5;
             }
          }
+      */
+      scrollPane.drawScreen(par1, par2, par3);
+      drawCenteredString(fontRenderer, screenTitle, width / 2, 4, 0xffffff);
+      super.drawScreen(par1, par2, par3);
 
-         super.drawScreen(par1, par2, par3);
-         return;
-      }
    }
 }
+

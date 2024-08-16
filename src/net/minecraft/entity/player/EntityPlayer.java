@@ -44,15 +44,7 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryEnderChest;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemArmor;
-import net.minecraft.item.ItemArrow;
-import net.minecraft.item.ItemBow;
-import net.minecraft.item.ItemCudgel;
-import net.minecraft.item.ItemDamageResult;
-import net.minecraft.item.ItemFishingRod;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemWarHammer;
+import net.minecraft.item.*;
 import net.minecraft.item.crafting.CraftingResult;
 import net.minecraft.mite.Skill;
 import net.minecraft.nbt.NBTTagCompound;
@@ -116,8 +108,31 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.ISpecialArmor.ArmorProperties;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.player.AttackEntityEvent;
+import net.minecraftforge.event.entity.player.EntityInteractEvent;
+import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
+import net.minecraftforge.event.entity.player.PlayerDropsEvent;
+import net.minecraftforge.event.entity.player.PlayerFlyableFallEvent;
+import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
 
 public abstract class EntityPlayer extends EntityLivingBase implements ICommandSender {
+
+   public static final String PERSISTED_NBT_TAG = "PlayerPersisted";
+   private HashMap<Integer, ChunkCoordinates> spawnChunkMap = new HashMap<Integer, ChunkCoordinates>();
+   private HashMap<Integer, Boolean> spawnForcedMap = new HashMap<Integer, Boolean>();
+
+
    public InventoryPlayer inventory = new InventoryPlayer(this);
    private InventoryEnderChest theInventoryEnderChest = new InventoryEnderChest();
    public Container inventoryContainer;
@@ -488,6 +503,7 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
          ItemStack var1 = this.inventory.getCurrentItemStack();
          if (var1 == this.itemInUse) {
             if (this.itemInUseCount <= 25 && this.itemInUseCount % 4 == 0) {
+               itemInUse.getItem().onUsingItemTick(itemInUse, this, itemInUseCount);
                this.updateItemUse(var1, 5);
             }
 
@@ -542,7 +558,8 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
       }
 
       super.onUpdate();
-      if (!this.worldObj.isRemote && this.openContainer != null && !this.openContainer.canInteractWith(this)) {
+      if (!this.worldObj.isRemote && this.openContainer != null && !ForgeHooks.canInteractWith(this, this.openContainer))
+      {
          this.closeScreen();
          this.openContainer = this.inventoryContainer;
       }
@@ -678,10 +695,11 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
          this.prevCameraYaw = this.cameraYaw;
          this.cameraYaw = 0.0F;
          this.addMountedMovementStat(this.posX - var1, this.posY - var3, this.posZ - var5);
-         if (this.ridingEntity instanceof EntityPig) {
+         if (this.ridingEntity instanceof EntityLivingBase && ((EntityLivingBase)ridingEntity).shouldRiderFaceForward(this))
+         {
             this.rotationPitch = var8;
             this.rotationYaw = var7;
-            this.renderYawOffset = ((EntityPig)this.ridingEntity).renderYawOffset;
+            this.renderYawOffset = ((EntityLivingBase)this.ridingEntity).renderYawOffset;
          }
       }
 
@@ -858,16 +876,35 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
    }
 
    public void onDeath(DamageSource par1DamageSource) {
+      if (ForgeHooks.onLivingDeath(this, par1DamageSource)) return;
       super.onDeath(par1DamageSource);
       this.setSizeProne();
       this.setPosition(this.posX, this.posY, this.posZ);
       this.motionY = 0.10000000149011612;
+
+      captureDrops = true;
+      capturedDrops.clear();
+
       if (this.username.equals("Notch")) {
          this.dropPlayerItemWithRandomChoice(new ItemStack(Item.appleRed, 1), true);
       }
 
       if (!this.worldObj.getGameRules().getGameRuleBooleanValue("keepInventory")) {
          this.inventory.dropAllItems();
+      }
+
+      captureDrops = false;
+
+      if (!worldObj.isRemote)
+      {
+         PlayerDropsEvent event = new PlayerDropsEvent(this, par1DamageSource, capturedDrops, recentlyHit > 0);
+         if (!MinecraftForge.EVENT_BUS.post(event))
+         {
+            for (EntityItem item : capturedDrops)
+            {
+               joinEntityItemWithWorld(item);
+            }
+         }
       }
 
       if (par1DamageSource != null) {
@@ -902,11 +939,22 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
    }
 
    public EntityItem dropOneItem(boolean par1) {
-      return this.dropPlayerItemWithRandomChoice(this.inventory.decrStackSize(this.inventory.currentItem, par1 && this.inventory.getCurrentItemStack() != null ? this.inventory.getCurrentItemStack().stackSize : 1), false);
+      ItemStack stack = inventory.getItemStack();
+
+      if (stack == null) {
+         return null;
+      }
+
+      if (stack.getItem().onDroppedByPlayer(stack, this)) {
+         int count = par1 && this.inventory.getItemStack() != null ? this.inventory.getItemStack().stackSize : 1;
+         return ForgeHooks.onPlayerTossEvent(this, inventory.decrStackSize(inventory.currentItem, count));
+      }
+
+      return null;
    }
 
    public EntityItem dropPlayerItem(ItemStack par1ItemStack) {
-      return this.dropPlayerItemWithRandomChoice(par1ItemStack, false);
+      return ForgeHooks.onPlayerTossEvent(this, par1ItemStack);
    }
 
    public EntityItem dropPlayerItemWithRandomChoice(ItemStack par1ItemStack, boolean par2) {
@@ -964,6 +1012,11 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
    }
 
    protected void joinEntityItemWithWorld(EntityItem par1EntityItem) {
+      if (captureDrops)
+      {
+         capturedDrops.add(par1EntityItem);
+         return;
+      }
       this.worldObj.spawnEntityInWorld(par1EntityItem);
    }
 
@@ -976,13 +1029,13 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
          if (block_hardness == 0.0F) {
             return 1.0F;
          } else {
+            int metadata = 0;
             float min_str_vs_block = -3.4028235E38F;
             Item held_item = this.getHeldItem();
             float str_vs_block;
             if (block.isPortable(this.worldObj, this, x, y, z)) {
                str_vs_block = min_str_vs_block = 4.0F * block_hardness;
             } else {
-               int metadata;
                if (apply_held_item && held_item != null) {
                   metadata = this.worldObj.getBlockMetadata(x, y, z);
                   str_vs_block = held_item.getStrVsBlock(block, metadata);
@@ -1037,7 +1090,9 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
             }
 
             str_vs_block *= 1.0F + this.getLevelModifier(EnumLevelBonus.HARVESTING);
-            return Math.max(str_vs_block, min_str_vs_block);
+            float speed = Math.max(str_vs_block, min_str_vs_block);
+            speed = ForgeEventFactory.getBreakSpeed(this, block, metadata, speed);
+            return speed;
          }
       }
    }
@@ -1093,6 +1148,15 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
          this.spawnForced = par1NBTTagCompound.getBoolean("SpawnForced");
       }
 
+      NBTTagList spawnlist = null;
+      spawnlist = par1NBTTagCompound.getTagList("Spawns");
+      for (int i = 0; i < spawnlist.tagCount(); ++i) {
+         NBTTagCompound spawndata = (NBTTagCompound)spawnlist.tagAt(i);
+         int spawndim = spawndata.getInteger("Dim");
+         this.spawnChunkMap.put(spawndim, new ChunkCoordinates(spawndata.getInteger("SpawnX"), spawndata.getInteger("SpawnY"), spawndata.getInteger("SpawnZ")));
+         this.spawnForcedMap.put(spawndim, spawndata.getBoolean("SpawnForced"));
+      }
+
       this.foodStats.readNBT(par1NBTTagCompound);
       this.capabilities.readCapabilitiesFromNBT(par1NBTTagCompound);
       if (par1NBTTagCompound.hasKey("EnderItems")) {
@@ -1115,6 +1179,22 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
          par1NBTTagCompound.setInteger("SpawnZ", this.spawnChunk.posZ);
          par1NBTTagCompound.setBoolean("SpawnForced", this.spawnForced);
       }
+
+      NBTTagList spawnlist = new NBTTagList();
+      for (Entry<Integer, ChunkCoordinates> entry : this.spawnChunkMap.entrySet()) {
+         NBTTagCompound spawndata = new NBTTagCompound();
+         ChunkCoordinates spawn = entry.getValue();
+         if (spawn == null) continue;
+         Boolean forced = spawnForcedMap.get(entry.getKey());
+         if (forced == null) forced = false;
+         spawndata.setInteger("Dim", entry.getKey());
+         spawndata.setInteger("SpawnX", spawn.posX);
+         spawndata.setInteger("SpawnY", spawn.posY);
+         spawndata.setInteger("SpawnZ", spawn.posZ);
+         spawndata.setBoolean("SpawnForced", forced);
+         spawnlist.appendTag(spawndata);
+      }
+      par1NBTTagCompound.setTag("Spawns", spawnlist);
 
       this.foodStats.writeNBT(par1NBTTagCompound);
       this.capabilities.writeCapabilitiesToNBT(par1NBTTagCompound);
@@ -1169,6 +1249,7 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
    }
 
    public EntityDamageResult attackEntityFrom(Damage damage) {
+      if (ForgeHooks.onLivingAttack(this, damage.getSource(), damage.getAmount())) return null;
       if (this.ticksExisted < 1000 && Damage.wasCausedByPlayer(damage) && this.isWithinTournamentSafeZone()) {
          return null;
       } else if (this.capabilities.disableDamage && !damage.canHarmInCreative()) {
@@ -1289,6 +1370,16 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
    }
 
    public void attackTargetEntityWithCurrentItem(Entity target) {
+      if (MinecraftForge.EVENT_BUS.post(new AttackEntityEvent(this, target)))
+      {
+         return;
+      }
+      ItemStack stack = getHeldItemStack();
+      if (stack != null && stack.getItem().onLeftClickEntity(stack, this, target))
+      {
+         return;
+      }
+
       if (!this.isImmuneByGrace()) {
          if (target.canAttackWithItem()) {
             boolean critical = this.willDeliverCriticalStrike();
@@ -1557,6 +1648,12 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
    }
 
    public void tryToSleepInBedAt(int x, int y, int z) {
+      PlayerSleepInBedEvent event = new PlayerSleepInBedEvent(this, x, y, z);
+      MinecraftForge.EVENT_BUS.post(event);
+      if (event.result != null)
+      {
+         return;
+      }
    }
 
    private void func_71013_b(int par1) {
@@ -1695,11 +1792,87 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
    }
 
    public ChunkCoordinates getBedLocation() {
-      return this.spawnChunk;
+      return getBedLocation(this.dimension);
    }
 
    public boolean isSpawnForced() {
-      return this.spawnForced;
+      return isSpawnForced(this.dimension);
+   }
+
+   /**
+    * A dimension aware version of getBedLocation.
+    * @param dimension The dimension to get the bed spawn for
+    * @return The player specific spawn location for the dimension.  May be null.
+    */
+   public ChunkCoordinates getBedLocation(int dimension) {
+      if (dimension == 0) return this.spawnChunk;
+      return this.spawnChunkMap.get(dimension);
+   }
+
+   /**
+    * A dimension aware version of isSpawnForced.
+    * Noramally isSpawnForced is used to determine if the respawn system should check for a bed or not.
+    * This just extends that to be dimension aware.
+    * @param dimension The dimension to get whether to check for a bed before spawning for
+    * @return The player specific spawn location for the dimension.  May be null.
+    */
+   public boolean isSpawnForced(int dimension) {
+      if (dimension == 0) return this.spawnForced;
+      Boolean forced = this.spawnForcedMap.get(dimension);
+      if (forced == null) return false;
+      return forced;
+   }
+
+//   /**
+//
+//    */
+//   public void setSpawnChunk(ChunkCoordinates par1ChunkCoordinates, boolean par2)
+//   {
+//      if (this.dimension != 0)
+//      {
+//         setSpawnChunk(par1ChunkCoordinates, par2, this.dimension);
+//         return;
+//      }
+//      if (par1ChunkCoordinates != null)
+//      {
+//         this.spawnChunk = new ChunkCoordinates(par1ChunkCoordinates);
+//
+//         this.spawnForced = false;
+//      }
+//   }
+
+   /**
+    * A dimension aware version of setSpawnChunk.
+    * This functions identically, but allows you to specify which dimension to affect, rather than affecting the player's current dimension.
+    * @param chunkCoordinates The spawn point to set as the player-specific spawn point for the dimension
+    * @param forced Whether or not the respawn code should check for a bed at this location (true means it won't check for a bed)
+    * @param dimension Which dimension to apply the player-specific respawn point to
+    */
+   public void setSpawnChunk(ChunkCoordinates chunkCoordinates, boolean forced, int dimension) {
+      if (dimension == 0)
+      {
+         if (chunkCoordinates != null)
+         {
+            this.spawnChunk = new ChunkCoordinates(chunkCoordinates);
+            this.spawnForced = forced;
+         }
+         else
+         {
+            this.spawnChunk = null;
+            this.spawnForced = false;
+         }
+         return;
+      }
+      if (chunkCoordinates != null)
+      {
+         this.spawnChunkMap.put(dimension, new ChunkCoordinates(chunkCoordinates));
+         this.spawnForcedMap.put(dimension, forced);
+      }
+      else
+      {
+         this.spawnChunkMap.remove(dimension);
+         this.spawnForcedMap.remove(dimension);
+      }
    }
 
    public void setSpawnChunk(ChunkCoordinates par1ChunkCoordinates, boolean par2) {
@@ -1839,6 +2012,10 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
 
          super.fall(par1);
       }
+      else
+      {
+         MinecraftForge.EVENT_BUS.post(new PlayerFlyableFallEvent(this, par1));
+      }
 
    }
 
@@ -1862,13 +2039,12 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
          var3 = ((ItemFishingRod)par1ItemStack.getItem()).func_94597_g();
       } else {
          if (par1ItemStack.getItem().requiresMultipleRenderPasses()) {
-            return par1ItemStack.getItem().getIconFromSubtypeForRenderPass(par1ItemStack.getItemSubtype(), par2);
+            return par1ItemStack.getItem().getIcon(par1ItemStack, par2);
          }
 
-         if (this.itemInUse != null && par1ItemStack.getItem() instanceof ItemBow) {
+         if (this.itemInUse != null && par1ItemStack.getItem() instanceof ItemBow item_bow) {
             float fraction_pulled = ItemBow.getFractionPulled(par1ItemStack, this.itemInUseCount);
-            ItemBow item_bow = (ItemBow)par1ItemStack.getItem();
-            if (fraction_pulled >= 0.9F) {
+             if (fraction_pulled >= 0.9F) {
                return item_bow.getItemIconForUseDuration(2, this);
             }
 
@@ -1880,6 +2056,8 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
                return item_bow.getItemIconForUseDuration(0, this);
             }
          }
+
+         var3 = par1ItemStack.getItem().getIcon(par1ItemStack, par2, this, itemInUse, itemInUseCount);
       }
 
       return var3;
@@ -2140,8 +2318,18 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
          this.experience = par1EntityPlayer.experience;
          this.setScore(par1EntityPlayer.getScore());
       }
-
+      this.spawnChunkMap = par1EntityPlayer.spawnChunkMap;
+      this.spawnForcedMap = par1EntityPlayer.spawnForcedMap;
       this.theInventoryEnderChest = par1EntityPlayer.theInventoryEnderChest;
+
+      //Copy over a section of the Entity Data from the old player.
+      //Allows mods to specify data that persists after players respawn.
+      NBTTagCompound old = par1EntityPlayer.getEntityData();
+      if (old.hasKey(PERSISTED_NBT_TAG))
+      {
+         getEntityData().setCompoundTag(PERSISTED_NBT_TAG, old.getCompoundTag(PERSISTED_NBT_TAG));
+      }
+
    }
 
    protected boolean canTriggerWalking() {
@@ -2175,7 +2363,15 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
    }
 
    public void setCurrentItemOrArmor(int par1, ItemStack par2ItemStack) {
-      this.inventory.armorInventory[par1] = par2ItemStack;
+      if (par1 == 0)
+      {
+         this.inventory.mainInventory[this.inventory.currentItem] = par2ItemStack;
+      }
+      else
+      {
+         this.inventory.armorInventory[par1] = par2ItemStack;
+      }
+
    }
 
    public boolean isInvisibleToPlayer(EntityPlayer par1EntityPlayer) {
@@ -2208,7 +2404,7 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
    }
 
    public String getTranslatedEntityName() {
-      return ScorePlayerTeam.formatPlayerName(this.getTeam(), this.username);
+      return ScorePlayerTeam.formatPlayerName(this.getTeam(), this.getDisplayName());
    }
 
    public void setAbsorptionAmount(float par1) {
@@ -2547,6 +2743,11 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
       }
    }
 
+   @Override
+   public boolean isHoldingAnEffectiveTool(Block block, int metadata) {
+      return ForgeEventFactory.doPlayerHarvestCheck(this, block, super.isHoldingAnEffectiveTool(block, metadata));
+   }
+
    private boolean checkForEntityInteraction(RaycastCollision rc) {
       if (rc != null && rc.isEntity() && rc.getEntityHit().isEntityAlive()) {
          if (!this.canReachEntity(rc, EnumEntityReachContext.FOR_INTERACTION)) {
@@ -2566,6 +2767,11 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
       } else {
          return false;
       }
+   }
+   @Override
+   public boolean onEntityRightClicked(EntityPlayer player, ItemStack item_stack) {
+      if (MinecraftForge.EVENT_BUS.post(new EntityInteractEvent(this, player))) return false;
+      return true;
    }
 
    private boolean checkForIngestion() {
@@ -2705,8 +2911,13 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
             this.swingArm();
             Minecraft.theMinecraft.playerController.setUseButtonDelayOverride(250);
          } else if (!this.inCreativeMode()) {
+            ItemStack stack = new ItemStack(this.getHeldItem());
             this.addHungerServerSide(Math.min(block.getBlockHardness(0), 20.0F) * EnchantmentHelper.getEnduranceModifier(this));
             this.convertOneOfHeldItem((ItemStack)null);
+
+            if (this.getHeldItem() == null) {
+               MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(this, stack));
+            }
          }
       }
 
@@ -2964,5 +3175,31 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
          experience_for_level[level] = xp;
       }
 
+   }
+
+   /* ===================================== FORGE START =====================================*/
+
+   private String displayname;
+
+
+   /**
+    * Get the currently computed display name, cached for efficiency.
+    * @return the current display name
+    */
+   public String getDisplayName()
+   {
+      if(this.displayname == null)
+      {
+         this.displayname = ForgeEventFactory.getPlayerDisplayName(this, this.username);
+      }
+      return this.displayname;
+   }
+
+   /**
+    * Force the displayed name to refresh
+    */
+   public void refreshDisplayName()
+   {
+      this.displayname = ForgeEventFactory.getPlayerDisplayName(this, this.username);
    }
 }

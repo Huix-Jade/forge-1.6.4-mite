@@ -24,6 +24,8 @@ import net.minecraft.item.ItemSword;
 import net.minecraft.network.NetServerHandler;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.Packet53BlockChange;
+import net.minecraft.raycast.Raycast;
+import net.minecraft.raycast.RaycastCollision;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatMessageComponent;
@@ -49,6 +51,7 @@ import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingSetAttackTargetEvent;
 import net.minecraftforge.event.entity.player.PlayerOpenContainerEvent;
 import net.minecraftforge.event.world.BlockEvent;
+import net.minecraftforge.transformers.ForgeAccessTransformer;
 
 public class ForgeHooks
 {
@@ -264,16 +267,16 @@ public class ForgeHooks
     /**
      * Called when a player uses 'pick block', calls new Entity and Block hooks.
      */
-    public static boolean onPickBlock(MovingObjectPosition target, EntityPlayer player, World world)
+    public static boolean onPickBlock(RaycastCollision target, EntityPlayer player, World world)
     {
         ItemStack result = null;
         boolean isCreative = player.capabilities.isCreativeMode;
 
-        if (target.typeOfHit == EnumMovingObjectType.TILE)
+        if (target.isBlock())
         {
-            int x = target.blockX;
-            int y = target.blockY;
-            int z = target.blockZ;
+            int x = target.block_hit_x;
+            int y = target.block_hit_y;
+            int z = target.block_hit_z;
             Block var8 = Block.blocksList[world.getBlockId(x, y, z)];
 
             if (var8 == null)
@@ -285,12 +288,12 @@ public class ForgeHooks
         }
         else
         {
-            if (target.typeOfHit != EnumMovingObjectType.ENTITY || target.entityHit == null || !isCreative)
+            if (target.isEntity())
             {
                 return false;
             }
 
-            result = target.entityHit.getPickedResult(target);
+            result = target.getEntityHit().getPickedResult(target);
         }
 
         if (result == null)
@@ -301,7 +304,8 @@ public class ForgeHooks
         for (int x = 0; x < 9; x++)
         {
             ItemStack stack = player.inventory.getStackInSlot(x);
-            if (stack != null && stack.isItemEqual(result) && ItemStack.areItemStackTagsEqual(stack, result))
+            if (stack != null && stack.isItemStackEqual(result, false, false, false,
+                    false) && ItemStack.areItemStackTagsEqual(stack, result))
             {
                 player.inventory.currentItem = x;
                 return true;

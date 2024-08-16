@@ -16,6 +16,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.Icon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.ForgeHooksClient;
 import org.lwjgl.opengl.GL11;
 
 public class RenderItem extends Render {
@@ -34,27 +35,12 @@ public class RenderItem extends Render {
 	public void doRenderItem(EntityItem par1EntityItem, double par2, double par4, double par6, float par8, float par9) {
 		this.bindEntityTexture(par1EntityItem);
 		this.random.setSeed(187L);
-		ItemStack var10 = par1EntityItem.getEntityItem();
-		if (var10.getItem() != null) {
+		ItemStack itemstack = par1EntityItem.getEntityItem();
+		if (itemstack.getItem() != null) {
 			GL11.glPushMatrix();
-			float var11 = MathHelper.sin(((float)par1EntityItem.age + par9) / 10.0F + par1EntityItem.hoverStart) * 0.1F + 0.1F;
+			float var11 = shouldBob() ? MathHelper.sin(((float)par1EntityItem.age + par9) / 10.0F + par1EntityItem.hoverStart) * 0.1F + 0.1F : 0F;
 			float var12 = (((float)par1EntityItem.age + par9) / 20.0F + par1EntityItem.hoverStart) * 57.295776F;
-			byte var13 = 1;
-			if (par1EntityItem.getEntityItem().stackSize > 1) {
-				var13 = 2;
-			}
-
-			if (par1EntityItem.getEntityItem().stackSize > 5) {
-				var13 = 3;
-			}
-
-			if (par1EntityItem.getEntityItem().stackSize > 20) {
-				var13 = 4;
-			}
-
-			if (par1EntityItem.getEntityItem().stackSize > 40) {
-				var13 = 5;
-			}
+			byte var13 = getMiniBlockCount(itemstack);
 
 			GL11.glTranslatef((float)par2, (float)par4 + var11, (float)par6);
 			GL11.glEnable(32826);
@@ -63,8 +49,8 @@ public class RenderItem extends Render {
 			float var20;
 			int var26;
 			int var15;
-			if (var10.getItemSpriteNumber() == 0 && var10.itemID < Block.blocksList.length && Block.blocksList[var10.itemID] != null && RenderBlocks.renderItemIn3d(Block.blocksList[var10.itemID].getRenderType())) {
-				Block var21 = Block.blocksList[var10.itemID];
+			if (itemstack.getItemSpriteNumber() == 0 && itemstack.itemID < Block.blocksList.length && Block.blocksList[itemstack.itemID] != null && RenderBlocks.renderItemIn3d(Block.blocksList[itemstack.itemID].getRenderType())) {
+				Block var21 = Block.blocksList[itemstack.itemID];
 				GL11.glRotatef(var12, 0.0F, 1.0F, 0.0F);
 				if (renderInFrame) {
 					GL11.glScalef(1.25F, 1.25F, 1.25F);
@@ -90,12 +76,12 @@ public class RenderItem extends Render {
 					}
 
 					var18 = 1.0F;
-					this.itemRenderBlocks.renderBlockAsItem(var21, var10.getItemSubtype(), var18);
+					this.itemRenderBlocks.renderBlockAsItem(var21, itemstack.getItemSubtype(), var18);
 					GL11.glPopMatrix();
 				}
 			} else {
 				float var16;
-				if (var10.getItemSpriteNumber() == 1 && var10.getItem().requiresMultipleRenderPasses()) {
+				if (itemstack.getItem().requiresMultipleRenderPasses()) {
 					if (renderInFrame) {
 						GL11.glScalef(0.5128205F, 0.5128205F, 0.5128205F);
 						GL11.glTranslatef(0.0F, -0.05F, 0.0F);
@@ -103,19 +89,19 @@ public class RenderItem extends Render {
 						GL11.glScalef(0.5F, 0.5F, 0.5F);
 					}
 
-					for(int var23 = 0; var23 <= 1; ++var23) {
+					for(int var23 = 0; var23 <= itemstack.getItem().getRenderPasses(itemstack.getItemDamage()); ++var23) {
 						this.random.setSeed(187L);
-						Icon var22 = var10.getItem().getIconFromSubtypeForRenderPass(var10.getItemSubtype(), var23);
+						Icon var22 = itemstack.getItem().getIcon(itemstack, var23);
 						var16 = 1.0F;
 						if (this.renderWithColor) {
-							var26 = Item.itemsList[var10.itemID].getColorFromItemStack(var10, var23);
+							var26 = Item.itemsList[itemstack.itemID].getColorFromItemStack(itemstack, var23);
 							var18 = (float)(var26 >> 16 & 255) / 255.0F;
 							var19 = (float)(var26 >> 8 & 255) / 255.0F;
 							var20 = (float)(var26 & 255) / 255.0F;
 							GL11.glColor4f(var18 * var16, var19 * var16, var20 * var16, 1.0F);
-							this.renderDroppedItem(par1EntityItem, var22, var13, par9, var18 * var16, var19 * var16, var20 * var16);
+							this.renderDroppedItem(par1EntityItem, var22, var13, par9, var18 * var16, var19 * var16, var20 * var16, var23);
 						} else {
-							this.renderDroppedItem(par1EntityItem, var22, var13, par9, 1.0F, 1.0F, 1.0F);
+							this.renderDroppedItem(par1EntityItem, var22, var13, par9, 1.0F, 1.0F, 1.0F, var23);
 						}
 					}
 				} else {
@@ -126,9 +112,9 @@ public class RenderItem extends Render {
 						GL11.glScalef(0.5F, 0.5F, 0.5F);
 					}
 
-					Icon var14 = var10.getIconIndex();
+					Icon var14 = itemstack.getIconIndex();
 					if (this.renderWithColor) {
-						var15 = Item.itemsList[var10.itemID].getColorFromItemStack(var10, 0);
+						var15 = Item.itemsList[itemstack.itemID].getColorFromItemStack(itemstack, 0);
 						var16 = (float)(var15 >> 16 & 255) / 255.0F;
 						float var17 = (float)(var15 >> 8 & 255) / 255.0F;
 						var18 = (float)(var15 & 255) / 255.0F;
@@ -150,7 +136,13 @@ public class RenderItem extends Render {
 		return this.renderManager.renderEngine.getResourceLocation(par1EntityItem.getEntityItem().getItemSpriteNumber());
 	}
 
-	private void renderDroppedItem(EntityItem par1EntityItem, Icon par2Icon, int par3, float par4, float par5, float par6, float par7) {
+	private void renderDroppedItem(EntityItem par1EntityItem, Icon par2Icon, int par3, float par4, float par5, float par6, float par7)
+	{
+		renderDroppedItem(par1EntityItem, par2Icon, par3, par4, par5, par6, par7, 0);
+	}
+
+	private void renderDroppedItem(EntityItem par1EntityItem, Icon par2Icon, int par3, float par4, float par5, float par6, float par7, int pass)
+	{
 		Tessellator var8 = Tessellator.instance;
 		if (par2Icon == null) {
 			TextureManager var9 = Minecraft.getMinecraft().getTextureManager();
@@ -178,22 +170,22 @@ public class RenderItem extends Render {
 			var17 = 0.021875F;
 			ItemStack var18 = par1EntityItem.getEntityItem();
 			int var19 = var18.stackSize;
-			byte var24;
-			if (var19 < 2) {
-				var24 = 1;
-			} else if (var19 < 16) {
-				var24 = 2;
-			} else if (var19 < 32) {
-				var24 = 3;
-			} else {
-				var24 = 4;
-			}
+			byte var24 = getMiniItemCount(var18);
 
 			GL11.glTranslatef(-var14, -var15, -((var16 + var17) * (float)var24 / 2.0F));
 
 			for(int var20 = 0; var20 < var24; ++var20) {
-				GL11.glTranslatef(0.0F, 0.0F, var16 + var17);
-				if (var18.getItemSpriteNumber() == 0 && Block.blocksList[var18.itemID] != null) {
+				// Makes items offset when in 3D, like when in 2D, looks much better. Considered a vanilla bug...
+				if (var20 > 0 && shouldSpreadItems()) {
+					float x = (random.nextFloat() * 2.0F - 1.0F) * 0.3F / 0.5F;
+					float y = (random.nextFloat() * 2.0F - 1.0F) * 0.3F / 0.5F;
+					float z = (random.nextFloat() * 2.0F - 1.0F) * 0.3F / 0.5F;
+					GL11.glTranslatef(x, y, var16 + var17);
+				} else {
+					GL11.glTranslatef(0f, 0f, var16 + var17);
+				}
+
+				if (var18.getItemSpriteNumber() == 0) {
 					this.bindTexture(TextureMap.locationBlocksTexture);
 				} else {
 					this.bindTexture(TextureMap.locationItemsTexture);
@@ -201,7 +193,7 @@ public class RenderItem extends Render {
 
 				GL11.glColor4f(par5, par6, par7, 1.0F);
 				ItemRenderer.renderItemIn2D(var8, var26, var11, var25, var12, ((Icon)par2Icon).getIconWidth(), ((Icon)par2Icon).getIconHeight(), var16);
-				if (var18.hasEffect()) {
+				if (var18.hasEffect(pass)) {
 					GL11.glDepthFunc(514);
 					GL11.glDisable(2896);
 					this.renderManager.renderEngine.bindTexture(RES_ITEM_GLINT);
@@ -260,8 +252,13 @@ public class RenderItem extends Render {
 		}
 
 	}
+	public void renderItemIntoGUI(FontRenderer par1FontRenderer, TextureManager par2TextureManager, ItemStack par3ItemStack, int par4, int par5)
+	{
+		renderItemIntoGUI(par1FontRenderer, par2TextureManager, par3ItemStack, par4, par5, false);
+	}
 
-	public void renderItemIntoGUI(FontRenderer par1FontRenderer, TextureManager par2TextureManager, ItemStack par3ItemStack, int par4, int par5) {
+	public void renderItemIntoGUI(FontRenderer par1FontRenderer, TextureManager par2TextureManager, ItemStack par3ItemStack, int par4, int par5, boolean renderEffect)
+	{
 		int var6 = par3ItemStack.itemID;
 		int var7 = par3ItemStack.getItemSubtype();
 		Object var8 = par3ItemStack.getIconIndex();
@@ -269,9 +266,10 @@ public class RenderItem extends Render {
 		int var18;
 		float var12;
 		float var13;
-		if (par3ItemStack.getItemSpriteNumber() == 0 && RenderBlocks.renderItemIn3d(Block.blocksList[var6].getRenderType())) {
+		Block block = (var6 < Block.blocksList.length ? Block.blocksList[var6] : null);
+		if (par3ItemStack.getItemSpriteNumber() == 0 && block != null && RenderBlocks.renderItemIn3d(Block.blocksList[var6].getRenderType()))
+		{
 			par2TextureManager.bindTexture(TextureMap.locationBlocksTexture);
-			Block var15 = Block.blocksList[var6];
 			GL11.glPushMatrix();
 			GL11.glTranslatef((float)(par4 - 2), (float)(par5 + 3), -3.0F + this.zLevel);
 			GL11.glScalef(10.0F, 10.0F, 10.0F);
@@ -289,15 +287,15 @@ public class RenderItem extends Render {
 
 			GL11.glRotatef(-90.0F, 0.0F, 1.0F, 0.0F);
 			this.itemRenderBlocks.useInventoryTint = this.renderWithColor;
-			this.itemRenderBlocks.renderBlockAsItem(var15, var7, 1.0F);
+			this.itemRenderBlocks.renderBlockAsItem(block, var7, 1.0F);
 			this.itemRenderBlocks.useInventoryTint = true;
 			GL11.glPopMatrix();
 		} else if (Item.itemsList[var6].requiresMultipleRenderPasses()) {
 			GL11.glDisable(2896);
-			par2TextureManager.bindTexture(TextureMap.locationItemsTexture);
 
-			for(int var9 = 0; var9 <= 1; ++var9) {
-				Icon var10 = Item.itemsList[var6].getIconFromSubtypeForRenderPass(var7, var9);
+			for (int var9 = 0; var9 < Item.itemsList[var6].getRenderPasses(var6); ++var9) {
+				par2TextureManager.bindTexture(par3ItemStack.getItemSpriteNumber() == 0 ? TextureMap.locationBlocksTexture : TextureMap.locationItemsTexture);
+				Icon var10 = Item.itemsList[var6].getIcon(par3ItemStack, var9);
 				int var11 = Item.itemsList[var6].getColorFromItemStack(par3ItemStack, var9);
 				var12 = (float)(var11 >> 16 & 255) / 255.0F;
 				var13 = (float)(var11 >> 8 & 255) / 255.0F;
@@ -307,6 +305,11 @@ public class RenderItem extends Render {
 				}
 
 				this.renderIcon(par4, par5, var10, 16, 16);
+
+				if (par3ItemStack.hasEffect(var9))
+				{
+					renderEffect(par2TextureManager, par4, par5);
+				}
 			}
 
 			GL11.glEnable(2896);
@@ -333,9 +336,32 @@ public class RenderItem extends Render {
 		GL11.glEnable(2884);
 	}
 
+	private void renderEffect(TextureManager manager, int x, int y)
+	{
+		GL11.glDepthFunc(GL11.GL_GREATER);
+		GL11.glDisable(GL11.GL_LIGHTING);
+		GL11.glDepthMask(false);
+		manager.bindTexture(RES_ITEM_GLINT);
+		this.zLevel -= 50.0F;
+		GL11.glEnable(GL11.GL_BLEND);
+		GL11.glBlendFunc(GL11.GL_DST_COLOR, GL11.GL_DST_COLOR);
+		GL11.glColor4f(0.5F, 0.25F, 0.8F, 1.0F);
+		this.renderGlint(x * 431278612 + y * 32178161, x - 2, y - 2, 20, 20);
+		GL11.glDisable(GL11.GL_BLEND);
+		GL11.glDepthMask(true);
+		this.zLevel += 50.0F;
+		GL11.glEnable(GL11.GL_LIGHTING);
+		GL11.glDepthFunc(GL11.GL_LEQUAL);
+	}
+
 	public void renderItemAndEffectIntoGUI(FontRenderer par1FontRenderer, TextureManager par2TextureManager, ItemStack par3ItemStack, int par4, int par5) {
 		if (par3ItemStack != null) {
-			this.renderItemIntoGUI(par1FontRenderer, par2TextureManager, par3ItemStack, par4, par5);
+			if (!ForgeHooksClient.renderInventoryItem(renderBlocks, par2TextureManager, par3ItemStack, renderWithColor, zLevel, (float)par4, (float)par5))
+			{
+				this.renderItemIntoGUI(par1FontRenderer, par2TextureManager, par3ItemStack, par4, par5, true);
+			}
+
+            /* Modders must handle this themselves if they use custom renderers!
 			if (par3ItemStack.hasEffect()) {
 				GL11.glDepthFunc(516);
 				GL11.glDisable(2896);
@@ -352,6 +378,8 @@ public class RenderItem extends Render {
 				GL11.glEnable(2896);
 				GL11.glDepthFunc(515);
 			}
+
+             */
 		}
 
 	}
@@ -448,5 +476,48 @@ public class RenderItem extends Render {
 
 	public void doRender(Entity par1Entity, double par2, double par4, double par6, float par8, float par9) {
 		this.doRenderItem((EntityItem)par1Entity, par2, par4, par6, par8, par9);
+	}
+
+	/**
+	 * Items should spread out when rendered in 3d?
+	 * @return
+	 */
+	public boolean shouldSpreadItems()
+	{
+		return true;
+	}
+
+	/**
+	 * Items should have a bob effect
+	 * @return
+	 */
+	public boolean shouldBob()
+	{
+		return true;
+	}
+
+	public byte getMiniBlockCount(ItemStack stack)
+	{
+		byte ret = 1;
+		if (stack.stackSize > 1 ) ret = 2;
+		if (stack.stackSize > 5 ) ret = 3;
+		if (stack.stackSize > 20) ret = 4;
+		if (stack.stackSize > 40) ret = 5;
+		return ret;
+	}
+
+	/**
+	 * Allows for a subclass to override how many rendered items appear in a
+	 * "mini item 3d stack"
+	 * @param stack
+	 * @return
+	 */
+	public byte getMiniItemCount(ItemStack stack)
+	{
+		byte ret = 1;
+		if (stack.stackSize > 1) ret = 2;
+		if (stack.stackSize > 15) ret = 3;
+		if (stack.stackSize > 31) ret = 4;
+		return ret;
 	}
 }

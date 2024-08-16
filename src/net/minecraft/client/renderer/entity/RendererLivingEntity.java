@@ -18,12 +18,17 @@ import net.minecraft.potion.Potion;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.event.RenderLivingEvent;
+import net.minecraftforge.common.MinecraftForge;
 import org.lwjgl.opengl.GL11;
 
 public abstract class RendererLivingEntity extends Render {
 	private static final ResourceLocation RES_ITEM_GLINT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
 	protected ModelBase mainModel;
 	protected ModelBase renderPassModel;
+
+	public static float NAME_TAG_RANGE = 64.0f;
+	public static float NAME_TAG_RANGE_SNEAK = 32.0f;
 
 	public RendererLivingEntity(ModelBase par1ModelBase, float par2) {
 		this.mainModel = par1ModelBase;
@@ -47,6 +52,7 @@ public abstract class RendererLivingEntity extends Render {
 	}
 
 	public void doRenderLiving(EntityLivingBase par1EntityLivingBase, double par2, double par4, double par6, float par8, float par9) {
+		if (MinecraftForge.EVENT_BUS.post(new RenderLivingEvent.Pre(par1EntityLivingBase, this))) return;
 		GL11.glPushMatrix();
 		if (par1EntityLivingBase.drawBackFaces()) {
 			GL11.glDisable(2884);
@@ -243,6 +249,7 @@ public abstract class RendererLivingEntity extends Render {
 		GL11.glEnable(2884);
 		GL11.glPopMatrix();
 		this.passSpecialRender(par1EntityLivingBase, par2, par4, par6);
+		MinecraftForge.EVENT_BUS.post(new RenderLivingEvent.Post(par1EntityLivingBase, this));
 	}
 
 	protected void renderModelGlowing(EntityLivingBase par1EntityLivingBase, float par2, float par3, float par4, float par5, float par6, float par7) {
@@ -402,11 +409,12 @@ public abstract class RendererLivingEntity extends Render {
 	}
 
 	protected void passSpecialRender(EntityLivingBase par1EntityLivingBase, double par2, double par4, double par6) {
+		if (MinecraftForge.EVENT_BUS.post(new RenderLivingEvent.Specials.Pre(par1EntityLivingBase, this))) return;
 		if (this.func_110813_b(par1EntityLivingBase)) {
 			float var8 = 1.6F;
 			float var9 = 0.016666668F * var8;
 			double var10 = par1EntityLivingBase.getDistanceSqToEntity(this.renderManager.livingPlayer);
-			float var12 = par1EntityLivingBase.isSneaking() ? 32.0F : 64.0F;
+			float var12 = par1EntityLivingBase.isSneaking() ? NAME_TAG_RANGE_SNEAK : NAME_TAG_RANGE;
 			if (var10 < (double)(var12 * var12)) {
 				String var13 = par1EntityLivingBase.getTranslatedEntityName();
 				if (par1EntityLivingBase.isSneaking()) {
@@ -444,7 +452,7 @@ public abstract class RendererLivingEntity extends Render {
 				}
 			}
 		}
-
+		MinecraftForge.EVENT_BUS.post(new RenderLivingEvent.Specials.Post(par1EntityLivingBase, this));
 	}
 
 	protected boolean func_110813_b(EntityLivingBase par1EntityLivingBase) {

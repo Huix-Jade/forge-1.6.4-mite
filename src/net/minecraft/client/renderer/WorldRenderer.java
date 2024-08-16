@@ -129,13 +129,14 @@ public final class WorldRenderer {
                               GL11.glTranslatef(-8.0F, -8.0F, -8.0F);
                               GL11.glScalef(var19, var19, var19);
                               GL11.glTranslatef(8.0F, 8.0F, 8.0F);
-                              tessellator.startDrawingQuads();
-                              tessellator.setTranslation((double)(-this.posX), (double)(-this.posY), (double)(-this.posZ));
+                              //ForgeHooksClient.beforeRenderPass(l1); Noop fo now, TODO: Event if anyone needs
+                              Tessellator.instance.startDrawingQuads();
+                              Tessellator.instance.setTranslation((double)(-this.posX), (double)(-this.posY), (double)(-this.posZ));
                            }
 
                            Block var23 = Block.blocksList[var18];
                            if (var23 != null) {
-                              if (var11 == 0 && var23.hasTileEntity()) {
+                              if (var11 == 0 && var23.hasTileEntity(chunk.getBlockMetadata(var17, var15, var16))) {
                                  TileEntity var20 = var9.getBlockTileEntity(var17, var15, var16);
                                  if (TileEntityRenderer.instance.hasSpecialRenderer(var20)) {
                                     this.tileEntityRenderers.add(var20);
@@ -143,11 +144,13 @@ public final class WorldRenderer {
                               }
 
                               int var24 = var23.getRenderBlockPass();
-                              if (var24 != var11) {
+                              if (var24 > var11) {
                                  var12 = true;
-                              } else if (var24 == var11) {
-                                 var13 |= var10.renderBlockByRenderType(var23, var17, var15, var16);
                               }
+                              if (!var23.canRenderInPass(var11)) {
+                                 continue;
+                              }
+                              var13 |= var10.renderBlockByRenderType(var23, var17, var15, var16);
                            }
                         }
                      }
@@ -155,10 +158,10 @@ public final class WorldRenderer {
                }
 
                if (var14) {
-                  this.bytesDrawn += tessellator.draw();
+                  this.bytesDrawn += Tessellator.instance.draw();
                   GL11.glPopMatrix();
                   GL11.glEndList();
-                  tessellator.setTranslation(0.0, 0.0, 0.0);
+                  Tessellator.instance.setTranslation(0.0D, 0.0D, 0.0D);
                } else {
                   var13 = false;
                }

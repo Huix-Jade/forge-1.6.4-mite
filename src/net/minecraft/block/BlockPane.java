@@ -10,6 +10,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.Icon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeDirection;
 
 public class BlockPane extends Block {
    private final String sideTextureIndex;
@@ -49,10 +50,10 @@ public class BlockPane extends Block {
       } else {
          AxisAlignedBB[] bb = new AxisAlignedBB[3];
          int index = 0;
-         boolean var8 = this.canThisPaneConnectToThisBlockID(world.getBlockId(x, y, z - 1));
-         boolean var9 = this.canThisPaneConnectToThisBlockID(world.getBlockId(x, y, z + 1));
-         boolean var10 = this.canThisPaneConnectToThisBlockID(world.getBlockId(x - 1, y, z));
-         boolean var11 = this.canThisPaneConnectToThisBlockID(world.getBlockId(x + 1, y, z));
+         boolean var8 = this.canPaneConnectTo(world,x, y, z, ForgeDirection.NORTH);
+         boolean var9 = this.canPaneConnectTo(world,x, y, z, ForgeDirection.SOUTH);
+         boolean var10 = this.canPaneConnectTo(world,x, y, z, ForgeDirection.WEST);
+         boolean var11 = this.canPaneConnectTo(world,x, y, z, ForgeDirection.EAST);
          if (var10 && var11 || !var10 && !var11 && !var8 && !var9) {
             bb[index++] = AxisAlignedBB.getBoundingBoxFromPool(0.0, 0.0, 0.4375, 1.0, 1.0, 0.5625);
          } else if (var10 && !var11) {
@@ -82,10 +83,10 @@ public class BlockPane extends Block {
       float var6 = 0.5625F;
       float var7 = 0.4375F;
       float var8 = 0.5625F;
-      boolean var9 = this.canThisPaneConnectToThisBlockID(par1IBlockAccess.getBlockId(par2, par3, par4 - 1));
-      boolean var10 = this.canThisPaneConnectToThisBlockID(par1IBlockAccess.getBlockId(par2, par3, par4 + 1));
-      boolean var11 = this.canThisPaneConnectToThisBlockID(par1IBlockAccess.getBlockId(par2 - 1, par3, par4));
-      boolean var12 = this.canThisPaneConnectToThisBlockID(par1IBlockAccess.getBlockId(par2 + 1, par3, par4));
+      boolean var9 = this.canPaneConnectTo(par1IBlockAccess,par2, par3, par4,ForgeDirection.NORTH);
+      boolean var10 = this.canPaneConnectTo(par1IBlockAccess,par2, par3, par4,ForgeDirection.SOUTH);
+      boolean var11 = this.canPaneConnectTo(par1IBlockAccess,par2, par3, par4,ForgeDirection.WEST);
+      boolean var12 = this.canPaneConnectTo(par1IBlockAccess,par2, par3, par4,ForgeDirection.EAST);
       if (var11 && var12 || !var11 && !var12 && !var9 && !var10) {
          var5 = 0.0F;
          var6 = 1.0F;
@@ -121,9 +122,8 @@ public class BlockPane extends Block {
    }
 
    public void onEntityCollidedWithBlock(World par1World, int par2, int par3, int par4, Entity par5Entity) {
-      if (!par1World.isRemote && this == thinGlass && par5Entity instanceof EntityArrow) {
-         EntityArrow arrow = (EntityArrow)par5Entity;
-         if (arrow.speed_before_collision_sq > 4.0F) {
+      if (!par1World.isRemote && this == thinGlass && par5Entity instanceof EntityArrow arrow) {
+          if (arrow.speed_before_collision_sq > 4.0F) {
             par1World.destroyBlock(new BlockBreakInfo(par1World, par2, par3, par4), true);
          }
       }
@@ -132,5 +132,11 @@ public class BlockPane extends Block {
 
    public boolean isStandardFormCube(boolean[] is_standard_form_cube, int metadata) {
       return false;
+   }
+
+   public boolean canPaneConnectTo(IBlockAccess access, int x, int y, int z, ForgeDirection dir)
+   {
+      return canThisPaneConnectToThisBlockID(access.getBlockId(x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ))
+              || access.isBlockSolid(x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ);
    }
 }

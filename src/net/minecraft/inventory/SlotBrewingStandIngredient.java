@@ -12,12 +12,7 @@ class SlotBrewingStandIngredient extends Slot {
    }
 
    public boolean isItemValid(ItemStack par1ItemStack) {
-      ContainerBrewingStand cbs = (ContainerBrewingStand)this.getContainer();
-      if (!cbs.canPlayerAddIngredients()) {
-         return false;
-      } else {
-         return par1ItemStack != null ? Item.itemsList[par1ItemStack.itemID].isPotionIngredient() : false;
-      }
+      return par1ItemStack != null ? Item.itemsList[par1ItemStack.itemID].isPotionIngredient() : false;
    }
 
    public int getSlotStackLimit() {

@@ -426,6 +426,14 @@ public class InventoryPlayer implements IInventory {
          }
       }
 
+      for (int i = 0; i < this.armorInventory.length; i++)
+      {
+         if (this.armorInventory[i] != null)
+         {
+            this.armorInventory[i].getItem().onArmorTickUpdate(this.player.worldObj, this.player, this.armorInventory[i]);
+         }
+      }
+
    }
 
    public boolean consumeInventoryItem(int par1) {

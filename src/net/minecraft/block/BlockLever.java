@@ -46,7 +46,9 @@ public final class BlockLever extends BlockMounted {
       if (!isMaterialSuitableForLeverMounting(neighbor_block.blockMaterial, face)) {
          return false;
       } else {
-         return (neighbor_block instanceof BlockPistonBase || neighbor_block instanceof BlockPistonMoving) && face.isSide() && ((BlockDirectional)neighbor_block).isAlignedWith(neighbor_block_metadata, this.getAxisOfMotion(metadata)) ? false : super.canMountToBlock(metadata, neighbor_block, neighbor_block_metadata, face);
+         return (neighbor_block instanceof BlockPistonBase || neighbor_block instanceof BlockPistonMoving)
+                 && face.isSide() && ((BlockDirectional)neighbor_block).isAlignedWith(neighbor_block_metadata, this.getAxisOfMotion(metadata)) ? false :
+                 super.canMountToBlock(metadata, neighbor_block, neighbor_block_metadata, face);
       }
    }
 

@@ -15,6 +15,10 @@ public class OpenGlHelper {
    private static float previous_lightmap_texture_coords_param_2;
    private static float previous_lightmap_texture_coords_param_3;
 
+   /* Stores the last values sent into setLightmapTextureCoords */
+   public static float lastBrightnessX = 0.0f;
+   public static float lastBrightnessY = 0.0f;
+
    public static void initializeTextures() {
       useMultitextureARB = GLContext.getCapabilities().GL_ARB_multitexture && !GLContext.getCapabilities().OpenGL13;
       if (useMultitextureARB) {
@@ -50,6 +54,12 @@ public class OpenGlHelper {
          ARBMultitexture.glMultiTexCoord2fARB(par0, par1, par2);
       } else {
          GL13.glMultiTexCoord2f(par0, par1, par2);
+      }
+
+      if (par0 == lightmapTexUnit)
+      {
+         lastBrightnessX = par1;
+         lastBrightnessY = par2;
       }
 
       previous_lightmap_texture_coords_param_1 = current_lightmap_texture_coords_param_1;

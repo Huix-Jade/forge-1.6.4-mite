@@ -1,6 +1,8 @@
 package net.minecraft.enchantment;
 
 import java.util.ArrayList;
+
+import com.google.common.collect.ObjectArrays;
 import net.minecraft.client.Minecraft;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.EnumRarity;
@@ -64,6 +66,36 @@ public abstract class Enchantment {
       } else {
          enchantmentsList[id] = this;
       }
+   }
+
+   /**
+    * This applies specifically to applying at the enchanting table. The other method {@link #canApply(ItemStack)}
+    * applies for <i>all possible</i> enchantments.
+    * @param stack
+    * @return
+    */
+   public boolean canApplyAtEnchantingTable(ItemStack stack)
+   {
+      return canApply(stack);
+   }
+
+   /**
+    * Add to the list of enchantments applicable by the anvil from a book
+    *
+    * @param enchantment
+    */
+   public static void addToBookList(Enchantment enchantment)
+   {
+      ObjectArrays.concat(enchantmentsBookList, enchantment);
+   }
+
+   /**
+    * Is this enchantment allowed to be enchanted on books via Enchantment Table
+    * @return false to disable the vanilla feature
+    */
+   public boolean isAllowedOnBooks()
+   {
+      return true;
    }
 
    public int getWeight() {

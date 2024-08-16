@@ -9,6 +9,7 @@ import java.util.Set;
 import net.minecraft.block.BlockWorkbench;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiMerchant;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -121,8 +122,11 @@ public abstract class GuiContainer extends GuiScreen {
       if (lighting_enabled) {
          GL11.glDisable(2896);
       }
-
+      //Forge: Force lighting to be disabled as there are some issue where lighting would
+      //incorrectly be applied based on items that are in the inventory.
+      GL11.glDisable(GL11.GL_LIGHTING);
       this.drawGuiContainerForegroundLayer(par1, par2);
+      GL11.glEnable(GL11.GL_LIGHTING);
       if (lighting_enabled) {
          GL11.glEnable(2896);
       }
@@ -175,9 +179,11 @@ public abstract class GuiContainer extends GuiScreen {
    private void drawItemStack(ItemStack par1ItemStack, int par2, int par3, String par4Str) {
       GL11.glTranslatef(0.0F, 0.0F, 32.0F);
       this.zLevel = 200.0F;
-      itemRenderer.zLevel = 200.0F;
-      itemRenderer.renderItemAndEffectIntoGUI(this.fontRenderer, this.mc.getTextureManager(), par1ItemStack, par2, par3);
-      itemRenderer.renderItemOverlayIntoGUI(this.fontRenderer, this.mc.getTextureManager(), par1ItemStack, par2, par3 - (this.draggedStack == null ? 0 : 8), par4Str);
+      FontRenderer font = null;
+      if (par1ItemStack != null) font = par1ItemStack.getItem().getFontRenderer(par1ItemStack);
+      if (font == null) font = fontRenderer;
+      itemRenderer.renderItemAndEffectIntoGUI(font, this.mc.getTextureManager(), par1ItemStack, par2, par3);
+      itemRenderer.renderItemOverlayIntoGUI(font, this.mc.getTextureManager(), par1ItemStack, par2, par3 - (this.draggedStack == null ? 0 : 8), par4Str);
       this.zLevel = 0.0F;
       itemRenderer.zLevel = 0.0F;
    }
@@ -229,7 +235,8 @@ public abstract class GuiContainer extends GuiScreen {
                }
 
                var4.addAll(tooltips);
-               this.func_102021_a(var4, par2, par3);
+               FontRenderer font = par1ItemStack.getItem().getFontRenderer(par1ItemStack);
+               drawHoveringText(var4, par2, par3, true, (font == null ? fontRenderer : font));
                return;
             }
          }
@@ -271,11 +278,13 @@ public abstract class GuiContainer extends GuiScreen {
       this.func_102021_a(Arrays.asList(par1Str), par2, par3);
    }
 
-   protected void func_102021_a(List par1List, int par2, int par3) {
-      this.func_102021_a(par1List, par2, par3, true);
+
+   protected void func_102021_a(List par1List, int par2, int par3)
+   {
+      drawHoveringText(par1List, par2, par3, true,fontRenderer);
    }
 
-   protected void func_102021_a(List par1List, int par2, int par3, boolean has_title) {
+   protected void drawHoveringText(List par1List, int par2, int par3, boolean has_title, FontRenderer font) {
       if (!par1List.isEmpty()) {
          GL11.glDisable(32826);
          RenderHelper.disableStandardItemLighting();

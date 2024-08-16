@@ -128,7 +128,7 @@ public abstract class World implements IBlockAccess {
    public Set activeChunkSet = new HashSet();
    private int ambientTickCountdown;
    int[] lightUpdateBlockList;
-   public final boolean isRemote;
+   public boolean isRemote;
    public boolean decorating;
    public List pending_entity_spawns = new ArrayList();
    public boolean ignore_rain_and_thunder_for_next_BLV;

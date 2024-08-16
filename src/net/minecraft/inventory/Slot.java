@@ -9,6 +9,7 @@ import net.minecraft.block.BlockSapling;
 import net.minecraft.block.BlockTallGrass;
 import net.minecraft.block.BlockTorch;
 import net.minecraft.block.BlockVine;
+import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -21,6 +22,7 @@ import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.network.packet.Packet85SimpleSignal;
 import net.minecraft.util.EnumSignal;
 import net.minecraft.util.Icon;
+import net.minecraft.util.ResourceLocation;
 
 public class Slot {
    private final int slotIndex;
@@ -31,6 +33,13 @@ public class Slot {
    public boolean accepts_large_items;
    public boolean locked;
    private Container container;
+
+   /** Position within background texture file, normally -1 which causes no background to be drawn. */
+   protected Icon backgroundIcon = null;
+
+   /** Background texture file assigned to this slot, if any. Vanilla "/gui/items.png" is used if this is null. */
+
+   protected ResourceLocation texture;
 
    public Slot(IInventory inventory, int slot_index, int display_x, int display_y) {
       this(inventory, slot_index, display_x, display_y, true);
@@ -139,7 +148,7 @@ public class Slot {
    }
 
    public Icon getBackgroundIconIndex() {
-      return null;
+      return backgroundIcon;
    }
 
    public ItemStack decrStackSize(int par1) {
@@ -167,5 +176,45 @@ public class Slot {
    }
 
    public void onSlotClicked(EntityPlayer entity_player, int button, Container container) {
+   }
+
+
+   /**
+    * Gets the path of the texture file to use for the background image of this slot when drawing the GUI.
+    * @return String: The texture file that will be used in GuiContainer.drawSlotInventory for the slot background.
+    */
+
+   public ResourceLocation getBackgroundIconTexture()
+   {
+      return (texture == null ? TextureMap.locationItemsTexture : texture);
+   }
+
+   /**
+    * Sets which icon index to use as the background image of the slot when it's empty.
+    * @param icon The icon to use, null for none
+    */
+   public void setBackgroundIcon(Icon icon)
+   {
+      backgroundIcon = icon;
+   }
+
+   /**
+    * Sets the texture file to use for the background image of the slot when it's empty.
+    * @param texture String: Path of texture file to use, or null to use "/gui/items.png"
+    */
+   public void setBackgroundIconTexture(ResourceLocation texture)
+   {
+      this.texture = texture;
+   }
+
+   /**
+    * Retrieves the index in the inventory for this slot, this value should typically not
+    * be used, but can be useful for some occasions.
+    *
+    * @return Index in associated inventory for this slot.
+    */
+   public int getSlotIndex()
+   {
+      return slotIndex;
    }
 }

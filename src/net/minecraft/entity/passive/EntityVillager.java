@@ -156,7 +156,7 @@ public class EntityVillager extends EntityAgeable implements IMerchant, INpc {
    public boolean onEntityRightClicked(EntityPlayer player, ItemStack item_stack) {
       if (super.onEntityRightClicked(player, item_stack)) {
          return true;
-      } else if (this.isEntityAlive() && !this.isTrading() && !this.isChild()) {
+      } else if (this.isEntityAlive() && !this.isTrading() && !this.isChild() && !player.isSneaking()) {
          if (player.onServer()) {
             this.setCustomer(player);
             player.displayGUIMerchant(this, this.getCustomNameTag());

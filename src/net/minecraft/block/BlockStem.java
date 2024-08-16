@@ -11,6 +11,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.ForgeDirection;
 
 public final class BlockStem extends BlockGrowingPlant {
    private final Block fruitType;
@@ -119,7 +120,10 @@ public final class BlockStem extends BlockGrowingPlant {
                         }
 
                         int var11 = par1World.getBlockId(var9, par3 - 1, var10);
-                        if (par1World.getBlockId(var9, par3, var10) == 0 && (var11 == Block.tilledField.blockID || var11 == Block.dirt.blockID || var11 == Block.grass.blockID)) {
+                        boolean isSoil = (blocksList[var11] != null && blocksList[var11].
+                                canSustainPlant(par1World, var9, par3 - 1, var10, ForgeDirection.UP, this));
+                        if (par1World.isAirBlock(var9, par3, var10) && (isSoil || var11 == Block.dirt.blockID || var11 == Block.grass.blockID))
+                        {
                            par1World.setBlock(var9, par3, var10, this.fruitType.blockID);
                            if (par5Random.nextFloat() < 0.1F) {
                               par1World.setBlockMetadataWithNotify(par2, par3, par4, setDead(metadata, true), 2);

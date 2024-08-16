@@ -4,8 +4,12 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import com.google.common.collect.ObjectArrays;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.packet.Packet203AutoComplete;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraftforge.client.ClientCommandHandler;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -210,10 +214,12 @@ public class GuiChat extends GuiScreen {
       }
 
       this.inputField.writeText((String)this.field_73904_o.get(this.field_73903_n++));
+      this.inputField.writeText(EnumChatFormatting.func_110646_a((String)this.field_73904_o.get(this.field_73903_n++)));
    }
 
    private void func_73893_a(String par1Str, String par2Str) {
       if (par1Str.length() >= 1) {
+         ClientCommandHandler.instance.autoComplete(par1Str, par2Str);
          this.mc.thePlayer.sendQueue.addToSendQueue(new Packet203AutoComplete(par1Str));
          this.field_73905_m = true;
       }
@@ -259,6 +265,13 @@ public class GuiChat extends GuiScreen {
          this.field_73904_o.clear();
          String[] var2 = par1ArrayOfStr;
          int var3 = par1ArrayOfStr.length;
+
+         String[] complete = ClientCommandHandler.instance.latestAutoComplete;
+         if (complete != null)
+         {
+            var2 = ObjectArrays.concat(complete, var2, String.class);
+            var3 = var2.length;
+         }
 
          for(int var4 = 0; var4 < var3; ++var4) {
             String var5 = var2[var4];

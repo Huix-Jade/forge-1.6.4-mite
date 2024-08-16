@@ -234,6 +234,8 @@ import net.minecraft.world.WorldSettings;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.MapStorage;
+import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.common.MinecraftForge;
 import org.apache.commons.io.IOUtils;
 import org.lwjgl.input.Keyboard;
 
@@ -714,7 +716,7 @@ public class NetClientHandler extends NetHandler {
    }
 
    public void handleKickDisconnect(Packet255KickDisconnect par1Packet255KickDisconnect) {
-      this.netManager.networkShutdown("disconnect.kicked");
+      this.netManager.networkShutdown("disconnect.kicked", par1Packet255KickDisconnect.reason);
       this.disconnected = true;
       this.mc.loadWorld((WorldClient)null);
       if (this.field_98183_l != null) {
@@ -772,7 +774,11 @@ public class NetClientHandler extends NetHandler {
    }
 
    public void handleChat(Packet3Chat par1Packet3Chat) {
-      this.mc.ingameGUI.getChatGUI().printChatMessage(ChatMessageComponent.createFromJson(par1Packet3Chat.message).toStringWithFormatting(true));
+      ClientChatReceivedEvent event = new ClientChatReceivedEvent(par1Packet3Chat.message);
+      if (!MinecraftForge.EVENT_BUS.post(event) && event.message != null)
+      {
+         this.mc.ingameGUI.getChatGUI().printChatMessage(ChatMessageComponent.createFromJson(event.message).toStringWithFormatting(true));
+      }
    }
 
    public void handleAnimation(Packet18Animation par1Packet18Animation) {
@@ -1082,6 +1088,8 @@ public class NetClientHandler extends NetHandler {
                var2.readFromNBT(par1Packet132TileEntityData.data);
             } else if (par1Packet132TileEntityData.actionType == 4 && var2 instanceof TileEntitySkull) {
                var2.readFromNBT(par1Packet132TileEntityData.data);
+            } else {
+               var2.onDataPacket(netManager,  par1Packet132TileEntityData);
             }
          }
       }
@@ -1577,11 +1585,11 @@ public class NetClientHandler extends NetHandler {
    public void handlePlayerStat(Packet91PlayerStat packet) {
       StatBase stat = StatList.getStat(packet.id);
       if (StatList.isEitherZeroOrOne(stat)) {
-         this.mc.thePlayer.stats.put(packet.id, new Byte((byte)((int)packet.value)));
+         this.mc.thePlayer.stats.put(packet.id, (byte)((int)packet.value));
       } else if (StatList.hasLongValue(stat)) {
-         this.mc.thePlayer.stats.put(packet.id, new Long(packet.value));
+         this.mc.thePlayer.stats.put(packet.id, packet.value);
       } else {
-         this.mc.thePlayer.stats.put(packet.id, new Integer((int)packet.value));
+         this.mc.thePlayer.stats.put(packet.id, (int)packet.value);
       }
 
    }

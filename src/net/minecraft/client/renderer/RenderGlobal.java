@@ -75,6 +75,8 @@ import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.IWorldAccess;
+import net.minecraftforge.client.IRenderHandler;
+import net.minecraftforge.client.MinecraftForgeClient;
 import org.lwjgl.opengl.ARBOcclusionQuery;
 import org.lwjgl.opengl.GL11;
 
@@ -390,7 +392,12 @@ public final class RenderGlobal implements IWorldAccess {
    }
 
    public void renderEntities(Vec3 par1Vec3, ICamera par2ICamera, float par3) {
+      int pass = MinecraftForgeClient.getRenderPass();
       if (this.renderEntitiesStartupCounter > 0) {
+         if (pass > 0)
+         {
+            return;
+         }
          --this.renderEntitiesStartupCounter;
       } else {
          this.theWorld.theProfiler.startSection("prepare");
@@ -398,25 +405,32 @@ public final class RenderGlobal implements IWorldAccess {
          RaycastCollision rc = ((EntityPlayer)this.mc.renderViewEntity).getSelectedObject(par3, false);
          EntityLiving pointed_entity_living = rc == null ? null : (rc.getEntityHit() instanceof EntityLiving ? (EntityLiving)rc.getEntityHit() : null);
          RenderManager.instance.cacheActiveRenderInfo(this.theWorld, this.mc.getTextureManager(), this.mc.fontRenderer, this.mc.renderViewEntity, pointed_entity_living, this.mc.gameSettings, par3);
-         this.countEntitiesTotal = 0;
-         this.countEntitiesRendered = 0;
-         this.countEntitiesHidden = 0;
-         EntityLivingBase var4 = this.mc.renderViewEntity;
-         RenderManager.renderPosX = var4.lastTickPosX + (var4.posX - var4.lastTickPosX) * (double)par3;
-         RenderManager.renderPosY = var4.lastTickPosY + (var4.posY - var4.lastTickPosY) * (double)par3;
-         RenderManager.renderPosZ = var4.lastTickPosZ + (var4.posZ - var4.lastTickPosZ) * (double)par3;
-         TileEntityRenderer.staticPlayerX = var4.lastTickPosX + (var4.posX - var4.lastTickPosX) * (double)par3;
-         TileEntityRenderer.staticPlayerY = var4.lastTickPosY + (var4.posY - var4.lastTickPosY) * (double)par3;
-         TileEntityRenderer.staticPlayerZ = var4.lastTickPosZ + (var4.posZ - var4.lastTickPosZ) * (double)par3;
+         if (pass == 0) // no indentation to shrink patch
+         {
+            this.countEntitiesTotal = 0;
+            this.countEntitiesRendered = 0;
+            this.countEntitiesHidden = 0;
+            EntityLivingBase var4 = this.mc.renderViewEntity;
+            RenderManager.renderPosX = var4.lastTickPosX + (var4.posX - var4.lastTickPosX) * (double) par3;
+            RenderManager.renderPosY = var4.lastTickPosY + (var4.posY - var4.lastTickPosY) * (double) par3;
+            RenderManager.renderPosZ = var4.lastTickPosZ + (var4.posZ - var4.lastTickPosZ) * (double) par3;
+            TileEntityRenderer.staticPlayerX = var4.lastTickPosX + (var4.posX - var4.lastTickPosX) * (double) par3;
+            TileEntityRenderer.staticPlayerY = var4.lastTickPosY + (var4.posY - var4.lastTickPosY) * (double) par3;
+            TileEntityRenderer.staticPlayerZ = var4.lastTickPosZ + (var4.posZ - var4.lastTickPosZ) * (double) par3;
+         }
          this.mc.entityRenderer.enableLightmap((double)par3);
          this.theWorld.theProfiler.endStartSection("global");
          List var5 = this.theWorld.getLoadedEntityList();
-         this.countEntitiesTotal = var5.size();
+         if (pass == 0) // no indentation for smaller patch size
+         {
+            this.countEntitiesTotal = var5.size();
 
+         }
          int var6;
          Entity var7;
          for(var6 = 0; var6 < this.theWorld.weatherEffects.size(); ++var6) {
             var7 = (Entity)this.theWorld.weatherEffects.get(var6);
+            if (!var7.shouldRenderInPass(pass)) continue;
             ++this.countEntitiesRendered;
             if (var7.isInRangeToRenderVec3D(par1Vec3)) {
                RenderManager.instance.renderEntity(var7, par3);
@@ -428,6 +442,7 @@ public final class RenderGlobal implements IWorldAccess {
 
          for(var6 = 0; var6 < var5.size(); ++var6) {
             var7 = (Entity)var5.get(var6);
+            if (!var7.shouldRenderInPass(pass)) continue;
             boolean render_override = var7 != this.mc.thePlayer && var7.getDistanceSqToEntity(this.mc.thePlayer) < 16.0;
             if (var7 instanceof EntityDragon || var7 instanceof EntityDragonPart) {
                render_override = true;
@@ -462,7 +477,11 @@ public final class RenderGlobal implements IWorldAccess {
          RenderHelper.enableStandardItemLighting();
 
          for(var6 = 0; var6 < this.tileEntities.size(); ++var6) {
-            TileEntityRenderer.instance.renderTileEntity((TileEntity)this.tileEntities.get(var6), par3);
+            TileEntity tile = (TileEntity)tileEntities.get(var6);
+            if (tile.shouldRenderInPass(pass) && par2ICamera.isBoundingBoxInFrustum(tile.getRenderBoundingBox()))
+            {
+               TileEntityRenderer.instance.renderTileEntity(tile, par3);
+            }
          }
 
          this.mc.entityRenderer.disableLightmap((double)par3);
@@ -795,6 +814,12 @@ public final class RenderGlobal implements IWorldAccess {
    }
 
    public void renderSky(float par1) {
+      IRenderHandler skyProvider = null;
+      if ((skyProvider = this.mc.theWorld.provider.getSkyRenderer()) != null)
+      {
+         skyProvider.render(par1, this.theWorld, mc);
+         return;
+      }
       GL11.glDisable(2896);
       if (this.mc.theWorld.provider.dimensionId == 1) {
          GL11.glDisable(2912);
@@ -1203,6 +1228,12 @@ public final class RenderGlobal implements IWorldAccess {
    }
 
    public void renderClouds(float par1) {
+      IRenderHandler renderer = null;
+      if ((renderer = theWorld.provider.getCloudRenderer()) != null)
+      {
+         renderer.render(par1, theWorld, mc);
+         return;
+      }
       if (this.mc.theWorld.provider.isSurfaceWorld()) {
          boolean force_fancy_clouds = true;
          if (!force_fancy_clouds && !this.mc.gameSettings.isFancyGraphicsEnabled()) {
@@ -2257,7 +2288,13 @@ public final class RenderGlobal implements IWorldAccess {
       }
    }
 
-   public void drawBlockDamageTexture(Tessellator par1Tessellator, EntityPlayer par2EntityPlayer, float par3) {
+   public void drawBlockDamageTexture(Tessellator par1Tessellator, EntityPlayer par2EntityPlayer, float par3)
+   {
+      drawBlockDamageTexture(par1Tessellator, (EntityLivingBase)par2EntityPlayer, par3);
+   }
+
+   public void drawBlockDamageTexture(Tessellator par1Tessellator, EntityLivingBase par2EntityPlayer, float par3)
+   {
       double var4 = par2EntityPlayer.lastTickPosX + (par2EntityPlayer.posX - par2EntityPlayer.lastTickPosX) * (double)par3;
       double var6 = par2EntityPlayer.lastTickPosY + (par2EntityPlayer.posY - par2EntityPlayer.lastTickPosY) * (double)par3;
       double var8 = par2EntityPlayer.lastTickPosZ + (par2EntityPlayer.posZ - par2EntityPlayer.lastTickPosZ) * (double)par3;

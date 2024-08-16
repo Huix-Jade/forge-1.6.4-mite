@@ -122,9 +122,14 @@ public class EntityOtherPlayerMP extends AbstractClientPlayer {
 
    }
 
-   public float getEyeHeight() {
+   @Override
+   public float getDefaultEyeHeight()
+   {
       return 1.82F;
    }
+//   public float getEyeHeight() {
+//      return 1.82F;
+//   }
 
    public double getFootPosY() {
       double foot_pos_y = this.posY;
@@ -155,4 +160,6 @@ public class EntityOtherPlayerMP extends AbstractClientPlayer {
    public INetworkManager getNetManager() {
       return null;
    }
+
+
 }

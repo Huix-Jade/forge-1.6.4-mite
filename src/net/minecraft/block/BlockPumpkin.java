@@ -122,7 +122,9 @@ public class BlockPumpkin extends BlockDirectional {
    }
 
    public boolean canBePlacedAt(World world, int x, int y, int z, int metadata) {
-      return world.isBlockFaceFlatAndSolid(x, y - 1, z, EnumFace.TOP) && super.canBePlacedAt(world, x, y, z, metadata);
+      int l = world.getBlockId(x, y, z);
+      Block block = Block.blocksList[l];
+      return (block == null || block.isBlockReplaceable(world, x, y, z)) && world.doesBlockHaveSolidTopSurface(x, y - 1, z);
    }
 
    public boolean canBePlacedOnBlock(int metadata, Block block_below, int block_below_metadata, double block_below_bounds_max_y) {

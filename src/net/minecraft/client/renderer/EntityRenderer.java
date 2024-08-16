@@ -42,6 +42,7 @@ import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.client.ForgeHooksClient;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.GL11;
@@ -235,9 +236,8 @@ public final class EntityRenderer {
 
    public void getMouseOver(float partial_tick) {
       if (this.mc.renderViewEntity != null && this.mc.theWorld != null) {
-         if (this.mc.renderViewEntity instanceof EntityPlayer && this.mc.theWorld != null) {
-            EntityPlayer player = (EntityPlayer)this.mc.renderViewEntity;
-            RaycastCollision rc = player.getSelectedObject(partial_tick, false);
+         if (this.mc.renderViewEntity instanceof EntityPlayer player && this.mc.theWorld != null) {
+             RaycastCollision rc = player.getSelectedObject(partial_tick, false);
             this.mc.objectMouseOver = rc;
             this.pointedEntity = null;
             this.mc.pointedEntityLiving = null;
@@ -262,8 +262,15 @@ public final class EntityRenderer {
    }
 
    private void updateFovModifierHand() {
-      EntityPlayerSP var1 = (EntityPlayerSP)this.mc.renderViewEntity;
-      this.fovMultiplierTemp = var1.getFOVMultiplier();
+      if (mc.renderViewEntity instanceof EntityPlayerSP)
+      {
+         EntityPlayerSP entityplayersp = (EntityPlayerSP)this.mc.renderViewEntity;
+         this.fovMultiplierTemp = entityplayersp.getFOVMultiplier();
+      }
+      else
+      {
+         this.fovMultiplierTemp = mc.thePlayer.getFOVMultiplier();
+      }
       this.fovModifierHandPrev = this.fovModifierHand;
       this.fovModifierHand += (this.fovMultiplierTemp - this.fovModifierHand) * 0.5F;
       if (this.fovModifierHand > 1.5F) {
@@ -280,7 +287,7 @@ public final class EntityRenderer {
       if (this.debugViewDirection > 0) {
          return 90.0F;
       } else {
-         EntityPlayer var3 = (EntityPlayer)this.mc.renderViewEntity;
+         EntityLivingBase var3 = (EntityLivingBase)this.mc.renderViewEntity;
          float var4 = 70.0F;
          if (par2) {
             var4 += this.mc.gameSettings.fovSetting * 40.0F;
@@ -322,9 +329,8 @@ public final class EntityRenderer {
    }
 
    private void setupViewBobbing(float par1) {
-      if (this.mc.renderViewEntity instanceof EntityPlayer) {
-         EntityPlayer var2 = (EntityPlayer)this.mc.renderViewEntity;
-         float var3 = var2.distanceWalkedModified - var2.prevDistanceWalkedModified;
+      if (this.mc.renderViewEntity instanceof EntityPlayer var2) {
+          float var3 = var2.distanceWalkedModified - var2.prevDistanceWalkedModified;
          float var4 = -(var2.distanceWalkedModified + var3 * par1);
          float var5 = var2.prevCameraYaw + (var2.cameraYaw - var2.prevCameraYaw) * par1;
          float var6 = var2.prevCameraPitch + (var2.cameraPitch - var2.prevCameraPitch) * par1;
@@ -351,12 +357,7 @@ public final class EntityRenderer {
          var3 = (float)((double)var3 + 1.0);
          GL11.glTranslatef(0.0F, 0.3F, 0.0F);
          if (!this.mc.gameSettings.debugCamEnable) {
-            int var10 = this.mc.theWorld.getBlockId(MathHelper.floor_double(var2.posX), MathHelper.floor_double(var2.posY), MathHelper.floor_double(var2.posZ));
-            if (var10 == Block.bed.blockID) {
-               int var11 = this.mc.theWorld.getBlockMetadata(MathHelper.floor_double(var2.posX), MathHelper.floor_double(var2.posY), MathHelper.floor_double(var2.posZ));
-               int var12 = var11 & 3;
-               GL11.glRotatef((float)(var12 * 90), 0.0F, 1.0F, 0.0F);
-            }
+            ForgeHooksClient.orientBedCamera(mc, var2);
 
             GL11.glRotatef(var2.prevRotationYaw + (var2.rotationYaw - var2.prevRotationYaw) * par1 + 180.0F, 0.0F, -1.0F, 0.0F);
             GL11.glRotatef(var2.prevRotationPitch + (var2.rotationPitch - var2.prevRotationPitch) * par1, -1.0F, 0.0F, 0.0F);
@@ -983,7 +984,10 @@ public final class EntityRenderer {
          EntityPlayer var17;
          if (this.debugViewDirection == 0) {
             RenderHelper.enableStandardItemLighting();
+            ForgeHooksClient.setRenderPass(0);
             this.mc.mcProfiler.endStartSection("entities");
+            ForgeHooksClient.setRenderPass(0);
+                /* Forge: Moved down
             var5.renderEntities(var4.getPosition(par1), var14, par1);
             this.enableLightmap((double)par1);
             this.mc.mcProfiler.endStartSection("litParticles");
@@ -993,11 +997,19 @@ public final class EntityRenderer {
             this.mc.mcProfiler.endStartSection("particles");
             var6.renderParticles(var4, par1);
             this.disableLightmap((double)par1);
+
+                 */
             if (this.mc.objectMouseOver != null && var4.isInsideOfMaterial(Material.water) && var4 instanceof EntityPlayer && this.mc.gameSettings.gui_mode == 0) {
                var17 = (EntityPlayer)var4;
                GL11.glDisable(3008);
                this.mc.mcProfiler.endStartSection("outline");
                var5.drawSelectionBox(var17, this.mc.objectMouseOver, 0, par1);
+
+               if (!ForgeHooksClient.onDrawBlockHighlight(var5, var17, mc.objectMouseOver, 0, var17.inventory.getCurrentItemStack(), par1))
+               {
+                  var5.drawSelectionBox(var17, this.mc.objectMouseOver, 0, par1);
+               }
+
                GL11.glEnable(3008);
             }
          }
@@ -1038,6 +1050,17 @@ public final class EntityRenderer {
             var5.sortAndRender(var4, 1, (double)par1);
          }
 
+         if (this.debugViewDirection == 0) //Only render if render pass 0 happens as well.
+         {
+            RenderHelper.enableStandardItemLighting();
+            this.mc.mcProfiler.endStartSection("entities");
+            ForgeHooksClient.setRenderPass(1);
+            var5.renderEntities(var4.getPosition(par1), var14, par1);
+            ForgeHooksClient.setRenderPass(-1);
+            RenderHelper.disableStandardItemLighting();
+         }
+
+
          GL11.glDepthMask(true);
          GL11.glEnable(2884);
          GL11.glDisable(3042);
@@ -1045,6 +1068,12 @@ public final class EntityRenderer {
             var17 = (EntityPlayer)var4;
             GL11.glDisable(3008);
             this.mc.mcProfiler.endStartSection("outline");
+
+            if (!ForgeHooksClient.onDrawBlockHighlight(var5, var17, mc.objectMouseOver, 0, var17.inventory.getCurrentItemStack(), par1))
+            {
+               var5.drawSelectionBox(var17, this.mc.objectMouseOver, 0, par1);
+            }
+
             var5.drawSelectionBox(var17, this.mc.objectMouseOver, 0, par1);
             GL11.glEnable(3008);
          }
@@ -1052,7 +1081,10 @@ public final class EntityRenderer {
          this.mc.mcProfiler.endStartSection("destroyProgress");
          GL11.glEnable(3042);
          GL11.glBlendFunc(770, 1);
-         var5.drawBlockDamageTexture(Tessellator.instance, (EntityPlayer)var4, par1);
+
+         var5.drawBlockDamageTexture(Tessellator.instance, var4, par1);
+
+
          GL11.glDisable(3042);
          this.mc.mcProfiler.endStartSection("weather");
          this.renderRainSnow(par1);
@@ -1060,6 +1092,22 @@ public final class EntityRenderer {
          if (var4.posY >= 128.0) {
             this.renderCloudsCheck(var5, par1);
          }
+
+
+         //Forge: Moved section from above, now particles are the last thing to render.
+         this.enableLightmap((double)par1);
+         this.mc.mcProfiler.endStartSection("litParticles");
+         var6.renderLitParticles(var4, par1);
+         RenderHelper.disableStandardItemLighting();
+         this.setupFog(0, par1);
+         this.mc.mcProfiler.endStartSection("particles");
+         var6.renderParticles(var4, par1);
+         this.disableLightmap((double)par1);
+         //Forge: End Move
+
+         this.mc.mcProfiler.endStartSection("FRenderLast");
+         ForgeHooksClient.dispatchRenderLast(var5, par1);
+
 
          this.mc.mcProfiler.endStartSection("hand");
          if (this.cameraZoom == 1.0) {

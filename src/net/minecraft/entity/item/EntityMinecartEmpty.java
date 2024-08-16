@@ -4,6 +4,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.minecart.MinecartInteractEvent;
 
 public class EntityMinecartEmpty extends EntityMinecart {
    public EntityMinecartEmpty(World par1World) {
@@ -15,6 +17,11 @@ public class EntityMinecartEmpty extends EntityMinecart {
    }
 
    public boolean onEntityRightClicked(EntityPlayer player, ItemStack item_stack) {
+      if(MinecraftForge.EVENT_BUS.post(new MinecartInteractEvent(this, player)))
+      {
+         return true;
+      }
+
       if (this.riddenByEntity != null) {
          return false;
       } else {

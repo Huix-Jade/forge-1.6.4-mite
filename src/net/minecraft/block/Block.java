@@ -369,6 +369,10 @@ public class Block {
       return this;
    }
 
+   public Block(int par1, Material par2Material) {
+      this(par1, par2Material, new BlockConstants());
+   }
+
    protected Block(int par1, Material par2Material, BlockConstants constants) {
       this.stepSound = soundPowderFootstep;
       this.blockParticleGravity = 1.0F;
@@ -713,7 +717,7 @@ public class Block {
       return block != null && block.is_normal_cube;
    }
 
-   public final boolean renderAsNormalBlock() {
+   public boolean renderAsNormalBlock() {
       return this.isAlwaysStandardFormCube();
    }
 
@@ -809,6 +813,10 @@ public class Block {
 
    }
 
+   protected final void setBlockBounds(double par1, double par2, double par3, double par4, double par5, double par6) {
+      this.setBlockBounds(par1, par2, par3, par4, par5, par6, true);
+   }
+
    protected final void setBlockBounds(double par1, double par2, double par3, double par4, double par5, double par6, boolean for_all_threads) {
       if (for_all_threads) {
          this.setBlockBoundsForAllThreads(par1, par2, par3, par4, par5, par6);
@@ -896,6 +904,12 @@ public class Block {
          return false;
       }
    }
+
+   public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z)
+   {
+      return this.getSelectedBoundingBoxFromPool(world, x, y, z);
+   }
+
 
    public AxisAlignedBB getSelectedBoundingBoxFromPool(World par1World, int par2, int par3, int par4) {
       if (this.isAlwaysStandardFormCube()) {
@@ -1269,6 +1283,16 @@ public class Block {
       }
 
       return this.dropBlockAsEntityItem(info, id_dropped, subtype, 1, 1.0F);
+   }
+
+   public final int dropBlockAsEntityItem(World world, int x, int y, int z, int subtype, float chance) {
+      BlockBreakInfo info = new BlockBreakInfo(world, x, y, z);
+      return this.dropBlockAsEntityItem(info, this.blockID, subtype, 1, chance);
+   }
+
+   public final int dropBlockAsEntityItem(World world, int x, int y, int z, int id_dropped, int subtype, int quantity, float chance) {
+      BlockBreakInfo info = new BlockBreakInfo(world, x, y, z);
+      return this.dropBlockAsEntityItem(info, id_dropped, subtype, quantity, chance);
    }
 
    public final int dropBlockAsEntityItem(BlockBreakInfo info, int id_dropped, int subtype, int quantity, float chance) {
@@ -3154,9 +3178,9 @@ public class Block {
     *
     * @return The number of items to drop
     */
-   public int quantityDropped(BlockBreakInfo info)
+   public int quantityDropped(int meta, int fortune, Random random)
    {
-      return info.getHarvesterFortune();
+      return fortune;
    }
 
 //   /**
@@ -3175,7 +3199,7 @@ public class Block {
       ArrayList<ItemStack> ret = new ArrayList<>();
       BlockBreakInfo info = new BlockBreakInfo(world, x, y, z);
 
-      int count = quantityDropped(info);
+      int count = quantityDropped(metadata, fortune, world.rand);
       for(int i = 0; i < count; i++)
       {
          int id = info.block_id;
@@ -3444,6 +3468,12 @@ public class Block {
       return Block.blocksList[blockID].canProvidePower() && side != -1;
    }
 
+
+   public boolean canPlaceTorchOnTop(Block block) {
+      return block == Block.fence || block == Block.netherFence || block == Block.glass || block == Block.cobblestoneWall;
+   }
+
+
    /**
     * Determines if a torch can be placed on the top surface of this block.
     * Useful for creating your own block that torches can be on, such as fences.
@@ -3485,7 +3515,7 @@ public class Block {
     * @param target The full target the player is looking at
     * @return A ItemStack to add to the player's inventory, Null if nothing should be added.
     */
-   public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z)
+   public ItemStack getPickBlock(RaycastCollision target, World world, int x, int y, int z)
    {
       int id = idPicked(world, x, y, z);
 
@@ -3526,7 +3556,7 @@ public class Block {
     * @return True to prevent vanilla digging particles form spawning.
     */
 
-   public boolean addBlockHitEffects(World worldObj, MovingObjectPosition target, EffectRenderer effectRenderer)
+   public boolean addBlockHitEffects(World worldObj, RaycastCollision target, EffectRenderer effectRenderer)
    {
       return false;
    }
@@ -3688,7 +3718,7 @@ public class Block {
    {
       if (entity instanceof EntityWither)
       {
-         return blockID != Block.bedrock.blockID && blockID != Block.endPortal.blockID && blockID != Block.endPortalFrame.blockID;
+         return blockID != Block.bedrock.blockID && blockID != Block.endPortal.blockID && blockID != Block.endPortalFrame.blockID  && blockID != Block.mantleOrCore.blockID;
       }
       else if (entity instanceof EntityDragon)
       {

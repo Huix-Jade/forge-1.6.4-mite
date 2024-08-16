@@ -46,6 +46,7 @@ import net.minecraft.util.Translator;
 import net.minecraft.world.WeatherEvent;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.ForgeHooks;
 import org.lwjgl.opengl.GL11;
 
 public class GuiIngame extends Gui {
@@ -86,7 +87,7 @@ public class GuiIngame extends Gui {
       ScaledResolution var5 = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
       int var6 = var5.getScaledWidth();
       int var7 = var5.getScaledHeight();
-      FontRenderer var8 = this.mc.fontRenderer;
+      FontRenderer fontRenderer = this.mc.fontRenderer;
       this.mc.entityRenderer.setupOverlayRendering();
       if (!this.mc.thePlayer.isGhost()) {
          GL11.glEnable(3042);
@@ -107,8 +108,16 @@ public class GuiIngame extends Gui {
             GL11.glBlendFunc(770, 771);
          }
 
-         if (this.mc.gameSettings.thirdPersonView == 0 && this.mc.thePlayer.isWearingPumpkinHelmet()) {
-            this.renderPumpkinBlur(var6, var7);
+         ItemStack itemstack = this.mc.thePlayer.inventory.armorItemInSlot(3);
+         if (this.mc.gameSettings.thirdPersonView == 0 && itemstack != null && itemstack.getItem() != null) {
+            if (itemstack.itemID == Block.pumpkin.blockID)
+            {
+               this.renderPumpkinBlur(var6, var7);
+            }
+            else
+            {
+               itemstack.getItem().renderHelmetOverlay(itemstack, mc.thePlayer, scaledresolution, par1, par2, par3, par4);
+            }
          }
 
          if (!this.mc.thePlayer.isPotionActive(Potion.confusion)) {
@@ -246,14 +255,14 @@ public class GuiIngame extends Gui {
                }
 
                String var42 = "" + this.mc.thePlayer.getExperienceLevel();
-               var16 = (var6 - var8.getStringWidth(var42)) / 2;
+               var16 = (var6 - fontRenderer.getStringWidth(var42)) / 2;
                var17 = var7 - 31 - 4;
                boolean var18 = false;
-               var8.drawString(var42, var16 + 1, var17, 0);
-               var8.drawString(var42, var16 - 1, var17, 0);
-               var8.drawString(var42, var16, var17 + 1, 0);
-               var8.drawString(var42, var16, var17 - 1, 0);
-               var8.drawString(var42, var16, var17, var14);
+               fontRenderer.drawString(var42, var16 + 1, var17, 0);
+               fontRenderer.drawString(var42, var16 - 1, var17, 0);
+               fontRenderer.drawString(var42, var16, var17 + 1, 0);
+               fontRenderer.drawString(var42, var16, var17 - 1, 0);
+               fontRenderer.drawString(var42, var16, var17, var14);
                this.mc.mcProfiler.endSection();
             }
          }
@@ -288,7 +297,7 @@ public class GuiIngame extends Gui {
             this.mc.mcProfiler.startSection("toolHighlight");
             if (this.remainingHighlightTicks > 0 && this.highlightingItemStack != null) {
                var36 = this.highlightingItemStack.getMITEStyleDisplayName();
-               var13 = (var6 - var8.getStringWidth(var36)) / 2;
+               var13 = (var6 - fontRenderer.getStringWidth(var36)) / 2;
                var14 = var7 - 59;
                if (!this.mc.playerController.shouldDrawHUD()) {
                   var14 += 14;
@@ -303,7 +312,18 @@ public class GuiIngame extends Gui {
                   GL11.glPushMatrix();
                   GL11.glEnable(3042);
                   GL11.glBlendFunc(770, 771);
-                  var8.drawStringWithShadow(var36, var13, var14, 16777215 + (var15 << 24));
+                  fontRenderer.drawStringWithShadow(var36, var13, var14, 16777215 + (var15 << 24));
+                  FontRenderer font = highlightingItemStack.getItem().getFontRenderer(highlightingItemStack);
+                  if (font != null)
+                  {
+                     var14 = (var13 - font.getStringWidth(var36)) / 2;
+                     font.drawStringWithShadow(var36, var13, var14, 16777215 + (var15 << 24));
+                  }
+                  else
+                  {
+                     fontRenderer.drawStringWithShadow(var36, var13, var14, 16777215 + (var15 << 24));
+                  }
+
                   GL11.glDisable(3042);
                   GL11.glPopMatrix();
                }
@@ -327,8 +347,8 @@ public class GuiIngame extends Gui {
                var36 = I18n.getStringParams("demo.remainingTime", StringUtils.ticksToElapsedTime((int)(120500L - this.mc.theWorld.getTotalWorldTime())));
             }
 
-            var13 = var8.getStringWidth(var36);
-            var8.drawStringWithShadow(var36, var6 - var13 - 10, 5, 16777215);
+            var13 = fontRenderer.getStringWidth(var36);
+            fontRenderer.drawStringWithShadow(var36, var6 - var13 - 10, 5, 16777215);
             this.mc.mcProfiler.endSection();
          }
 
@@ -347,17 +367,17 @@ public class GuiIngame extends Gui {
 
          int row = 0;
          if (Minecraft.getErrorMessage() != null) {
-            this.drawString(var8, Minecraft.getErrorMessage(), 2, 2 + 10 * row++, 16716563);
-            this.drawString(var8, "Press [c] to clear error message.", 2, 2 + 10 * row++, 16716563);
+            this.drawString(fontRenderer, Minecraft.getErrorMessage(), 2, 2 + 10 * row++, 16716563);
+            this.drawString(fontRenderer, "Press [c] to clear error message.", 2, 2 + 10 * row++, 16716563);
          }
 
          if (this.mc.gameSettings.showDebugInfo && this.mc.gameSettings.gui_mode == 0) {
             if (DedicatedServer.tournament_type == EnumTournamentType.score) {
-               this.drawTournamentScore(row++, 2, var8);
+               this.drawTournamentScore(row++, 2, fontRenderer);
             }
 
             if (allotted_time >= 0) {
-               this.drawAllottedTime(row++, 2, var8);
+               this.drawAllottedTime(row++, 2, fontRenderer);
             }
          }
 
@@ -367,48 +387,48 @@ public class GuiIngame extends Gui {
             if (server_load >= 0) {
                ScaledResolution sr = new ScaledResolution(this.mc.gameSettings, this.mc.displayWidth, this.mc.displayHeight);
                String text = server_load + "%";
-               this.drawString(var8, text, sr.getScaledWidth() - var8.getStringWidth(text) - 2, 2, 14737632);
+               this.drawString(fontRenderer, text, sr.getScaledWidth() - fontRenderer.getStringWidth(text) - 2, 2, 14737632);
             }
 
             var68 = (new StringBuilder()).append("Legs (").append(MathHelper.floor_double(this.mc.thePlayer.posX)).append(", ").append(MathHelper.floor_double(this.mc.thePlayer.posY - (double)this.mc.thePlayer.yOffset)).append(", ").append(MathHelper.floor_double(this.mc.thePlayer.posZ)).append(")  yaw=").append(StringHelper.formatFloat(this.mc.thePlayer.rotationYaw, 1, 1)).append("  ").append(this.mc.thePlayer.getDirectionFromYaw()).append(" pitch=").append(StringHelper.formatFloat(this.mc.thePlayer.rotationPitch, 1, 1)).append("   FPS=");
             var10003 = this.mc;
             var68 = var68.append(Minecraft.last_fps).append(" (");
             var10003 = this.mc;
-            this.drawString(var8, var68.append(Minecraft.last_fp10s).append(")").toString(), 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, var68.append(Minecraft.last_fp10s).append(")").toString(), 2, 2 + 10 * row++, 14737632);
             if (Debug.flag) {
-               this.drawString(var8, "FLAG", 320, 2, 16716563);
+               this.drawString(fontRenderer, "FLAG", 320, 2, 16716563);
             }
          }
 
          if (Debug.is_active && this.mc.gameSettings.gui_mode == 0) {
-            this.drawString(var8, "Counter: " + Debug.general_counter, 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, "Counter: " + Debug.general_counter, 2, 2 + 10 * row++, 14737632);
             if (Debug.biome_info != null) {
-               this.drawString(var8, Debug.biome_info, 2, 2 + 10 * row++, 14737632);
+               this.drawString(fontRenderer, Debug.biome_info, 2, 2 + 10 * row++, 14737632);
             }
 
             if (Debug.selected_object_info != null) {
-               this.drawString(var8, Debug.selected_object_info, 2, 2 + 10 * row++, 14737632);
+               this.drawString(fontRenderer, Debug.selected_object_info, 2, 2 + 10 * row++, 14737632);
             }
 
             if (Debug.equipped_item_info != null) {
-               this.drawString(var8, Debug.equipped_item_info, 2, 2 + 10 * row++, 14737632);
+               this.drawString(fontRenderer, Debug.equipped_item_info, 2, 2 + 10 * row++, 14737632);
             }
 
             if (Debug.general_info != null) {
-               this.drawString(var8, Debug.general_info, 2, 2 + 10 * row++, 14737632);
+               this.drawString(fontRenderer, Debug.general_info, 2, 2 + 10 * row++, 14737632);
             }
 
             if (Debug.general_info_client != null) {
-               this.drawString(var8, "[Client] " + Debug.general_info_client, 2, 2 + 10 * row++, 14737632);
+               this.drawString(fontRenderer, "[Client] " + Debug.general_info_client, 2, 2 + 10 * row++, 14737632);
             }
 
             if (Debug.general_info_server != null) {
-               this.drawString(var8, "[Server] " + Debug.general_info_server, 2, 2 + 10 * row++, 14737632);
+               this.drawString(fontRenderer, "[Server] " + Debug.general_info_server, 2, 2 + 10 * row++, 14737632);
             }
 
             row += 2;
-            this.drawString(var8, "Player entityId: " + this.mc.thePlayer.entityId + ", username: " + this.mc.thePlayer.username, 2, 2 + 10 * row++, 14737632);
-            this.drawString(var8, "O:" + this.mc.theWorld.worldInfo.getWorldTotalTime(0) + " U:" + this.mc.theWorld.worldInfo.getWorldTotalTime(-2) + " N:" + this.mc.theWorld.worldInfo.getWorldTotalTime(-1) + " E:" + this.mc.theWorld.worldInfo.getWorldTotalTime(1), 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, "Player entityId: " + this.mc.thePlayer.entityId + ", username: " + this.mc.thePlayer.username, 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, "O:" + this.mc.theWorld.worldInfo.getWorldTotalTime(0) + " U:" + this.mc.theWorld.worldInfo.getWorldTotalTime(-2) + " N:" + this.mc.theWorld.worldInfo.getWorldTotalTime(-1) + " E:" + this.mc.theWorld.worldInfo.getWorldTotalTime(1), 2, 2 + 10 * row++, 14737632);
             WeatherEvent event = this.mc.theWorld.getCurrentWeatherEvent();
             String s;
             if (event != null) {
@@ -423,7 +443,7 @@ public class GuiIngame extends Gui {
                }
             }
 
-            this.drawString(var8, s, 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, s, 2, 2 + 10 * row++, 14737632);
             event = this.mc.theWorld.getCurrentWeatherEvent(true, false);
             if (event != null) {
                s = "Current storm: " + event.start_of_storm + " to " + event.end_of_storm;
@@ -437,30 +457,30 @@ public class GuiIngame extends Gui {
                }
             }
 
-            this.drawString(var8, s, 2, 2 + 10 * row++, 14737632);
-            this.drawString(var8, "Client Pools: " + AxisAlignedBB.getAABBPool().getlistAABBsize() + " | " + this.mc.theWorld.getWorldVec3Pool().getPoolSize(), 2, 2 + 10 * row++, 14737632);
-            this.drawString(var8, "Server Pools: " + Minecraft.server_pools_string, 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, s, 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, "Client Pools: " + AxisAlignedBB.getAABBPool().getlistAABBsize() + " | " + this.mc.theWorld.getWorldVec3Pool().getPoolSize(), 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, "Server Pools: " + Minecraft.server_pools_string, 2, 2 + 10 * row++, 14737632);
             ++row;
-            this.drawString(var8, "Atk: " + StringHelper.formatFloat(this.mc.thePlayer.calcRawMeleeDamageVs((Entity)null), 1, 1) + "  Prt:" + StringHelper.formatFloat(this.mc.thePlayer.getTotalProtection((DamageSource)null), 1, 1), 2, 2 + 10 * row++, 14737632);
-            this.drawString(var8, "Look: " + MathHelper.getNormalizedVector(this.mc.thePlayer.rotationYaw, this.mc.thePlayer.rotationPitch, this.mc.theWorld.getWorldVec3Pool()).toStringCompact(), 2, 2 + 10 * row++, 14737632);
-            this.drawString(var8, "fxLayers" + this.mc.effectRenderer.getStatsString(), 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, "Atk: " + StringHelper.formatFloat(this.mc.thePlayer.calcRawMeleeDamageVs((Entity)null), 1, 1) + "  Prt:" + StringHelper.formatFloat(this.mc.thePlayer.getTotalProtection((DamageSource)null), 1, 1), 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, "Look: " + MathHelper.getNormalizedVector(this.mc.thePlayer.rotationYaw, this.mc.thePlayer.rotationPitch, this.mc.theWorld.getWorldVec3Pool()).toStringCompact(), 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, "fxLayers" + this.mc.effectRenderer.getStatsString(), 2, 2 + 10 * row++, 14737632);
             Chunk chunk = this.mc.thePlayer.getChunkFromPosition();
-            this.drawString(var8, "Chunk: " + chunk.xPosition + "," + chunk.zPosition + " [" + (this.mc.thePlayer.getFootBlockPosY() >> 4) + "] FPP=" + StringHelper.formatDouble((double)EntityRenderer.getProximityToNearestFogPost(this.mc.thePlayer), 3, 3), 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, "Chunk: " + chunk.xPosition + "," + chunk.zPosition + " [" + (this.mc.thePlayer.getFootBlockPosY() >> 4) + "] FPP=" + StringHelper.formatDouble((double)EntityRenderer.getProximityToNearestFogPost(this.mc.thePlayer), 3, 3), 2, 2 + 10 * row++, 14737632);
             MinecraftServer mc_server = MinecraftServer.getServer();
             if (mc_server != null) {
                WorldServer world_server = mc_server.worldServerForDimension(this.mc.thePlayer.dimension);
-               this.drawString(var8, "Mobs high: " + world_server.countMobs(false, true) + " / " + world_server.last_mob_spawn_limit_at_60_or_higher, 2, 2 + 10 * row++, 14737632);
-               this.drawString(var8, "Mobs low:  " + world_server.countMobs(true, false) + " / " + world_server.last_mob_spawn_limit_under_60, 2, 2 + 10 * row++, 14737632);
+               this.drawString(fontRenderer, "Mobs high: " + world_server.countMobs(false, true) + " / " + world_server.last_mob_spawn_limit_at_60_or_higher, 2, 2 + 10 * row++, 14737632);
+               this.drawString(fontRenderer, "Mobs low:  " + world_server.countMobs(true, false) + " / " + world_server.last_mob_spawn_limit_under_60, 2, 2 + 10 * row++, 14737632);
             }
 
-            this.drawString(var8, "Mem: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024L / 1024L + " / " + Runtime.getRuntime().totalMemory() / 1024L / 1024L, 2, 2 + 10 * row++, 14737632);
+            this.drawString(fontRenderer, "Mem: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024L / 1024L + " / " + Runtime.getRuntime().totalMemory() / 1024L / 1024L, 2, 2 + 10 * row++, 14737632);
          } else if (this.mc.gameSettings.showDebugInfo && this.mc.gameSettings.gui_mode == 0) {
             this.mc.mcProfiler.startSection("debug");
             this.mc.mcProfiler.endSection();
             if (DedicatedServer.tournament_type != EnumTournamentType.score && allotted_time < 0) {
                var68 = (new StringBuilder()).append("");
                var10003 = this.mc;
-               this.drawString(var8, var68.append(Minecraft.last_fps).toString(), 2, 2 + 10 * row++, 14737632);
+               this.drawString(fontRenderer, var68.append(Minecraft.last_fps).toString(), 2, 2 + 10 * row++, 14737632);
             }
          }
 
@@ -482,7 +502,7 @@ public class GuiIngame extends Gui {
                   var14 = Color.HSBtoRGB(var33 / 50.0F, 0.7F, 0.6F) & 16777215;
                }
 
-               var8.drawString(this.recordPlaying, -var8.getStringWidth(this.recordPlaying) / 2, -4, var14 + (var13 << 24 & -16777216));
+               fontRenderer.drawString(this.recordPlaying, -fontRenderer.getStringWidth(this.recordPlaying) / 2, -4, var14 + (var13 << 24 & -16777216));
                GL11.glDisable(3042);
                GL11.glPopMatrix();
             }
@@ -492,7 +512,7 @@ public class GuiIngame extends Gui {
 
          ScoreObjective var43 = this.mc.theWorld.getScoreboard().func_96539_a(1);
          if (var43 != null) {
-            this.func_96136_a(var43, var7, var6, var8);
+            this.func_96136_a(var43, var7, var6, fontRenderer);
          }
 
          GL11.glEnable(3042);
@@ -540,19 +560,19 @@ public class GuiIngame extends Gui {
                   if ("avernite".equals(var52) && DedicatedServer.isTournament()) {
                      ++players_skipped;
                   } else {
-                     var8.drawStringWithShadow(var52, var22, var23_alt, 16777215);
+                     fontRenderer.drawStringWithShadow(var52, var22, var23_alt, 16777215);
                      int var27;
                      int var28;
                      if (var43 != null) {
-                        var27 = var22 + var8.getStringWidth(var52) + 5;
+                        var27 = var22 + fontRenderer.getStringWidth(var52) + 5;
                         var28 = var22 + var45 - 12 - 5;
                         if (var28 - var27 > 5) {
                            Score var29 = var43.getScoreboard().func_96529_a(var49.name, var43);
                            String var30 = EnumChatFormatting.YELLOW + "" + var29.getScorePoints();
-                           var8.drawStringWithShadow(var30, var28 - var8.getStringWidth(var30), var23_alt, 16777215);
+                           fontRenderer.drawStringWithShadow(var30, var28 - fontRenderer.getStringWidth(var30), var23_alt, 16777215);
                         }
                      } else {
-                        var27 = var22 + var8.getStringWidth(var52) + 5;
+                        var27 = var22 + fontRenderer.getStringWidth(var52) + 5;
                         var28 = var22 + var45 - 12 - 5;
                         if (var28 - var27 > 5) {
                            String level;
@@ -564,7 +584,7 @@ public class GuiIngame extends Gui {
                               level = EnumChatFormatting.GREEN + "+" + var49.level;
                            }
 
-                           var8.drawStringWithShadow(level, var28 - var8.getStringWidth(level), var23_alt, 16777215);
+                           fontRenderer.drawStringWithShadow(level, var28 - fontRenderer.getStringWidth(level), var23_alt, 16777215);
                         }
                      }
 
@@ -664,7 +684,7 @@ public class GuiIngame extends Gui {
       int var17 = Math.max(10 - (var16 - 2), 3);
       int var18 = var13 - (var16 - 1) * var17 - 10;
       float var19 = var15;
-      float total_protection = this.mc.thePlayer.getTotalProtection((DamageSource)null);
+      float total_protection = ForgeHooks.getTotalArmorValue(mc.thePlayer);
       int var20 = MathHelper.ceiling_float_int(total_protection);
       int var21 = -1;
       if (this.mc.thePlayer.isPotionActive(Potion.regeneration)) {

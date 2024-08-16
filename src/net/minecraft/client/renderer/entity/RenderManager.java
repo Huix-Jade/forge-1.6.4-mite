@@ -3,6 +3,8 @@ package net.minecraft.client.renderer.entity;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
 import net.minecraft.client.gui.FontRenderer;
@@ -133,6 +135,7 @@ import net.minecraft.entity.projectile.EntitySmallFireball;
 import net.minecraft.entity.projectile.EntitySnowball;
 import net.minecraft.entity.projectile.EntityWitherSkull;
 import net.minecraft.item.Item;
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.ReportedException;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -276,9 +279,16 @@ public final class RenderManager {
 		this.livingPlayer = par4EntityLivingBase;
 		this.field_96451_i = par5EntityLivingBase;
 		this.fontRenderer = par3FontRenderer;
-		if (par4EntityLivingBase.inBed()) {
-			this.playerViewX = par4EntityLivingBase.rotationPitch;
-			this.playerViewY = par4EntityLivingBase.rotationYaw;
+
+		int x = MathHelper.floor_double(par4EntityLivingBase.posX);
+		int y = MathHelper.floor_double(par4EntityLivingBase.posY);
+		int z = MathHelper.floor_double(par4EntityLivingBase.posZ);
+		Block block = Block.blocksList[par1World.getBlockId(x, y, z)];
+
+		if (block != null && block.isBed(par1World, x, y, z, par4EntityLivingBase)) {
+			int k = block.getBedDirection(par1World, x, y, z);
+			this.playerViewY = (float)(k * 90 + 180);
+			this.playerViewX = 0.0F;
 		} else {
 			this.playerViewY = par4EntityLivingBase.prevRotationYaw + (par4EntityLivingBase.rotationYaw - par4EntityLivingBase.prevRotationYaw) * par7;
 			this.playerViewX = par4EntityLivingBase.prevRotationPitch + (par4EntityLivingBase.rotationPitch - par4EntityLivingBase.prevRotationPitch) * par7;

@@ -11,12 +11,20 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 
 public class Tessellator {
+
+   private static int nativeBufferSize = 0x200000;
+   private static int trivertsInBuffer = (nativeBufferSize / 48) * 6;
+   public static boolean renderingWorldRenderer = false;
+   public boolean defaultTexture = false;
+   private int rawBufferSize = 0;
+   public int textureID = 0;
+
    private static boolean convertQuadsToTriangles;
    private static boolean tryVBO;
-   public ByteBuffer byteBuffer;
-   public IntBuffer intBuffer;
-   public FloatBuffer floatBuffer;
-   public ShortBuffer shortBuffer;
+   private static ByteBuffer byteBuffer = GLAllocation.createDirectByteBuffer(nativeBufferSize * 4);
+   private static IntBuffer intBuffer = byteBuffer.asIntBuffer();
+   private static FloatBuffer floatBuffer = byteBuffer.asFloatBuffer();
+   private static ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
    public int[] rawBuffer;
    public int vertexCount;
    public double textureU;
@@ -37,40 +45,53 @@ public class Tessellator {
    public int normal;
    public static Tessellator instance;
    public boolean isDrawing;
-   private boolean useVBO;
-   public IntBuffer vertexBuffers;
+   private static boolean useVBO = false;
+   private static IntBuffer vertexBuffers;
    private int vboIndex;
-   private int vboCount = 10;
+   private static int vboCount = 10;
    public static final int bufferSize = 2097152;
    public static final boolean little_endian;
    public static final int buffer_size_minus_32 = 2097120;
    public boolean draw_in_groups = true;
 
    public Tessellator() {
-      int par1 = 2097152;
-      this.byteBuffer = GLAllocation.createDirectByteBuffer(par1 * 4);
-      this.intBuffer = this.byteBuffer.asIntBuffer();
-      this.floatBuffer = this.byteBuffer.asFloatBuffer();
-      this.shortBuffer = this.byteBuffer.asShortBuffer();
-      this.rawBuffer = new int[par1];
-      this.useVBO = tryVBO && GLContext.getCapabilities().GL_ARB_vertex_buffer_object;
-      if (this.useVBO) {
-         this.vertexBuffers = GLAllocation.createDirectIntBuffer(this.vboCount);
-         ARBVertexBufferObject.glGenBuffersARB(this.vertexBuffers);
-      }
-
    }
+
+   static
+   {
+      instance.defaultTexture = true;
+      useVBO = tryVBO && GLContext.getCapabilities().GL_ARB_vertex_buffer_object;
+
+      if (useVBO)
+      {
+         vertexBuffers = GLAllocation.createDirectIntBuffer(vboCount);
+         ARBVertexBufferObject.glGenBuffersARB(vertexBuffers);
+      }
+   }
+
 
    public int draw() {
       if (!this.isDrawing) {
          throw new IllegalStateException("Not tesselating!");
       } else {
          this.isDrawing = false;
-         if (this.vertexCount > 0) {
+         int offs = 0;
+         while (offs < vertexCount)
+         {
+            int vtc = 0;
+            if (drawMode == 7 && convertQuadsToTriangles)
+            {
+               vtc = Math.min(vertexCount - offs, trivertsInBuffer);
+            }
+            else
+            {
+               vtc = Math.min(vertexCount - offs, nativeBufferSize >> 5);
+            }
             this.intBuffer.clear();
-            this.intBuffer.put(this.rawBuffer, 0, this.rawBufferIndex);
+            this.intBuffer.put(this.rawBuffer, offs * 8, vtc * 8);
             this.byteBuffer.position(0);
-            this.byteBuffer.limit(this.rawBufferIndex * 4);
+            this.byteBuffer.limit(vtc * 32);
+            offs += vtc;
             if (this.useVBO) {
                this.vboIndex = (this.vboIndex + 1) % this.vboCount;
                ARBVertexBufferObject.glBindBufferARB(34962, this.vertexBuffers.get(this.vboIndex));
@@ -132,9 +153,9 @@ public class Tessellator {
 
             GL11.glEnableClientState(32884);
             if (this.drawMode == 7 && convertQuadsToTriangles) {
-               GL11.glDrawArrays(4, 0, this.vertexCount);
+               GL11.glDrawArrays(GL11.GL_TRIANGLES, 0, vtc);
             } else {
-               GL11.glDrawArrays(this.drawMode, 0, this.vertexCount);
+               GL11.glDrawArrays(this.drawMode, 0, vtc);
             }
 
             GL11.glDisableClientState(32884);
@@ -155,6 +176,12 @@ public class Tessellator {
             if (this.hasNormals) {
                GL11.glDisableClientState(32885);
             }
+         }
+
+         if (rawBufferSize > 0x20000 && rawBufferIndex < (rawBufferSize << 3))
+         {
+            rawBufferSize = 0;
+            rawBuffer = null;
          }
 
          int var1 = this.rawBufferIndex * 4;
@@ -262,6 +289,20 @@ public class Tessellator {
    }
 
    public void addVertex(double par1, double par3, double par5) {
+      if (rawBufferIndex >= rawBufferSize - 32)
+      {
+         if (rawBufferSize == 0)
+         {
+            rawBufferSize = 0x10000;
+            rawBuffer = new int[rawBufferSize];
+         }
+         else
+         {
+            rawBufferSize *= 2;
+            rawBuffer = Arrays.copyOf(rawBuffer, rawBufferSize);
+         }
+      }
+
       ++this.addedVertices;
       if (this.drawMode == 7 && convertQuadsToTriangles && this.addedVertices % 4 == 0) {
          for(int var7 = 0; var7 < 2; ++var7) {
@@ -309,10 +350,6 @@ public class Tessellator {
       this.rawBuffer[this.rawBufferIndex + 2] = Float.floatToRawIntBits((float)(par5 + this.zOffset));
       this.rawBufferIndex += 8;
       ++this.vertexCount;
-      if (this.vertexCount % 4 == 0 && this.rawBufferIndex >= 2097152 - 32) {
-         this.draw();
-         this.isDrawing = true;
-      }
 
    }
 

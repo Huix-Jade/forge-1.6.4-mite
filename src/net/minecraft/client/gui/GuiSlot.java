@@ -140,46 +140,57 @@ public abstract class GuiSlot {
    public void drawDarkenedBackground(int layer) {
       GL11.glDisable(2896);
       GL11.glDisable(2912);
-      Tessellator var18 = Tessellator.instance;
-      this.mc.getTextureManager().bindTexture(Gui.optionsBackground);
-      GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-      float var17 = 32.0F;
+      Tessellator tessellator = Tessellator.instance;
       if (layer == 1) {
-         var18.startDrawingQuads();
-         var18.setColorOpaque_I(2105376);
-         var18.addVertexWithUV((double)this.left, (double)this.bottom, 0.0, (double)((float)this.left / var17), (double)((float)this.bottom / var17));
-         var18.addVertexWithUV((double)this.right, (double)this.bottom, 0.0, (double)((float)this.right / var17), (double)((float)this.bottom / var17));
-         var18.addVertexWithUV((double)this.right, (double)this.top, 0.0, (double)((float)this.right / var17), (double)((float)this.top / var17));
-         var18.addVertexWithUV((double)this.left, (double)this.top, 0.0, (double)((float)this.left / var17), (double)((float)this.top / var17));
-         var18.draw();
+         drawContainerBackground(tessellator);
       } else if (layer == 2) {
-         GL11.glDisable(2929);
-         byte var20 = 4;
-         this.overlayBackground(0, this.top, 255, 255);
-         this.overlayBackground(this.bottom, this.height, 255, 255);
-         GL11.glEnable(3042);
-         GL11.glBlendFunc(770, 771);
-         GL11.glDisable(3008);
-         GL11.glShadeModel(7425);
-         GL11.glDisable(3553);
-         var18.startDrawingQuads();
-         var18.setColorRGBA_I(0, 0);
-         var18.addVertexWithUV((double)this.left, (double)(this.top + var20), 0.0, 0.0, 1.0);
-         var18.addVertexWithUV((double)this.right, (double)(this.top + var20), 0.0, 1.0, 1.0);
-         var18.setColorRGBA_I(0, 255);
-         var18.addVertexWithUV((double)this.right, (double)this.top, 0.0, 1.0, 0.0);
-         var18.addVertexWithUV((double)this.left, (double)this.top, 0.0, 0.0, 0.0);
-         var18.draw();
-         var18.startDrawingQuads();
-         var18.setColorRGBA_I(0, 255);
-         var18.addVertexWithUV((double)this.left, (double)this.bottom, 0.0, 0.0, 1.0);
-         var18.addVertexWithUV((double)this.right, (double)this.bottom, 0.0, 1.0, 1.0);
-         var18.setColorRGBA_I(0, 0);
-         var18.addVertexWithUV((double)this.right, (double)(this.bottom - var20), 0.0, 1.0, 0.0);
-         var18.addVertexWithUV((double)this.left, (double)(this.bottom - var20), 0.0, 0.0, 0.0);
-         var18.draw();
+         this.drawContainerBackgroundLayer2(tessellator);
       }
 
+   }
+   protected void drawContainerBackgroundLayer2(Tessellator tess)
+   {
+      this.mc.getTextureManager().bindTexture(Gui.optionsBackground);
+      GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+      GL11.glDisable(2929);
+      byte var20 = 4;
+      this.overlayBackground(0, this.top, 255, 255);
+      this.overlayBackground(this.bottom, this.height, 255, 255);
+      GL11.glEnable(3042);
+      GL11.glBlendFunc(770, 771);
+      GL11.glDisable(3008);
+      GL11.glShadeModel(7425);
+      GL11.glDisable(3553);
+      tess.startDrawingQuads();
+      tess.setColorRGBA_I(0, 0);
+      tess.addVertexWithUV((double)this.left, (double)(this.top + var20), 0.0, 0.0, 1.0);
+      tess.addVertexWithUV((double)this.right, (double)(this.top + var20), 0.0, 1.0, 1.0);
+      tess.setColorRGBA_I(0, 255);
+      tess.addVertexWithUV((double)this.right, (double)this.top, 0.0, 1.0, 0.0);
+      tess.addVertexWithUV((double)this.left, (double)this.top, 0.0, 0.0, 0.0);
+      tess.draw();
+      tess.startDrawingQuads();
+      tess.setColorRGBA_I(0, 255);
+      tess.addVertexWithUV((double)this.left, (double)this.bottom, 0.0, 0.0, 1.0);
+      tess.addVertexWithUV((double)this.right, (double)this.bottom, 0.0, 1.0, 1.0);
+      tess.setColorRGBA_I(0, 0);
+      tess.addVertexWithUV((double)this.right, (double)(this.bottom - var20), 0.0, 1.0, 0.0);
+      tess.addVertexWithUV((double)this.left, (double)(this.bottom - var20), 0.0, 0.0, 0.0);
+      tess.draw();
+   }
+
+   protected void drawContainerBackground(Tessellator tess)
+   {
+      this.mc.getTextureManager().bindTexture(Gui.optionsBackground);
+      GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+      float height = 32.0F;
+      tess.startDrawingQuads();
+      tess.setColorOpaque_I(2105376);
+      tess.addVertexWithUV((double)left,  (double)bottom, 0.0D, (double)(left  / height), (double)((bottom + (int)amountScrolled) / height));
+      tess.addVertexWithUV((double)right, (double)bottom, 0.0D, (double)(right / height), (double)((bottom + (int)amountScrolled) / height));
+      tess.addVertexWithUV((double)right, (double)top,    0.0D, (double)(right / height), (double)((top    + (int)amountScrolled) / height));
+      tess.addVertexWithUV((double)left,  (double)top,    0.0D, (double)(left  / height), (double)((top    + (int)amountScrolled) / height));
+      tess.draw();
    }
 
    public void drawScreen(int par1, int par2, float par3) {

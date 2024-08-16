@@ -128,10 +128,6 @@ class CallableSuspiciousClasses implements Callable {
 
    // $FF: synthetic method
    public Object call() {
-      try {
-         return this.callSuspiciousClasses();
-      } catch (Exception ex) {
-         return null;
-      }
+      return "FML and Forge are installed";
    }
 }

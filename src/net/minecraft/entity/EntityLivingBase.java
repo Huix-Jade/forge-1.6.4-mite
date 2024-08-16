@@ -28,6 +28,7 @@ import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntitySilverfish;
 import net.minecraft.entity.passive.EntityChicken;
+import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.passive.EntityWolf;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
@@ -68,6 +69,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.ForgeHooks;
 
 public abstract class EntityLivingBase extends Entity {
    private static final UUID sprintingSpeedBoostModifierUUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
@@ -260,7 +262,8 @@ public abstract class EntityLivingBase extends Entity {
          }
 
          this.extinguish();
-         if (!this.worldObj.isRemote && this.isRiding() && this.ridingEntity instanceof EntityLivingBase) {
+         if (!this.worldObj.isRemote && this.isRiding() && ridingEntity!=null && ridingEntity.shouldDismountInWater(this))
+         {
             this.mountEntity((Entity)null);
          }
       } else if (this.isEntityPlayer()) {
@@ -387,6 +390,7 @@ public abstract class EntityLivingBase extends Entity {
    public void setRevengeTarget(EntityLivingBase par1EntityLivingBase) {
       this.entityLivingToAttack = par1EntityLivingBase;
       this.revengeTimer = this.ticksExisted;
+      ForgeHooks.onLivingSetAttackTarget(this, par1EntityLivingBase);
    }
 
    public EntityLivingBase getLastAttackTarget() {
@@ -739,6 +743,9 @@ public abstract class EntityLivingBase extends Entity {
    }
 
    private EntityDamageResult attackEntityFromHelper(Damage damage, EntityDamageResult result) {
+      float amount1 = ForgeHooks.onLivingHurt(this, damage.getSource(), damage.getAmount());
+      if (amount1 <= 0) return result;
+
       Entity responsible_entity = damage.getResponsibleEntity();
       float knockback_amount = damage.isMelee() && responsible_entity instanceof EntityLivingBase && responsible_entity.getAsEntityLivingBase().canOnlyPerformWeakStrike() ? 0.6F : 1.0F;
       if (responsible_entity != null && this.knockBack(responsible_entity, knockback_amount)) {
@@ -815,6 +822,8 @@ public abstract class EntityLivingBase extends Entity {
 
    public EntityDamageResult attackEntityFrom(Damage damage) {
       EntityDamageResult result = super.attackEntityFrom(damage);
+      if (ForgeHooks.onLivingAttack(this, damage.getSource(), damage.getAmount())) return result;
+
       if (result != null && !result.entityWasDestroyed()) {
          if (this.getHealth() <= 0.0F) {
             return null;
@@ -909,6 +918,7 @@ public abstract class EntityLivingBase extends Entity {
    }
 
    public void onDeath(DamageSource par1DamageSource) {
+      if (ForgeHooks.onLivingDeath(this, par1DamageSource)) return;
       Entity var2 = par1DamageSource.getResponsibleEntity();
       EntityLivingBase var3 = this.func_94060_bK();
       if (this.scoreValue >= 0 && var3 != null) {
@@ -925,13 +935,29 @@ public abstract class EntityLivingBase extends Entity {
             var4 = EnchantmentHelper.getLootingModifier((EntityLivingBase)var2);
          }
 
+         captureDrops = true;
+         capturedDrops.clear();
+         int j = 0;
+
+
          if (!this.isChild() && this.worldObj.getGameRules().getGameRuleBooleanValue("doMobLoot")) {
             if (!this.has_taken_massive_fall_damage || this.rand.nextFloat() < 0.1F) {
+               j = this.rand.nextInt(200) - var4;
                this.dropFewItems(this.recentlyHit > 0, par1DamageSource);
             }
 
             this.dropContainedItems();
             this.dropEquipment(this.recentlyHit > 0, var4);
+         }
+
+         captureDrops = false;
+
+         if (!ForgeHooks.onLivingDrops(this, par1DamageSource, capturedDrops, var4, recentlyHit > 0, j))
+         {
+            for (EntityItem item : capturedDrops)
+            {
+               worldObj.spawnEntityInWorld(item);
+            }
          }
       }
 
@@ -1009,7 +1035,7 @@ public abstract class EntityLivingBase extends Entity {
       int var2 = MathHelper.floor_double(this.boundingBox.minY);
       int var3 = MathHelper.floor_double(this.posZ);
       int var4 = this.worldObj.getBlockId(var1, var2, var3);
-      return var4 == Block.ladder.blockID || var4 == Block.vine.blockID;
+      return ForgeHooks.isLivingOnLadder(Block.blocksList[var4], worldObj, var1, var2, var3, this);
    }
 
    public float getClimbingSpeed() {
@@ -1072,7 +1098,11 @@ public abstract class EntityLivingBase extends Entity {
    }
 
    protected void fall(float fall_distance) {
+      fall_distance = ForgeHooks.onLivingFall(this, fall_distance);
+      if (fall_distance <= 0) return;
+
       super.fall(fall_distance);
+
       if (!this.worldObj.isRemote) {
          if (!(fall_distance < 0.5F)) {
             PotionEffect var2 = this.getActivePotionEffect(Potion.jump);
@@ -1394,6 +1424,16 @@ public abstract class EntityLivingBase extends Entity {
    }
 
    public void swingArm() {
+      ItemStack stack = this.getHeldItemStack();
+
+      if (stack != null && stack.getItem() != null)
+      {
+         if (stack.onEntitySwing(this, stack))
+         {
+            return;
+         }
+      }
+
       if (!this.isSwingInProgress || this.swingProgressInt >= this.getArmSwingAnimationEnd() / 2 || this.swingProgressInt < 0) {
          this.swingProgressInt = -1;
          this.isSwingInProgress = true;
@@ -1613,6 +1653,7 @@ public abstract class EntityLivingBase extends Entity {
       }
 
       this.isAirBorne = true;
+      ForgeHooks.onLivingJump(this);
    }
 
    private float handleSpecialArachnidMovement(float forward_movement) {
@@ -1883,6 +1924,11 @@ public abstract class EntityLivingBase extends Entity {
    }
 
    public void onUpdate() {
+      if (ForgeHooks.onLivingUpdate(this))
+      {
+         return;
+      }
+
       if (this.last_harming_entity_memory_countdown > 0) {
          --this.last_harming_entity_memory_countdown;
       }
@@ -2682,5 +2728,43 @@ public abstract class EntityLivingBase extends Entity {
 
    static {
       sprintingSpeedBoostModifier = (new AttributeModifier(sprintingSpeedBoostModifierUUID, "Sprinting speed boost", 0.30000001192092896, 2)).setSaved(false);
+   }
+
+   /***
+    * Removes all potion effects that have curativeItem as a curative item for its effect
+    * @param curativeItem The itemstack we are using to cure potion effects
+    */
+   public void curePotionEffects(ItemStack curativeItem)
+   {
+      Iterator<Integer> potionKey = activePotionsMap.keySet().iterator();
+
+      if (worldObj.isRemote)
+      {
+         return;
+      }
+
+      while (potionKey.hasNext())
+      {
+         Integer key = potionKey.next();
+         PotionEffect effect = (PotionEffect)activePotionsMap.get(key);
+
+         if (effect.isCurativeItem(curativeItem))
+         {
+            potionKey.remove();
+            onFinishedPotionEffect(effect);
+         }
+      }
+   }
+
+   /**
+    * Returns true if the entity's rider (EntityPlayer) should face forward when mounted.
+    * currently only used in vanilla code by pigs.
+    *
+    * @param player The player who is riding the entity.
+    * @return If the player should orient the same direction as this entity.
+    */
+   public boolean shouldRiderFaceForward(EntityPlayer player)
+   {
+      return this instanceof EntityPig;
    }
 }

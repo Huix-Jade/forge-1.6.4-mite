@@ -1,6 +1,8 @@
 package net.minecraft.client.renderer.tileentity;
 
 import java.util.Calendar;
+
+import cpw.mods.fml.common.FMLLog;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockChest;
 import net.minecraft.block.BlockStrongbox;
@@ -48,7 +50,16 @@ public class TileEntityChestRenderer extends TileEntitySpecialRenderer {
 				Block var10 = par1TileEntityChest.getBlockType();
 				var9 = par1TileEntityChest.getBlockMetadata();
 				if (var10 instanceof BlockChest && var9 == 0 && !(var10 instanceof BlockStrongbox)) {
-					((BlockChest)var10).tryAlignWithNeighboringChest(par1TileEntityChest.getWorldObj(), par1TileEntityChest.xCoord, par1TileEntityChest.yCoord, par1TileEntityChest.zCoord);
+					try
+					{
+						((BlockChest)var10).tryAlignWithNeighboringChest(par1TileEntityChest.getWorldObj(), par1TileEntityChest.xCoord, par1TileEntityChest.yCoord, par1TileEntityChest.zCoord);
+					}
+					catch (ClassCastException e)
+					{
+						FMLLog.severe("Attempted to render a chest at %d,  %d, %d that was not a chest",
+								par1TileEntityChest.xCoord, par1TileEntityChest.yCoord, par1TileEntityChest.zCoord);
+					}
+
 					var9 = par1TileEntityChest.getBlockMetadata();
 				}
 

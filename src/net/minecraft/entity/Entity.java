@@ -1,9 +1,8 @@
 package net.minecraft.entity;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
+
+import cpw.mods.fml.common.FMLLog;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFence;
 import net.minecraft.block.BlockFluid;
@@ -22,9 +21,7 @@ import net.minecraft.enchantment.EnchantmentProtection;
 import net.minecraft.entity.ai.EntityLookHelper;
 import net.minecraft.entity.effect.EntityLightningBolt;
 import net.minecraft.entity.effect.EntityWeatherEffect;
-import net.minecraft.entity.item.EntityFallingSand;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.item.EntityXPOrb;
+import net.minecraft.entity.item.*;
 import net.minecraft.entity.monster.EntityMagmaCube;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityBat;
@@ -47,28 +44,15 @@ import net.minecraft.network.packet.Packet89PlaySoundOnServerAtEntity;
 import net.minecraft.raycast.RaycastPolicies;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.ChunkCoordinates;
-import net.minecraft.util.Curse;
-import net.minecraft.util.Damage;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.Debug;
-import net.minecraft.util.DebugAttack;
-import net.minecraft.util.Direction;
-import net.minecraft.util.EnumDirection;
-import net.minecraft.util.EnumEntityFX;
-import net.minecraft.util.EnumEntityState;
-import net.minecraft.util.EnumParticle;
-import net.minecraft.util.EnumSignal;
-import net.minecraft.util.MathHelper;
-import net.minecraft.util.ReportedException;
-import net.minecraft.util.StatCollector;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.*;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.IExtendedEntityProperties;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.EntityEvent;
 
 public abstract class Entity {
    private static int nextEntityID;
@@ -160,6 +144,14 @@ public abstract class Entity {
    public boolean tagged;
    public static boolean apply_MITE_bb_limits_checking = true;
 
+   /** Forge: Used to store custom data for each entity. */
+   private NBTTagCompound customEntityData;
+   public boolean captureDrops = false;
+   public ArrayList<EntityItem> capturedDrops = new ArrayList<EntityItem>();
+   private UUID persistentID;
+
+   private HashMap<String, IExtendedEntityProperties> extendedProperties;
+
    public Entity(World par1World) {
       this.entityId = nextEntityID++;
       this.renderDistanceWeight = 1.0;
@@ -182,6 +174,15 @@ public abstract class Entity {
       this.dataWatcher.addObject(0, (byte)0);
       this.dataWatcher.addObject(1, (short)300);
       this.entityInit();
+
+      extendedProperties = new HashMap<String, IExtendedEntityProperties>();
+
+      MinecraftForge.EVENT_BUS.post(new EntityEvent.EntityConstructing(this));
+
+      for (IExtendedEntityProperties props : this.extendedProperties.values())
+      {
+         props.init(this, par1World);
+      }
    }
 
    protected abstract void entityInit();
@@ -1434,10 +1435,19 @@ public abstract class Entity {
       int var5 = MathHelper.floor_float((float)MathHelper.floor_double(var2));
       int var6 = MathHelper.floor_double(this.posZ);
       int var7 = this.worldObj.getBlockId(var4, var5, var6);
-      if (var7 != 0 && Block.blocksList[var7].blockMaterial == par1Material) {
-         float var8 = BlockFluid.getFluidHeightPercent(this.worldObj.getBlockMetadata(var4, var5, var6)) - 0.11111111F;
-         float var9 = (float)(var5 + 1) - var8;
-         return var2 < (double)var9;
+      Block block = Block.blocksList[var7];
+      if (block != null && block.blockMaterial == par1Material) {
+         double filled = block.getFilledPercentage(worldObj, var4, var5, var6);
+         if (filled < 0)
+         {
+            filled *= -1;
+            //filled -= 0.11111111F; //Why this is needed.. not sure...
+            return var2 > (var5 + (1 - filled));
+         }
+         else
+         {
+            return var2 < (var5 + filled);
+         }
       } else {
          return false;
       }
@@ -1449,10 +1459,19 @@ public abstract class Entity {
       int var5 = MathHelper.floor_float((float)MathHelper.floor_double(var2));
       int var6 = MathHelper.floor_double(this.posZ);
       int var7 = this.worldObj.getBlockId(var4, var5, var6);
-      if (var7 != 0 && Block.blocksList[var7].blockMaterial == par1Material) {
-         float var8 = BlockFluid.getFluidHeightPercent(this.worldObj.getBlockMetadata(var4, var5, var6)) - 0.11111111F;
-         float var9 = (float)(var5 + 1) - var8;
-         return var2 < (double)var9;
+      Block block = Block.blocksList[var7];
+      if (block != null && block.blockMaterial == par1Material) {
+         double filled = block.getFilledPercentage(worldObj, var4, var5, var6);
+         if (filled < 0)
+         {
+            filled *= -1;
+            //filled -= 0.11111111F; //Why this is needed.. not sure...
+            return var2 > (var5 + (1 - filled));
+         }
+         else
+         {
+            return var2 < (var5 + filled);
+         }
       } else {
          return false;
       }
@@ -1821,6 +1840,22 @@ public abstract class Entity {
          par1NBTTagCompound.setInteger("PortalCooldown", this.timeUntilPortal);
          par1NBTTagCompound.setLong("UUIDMost", this.entityUniqueID.getMostSignificantBits());
          par1NBTTagCompound.setLong("UUIDLeast", this.entityUniqueID.getLeastSignificantBits());
+
+         if (customEntityData != null)
+         {
+            par1NBTTagCompound.setCompoundTag("ForgeData", customEntityData);
+         }
+
+         for (String identifier : this.extendedProperties.keySet()){
+            try{
+               IExtendedEntityProperties props = this.extendedProperties.get(identifier);
+               props.saveNBTData(par1NBTTagCompound);
+            }catch (Throwable t){
+               FMLLog.severe("Failed to save extended properties for %s.  This is a mod issue.", identifier);
+               t.printStackTrace();
+            }
+         }
+
          this.writeEntityToNBT(par1NBTTagCompound);
          if (this.ridingEntity != null) {
             NBTTagCompound var2 = new NBTTagCompound("Riding");
@@ -1879,6 +1914,28 @@ public abstract class Entity {
 
          this.setPosition(this.posX, this.posY, this.posZ);
          this.setRotation(this.rotationYaw, this.rotationPitch);
+
+         if (par1NBTTagCompound.hasKey("ForgeData"))
+         {
+            customEntityData = par1NBTTagCompound.getCompoundTag("ForgeData");
+         }
+
+         for (String identifier : this.extendedProperties.keySet()){
+            try{
+               IExtendedEntityProperties props = this.extendedProperties.get(identifier);
+               props.loadNBTData(par1NBTTagCompound);
+            }catch (Throwable t){
+               FMLLog.severe("Failed to load extended properties for %s.  This is a mod issue.", identifier);
+               t.printStackTrace();
+            }
+         }
+
+         //Rawr, legacy code, Vanilla added a UUID, keep this so older maps will convert properly
+         if (par1NBTTagCompound.hasKey("PersistentIDMSB") && par1NBTTagCompound.hasKey("PersistentIDLSB"))
+         {
+            this.entityUniqueID = new UUID(par1NBTTagCompound.getLong("PersistentIDMSB"), par1NBTTagCompound.getLong("PersistentIDLSB"));
+         }
+
          this.spawn_x = par1NBTTagCompound.getInteger("spawn_x");
          this.spawn_y = par1NBTTagCompound.getInteger("spawn_y");
          this.spawn_z = par1NBTTagCompound.getInteger("spawn_z");
@@ -1970,7 +2027,14 @@ public abstract class Entity {
             entity_item.dropped_by_player = true;
          }
 
-         this.worldObj.spawnEntityInWorld(entity_item);
+         if (captureDrops)
+         {
+            capturedDrops.add(entity_item);
+         }
+         else
+         {
+            this.worldObj.spawnEntityInWorld(entity_item);
+         }
          if (this.isBurning()) {
             entity_item.setFire(this.rand.nextInt(7) + 2);
          }
@@ -2183,7 +2247,7 @@ public abstract class Entity {
    }
 
    public boolean isRiding() {
-      return this.ridingEntity != null;
+      return this.ridingEntity != null && ridingEntity.shouldRiderSit();
    }
 
    public boolean isSneaking() {
@@ -3150,5 +3214,171 @@ public abstract class Entity {
 
    public final boolean isAtCoordsInQuestion() {
       return this.getBlockPosX() == -605 && this.getBlockPosY() == 5 && this.getBlockPosZ() == 198;
+   }
+
+   /* ================================== Forge Start =====================================*/
+   /**
+    * Returns a NBTTagCompound that can be used to store custom data for this entity.
+    * It will be written, and read from disc, so it persists over world saves.
+    * @return A NBTTagCompound
+    */
+   public NBTTagCompound getEntityData()
+   {
+      if (customEntityData == null)
+      {
+         customEntityData = new NBTTagCompound();
+      }
+      return customEntityData;
+   }
+
+   /**
+    * Used in model rendering to determine if the entity riding this entity should be in the 'sitting' position.
+    * @return false to prevent an entity that is mounted to this entity from displaying the 'sitting' animation.
+    */
+   public boolean shouldRiderSit()
+   {
+      return true;
+   }
+
+   /**
+    * Called when a user uses the creative pick block button on this entity.
+    *
+    * @param target The full target the player is looking at
+    * @return A ItemStack to add to the player's inventory, Null if nothing should be added.
+    */
+   public ItemStack getPickedResult(MovingObjectPosition target)
+   {
+      if (this instanceof EntityPainting)
+      {
+         return new ItemStack(Item.painting);
+      }
+      else if (this instanceof EntityMinecart)
+      {
+         return ((EntityMinecart)this).getCartItem();
+      }
+      else if (this instanceof EntityBoat)
+      {
+         return new ItemStack(Item.boat);
+      }
+      else if (this instanceof EntityItemFrame)
+      {
+         ItemStack held = ((EntityItemFrame)this).getDisplayedItem();
+         if (held == null)
+         {
+            return new ItemStack(Item.itemFrame);
+         }
+         else
+         {
+            return held.copy();
+         }
+      }
+      else if (this instanceof EntityLeashKnot)
+      {
+         return new ItemStack(Item.leash);
+      }
+      else
+      {
+         int id = EntityList.getEntityID(this);
+         if (id > 0 && EntityList.entityEggs.containsKey(id))
+         {
+            return new ItemStack(Item.monsterPlacer, 1, id);
+         }
+      }
+      return null;
+   }
+
+   public UUID getPersistentID()
+   {
+      return entityUniqueID;
+   }
+
+   /**
+    * Reset the entity ID to a new value. Not to be used from Mod code
+    */
+   public final void resetEntityId()
+   {
+      this.entityId = nextEntityID++;
+   }
+
+   public boolean shouldRenderInPass(int pass)
+   {
+      return pass == 0;
+   }
+
+   /**
+    * Returns true if the entity is of the @link{EnumCreatureType} provided
+    * @param type The EnumCreatureType type this entity is evaluating
+    * @param forSpawnCount If this is being invoked to check spawn count caps.
+    * @return If the creature is of the type provided
+    */
+   public boolean isCreatureType(EnumCreatureType type, boolean forSpawnCount)
+   {
+      return type.getCreatureClass().isAssignableFrom(this.getClass());
+   }
+
+   /**
+    * Register the instance of IExtendedProperties into the entity's collection.
+    * @param identifier The identifier which you can use to retrieve these properties for the entity.
+    * @param properties The instanceof IExtendedProperties to register
+    * @return The identifier that was used to register the extended properties.  Empty String indicates an error.  If your requested key already existed, this will return a modified one that is unique.
+    */
+   public String registerExtendedProperties(String identifier, IExtendedEntityProperties properties)
+   {
+      if (identifier == null)
+      {
+         FMLLog.warning("Someone is attempting to register extended properties using a null identifier.  This is not allowed.  Aborting.  This may have caused instability.");
+         return "";
+      }
+      if (properties == null)
+      {
+         FMLLog.warning("Someone is attempting to register null extended properties.  This is not allowed.  Aborting.  This may have caused instability.");
+         return "";
+      }
+
+      String baseIdentifier = identifier;
+      int identifierModCount = 1;
+      while (this.extendedProperties.containsKey(identifier))
+      {
+         identifier = String.format("%s%d", baseIdentifier, identifierModCount++);
+      }
+
+      if (baseIdentifier != identifier)
+      {
+         FMLLog.info("An attempt was made to register exended properties using an existing key.  The duplicate identifier (%s) has been remapped to %s.", baseIdentifier, identifier);
+      }
+
+      this.extendedProperties.put(identifier, properties);
+      return identifier;
+   }
+
+   /**
+    * Gets the extended properties identified by the passed in key
+    * @param identifier The key that identifies the extended properties.
+    * @return The instance of IExtendedProperties that was found, or null.
+    */
+   public IExtendedEntityProperties getExtendedProperties(String identifier)
+   {
+      return this.extendedProperties.get(identifier);
+   }
+
+   /**
+    * If a rider of this entity can interact with this entity. Should return true on the
+    * ridden entity if so.
+    *
+    * @return if the entity can be interacted with from a rider
+    */
+   public boolean canRiderInteract()
+   {
+      return false;
+   }
+
+   /**
+    * If the rider should be dismounted from the entity when the entity goes under water
+    *
+    * @param rider The entity that is riding
+    * @return if the entity should be dismounted when under water
+    */
+   public boolean shouldDismountInWater(Entity rider){
+      return this instanceof EntityLivingBase;
    }
 }

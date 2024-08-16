@@ -126,7 +126,7 @@ public class BlockTorch extends BlockMounted {
 
    public boolean canMountToBlock(int metadata, Block neighbor_block, int neighbor_block_metadata, EnumFace face) {
       if (face.isTop()) {
-         if (neighbor_block == fence || neighbor_block == netherFence || neighbor_block == cobblestoneWall) {
+         if (neighbor_block != null && neighbor_block.canPlaceTorchOnTop(neighbor_block)) {
             return true;
          }
 

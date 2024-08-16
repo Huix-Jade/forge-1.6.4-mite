@@ -60,6 +60,9 @@ import net.minecraft.util.MouseFilter;
 import net.minecraft.util.MovementInput;
 import net.minecraft.util.Session;
 import net.minecraft.world.World;
+import net.minecraftforge.client.ForgeHooksClient;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 
 public abstract class EntityPlayerSP extends AbstractClientPlayer {
    public MovementInput movementInput;
@@ -293,7 +296,7 @@ public abstract class EntityPlayerSP extends AbstractClientPlayer {
          var1 *= 1.0F - var4 * 0.15F;
       }
 
-      return var1;
+      return ForgeHooksClient.getOffsetFOV(this, var1);
    }
 
    public void closeScreen() {
@@ -434,16 +437,61 @@ public abstract class EntityPlayerSP extends AbstractClientPlayer {
    }
 
    protected boolean pushOutOfBlocks(double par1, double par3, double par5) {
+      if (this.noClip)
+      {
+         return false;
+      }
       int var7 = MathHelper.floor_double(par1);
       int var8 = MathHelper.floor_double(par3);
       int var9 = MathHelper.floor_double(par5);
       double var10 = par1 - (double)var7;
       double var12 = par5 - (double)var9;
-      if (this.isBlockTranslucent(var7, var8, var9) || this.isBlockTranslucent(var7, var8 + 1, var9)) {
-         boolean var14 = !this.isBlockTranslucent(var7 - 1, var8, var9) && !this.isBlockTranslucent(var7 - 1, var8 + 1, var9);
-         boolean var15 = !this.isBlockTranslucent(var7 + 1, var8, var9) && !this.isBlockTranslucent(var7 + 1, var8 + 1, var9);
-         boolean var16 = !this.isBlockTranslucent(var7, var8, var9 - 1) && !this.isBlockTranslucent(var7, var8 + 1, var9 - 1);
-         boolean var17 = !this.isBlockTranslucent(var7, var8, var9 + 1) && !this.isBlockTranslucent(var7, var8 + 1, var9 + 1);
+      int entHeight = Math.max(Math.round(this.height), 1);
+
+      boolean inTranslucentBlock = true;
+
+      for (int i1 = 0; i1 < entHeight; i1++) {
+         if (!this.isBlockTranslucent(var7, var7 + i1, var9)) {
+            inTranslucentBlock = false;
+         }
+      }
+
+      if (inTranslucentBlock) {
+         boolean var14 = true;
+         boolean var15 = true;
+         boolean var16 = true;
+         boolean var17 = true;
+         for (int i1 = 0; i1 < entHeight; i1++)
+         {
+            if(this.isBlockTranslucent(var7 - 1, var8 + i1, var9))
+            {
+               var14 = false;
+               break;
+            }
+         }
+         for (int i1 = 0; i1 < entHeight; i1++)
+         {
+            if(this.isBlockTranslucent(var7 + 1, var8 + i1, var9))
+            {
+               var15 = false;
+               break;
+            }
+         }
+         for (int i1 = 0; i1 < entHeight; i1++)
+         {
+            if(this.isBlockTranslucent(var7, var8 + i1, var9 - 1))
+            {
+               var16 = false;
+               break;
+            }
+         }
+         for (int i1 = 0; i1 < entHeight; i1++) {
+            if(this.isBlockTranslucent(var7, var8 + i1, var9 + 1)) {
+               var17 = false;
+               break;
+            }
+         }
+
          byte var18 = -1;
          double var19 = 9999.0;
          if (var14 && var10 < var19) {
@@ -513,6 +561,12 @@ public abstract class EntityPlayerSP extends AbstractClientPlayer {
    }
 
    public void playSound(String par1Str, float par2, float par3) {
+      PlaySoundAtEntityEvent event = new PlaySoundAtEntityEvent(this, par1Str, par2, par3);
+      if (MinecraftForge.EVENT_BUS.post(event))
+      {
+         return;
+      }
+      par1Str = event.name;
       this.worldObj.playSound(this.posX, this.posY - (double)this.yOffset, this.posZ, par1Str, par2, par3, false);
    }
 

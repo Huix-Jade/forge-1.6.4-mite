@@ -47,6 +47,10 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumEntityState;
 import net.minecraft.util.WeightedRandom;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeDummyContainer;
+import net.minecraftforge.event.Event.Result;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.entity.living.ZombieEvent.SummonAidEvent;
 
 public class EntityZombie extends EntityAnimalWatcher {
    protected static final Attribute field_110186_bp = (new RangedAttribute("zombie.spawnReinforcements", 0.0, 0.0, 1.0)).func_111117_a("Spawn Reinforcements Chance");
@@ -85,7 +89,7 @@ public class EntityZombie extends EntityAnimalWatcher {
       this.setEntityAttribute(SharedMonsterAttributes.followRange, 40.0);
       this.setEntityAttribute(SharedMonsterAttributes.movementSpeed, 0.23000000417232513);
       this.setEntityAttribute(SharedMonsterAttributes.attackDamage, 5.0);
-      this.setEntityAttribute(field_110186_bp, this.rand.nextDouble() * 0.10000000149011612);
+      this.setEntityAttribute(field_110186_bp,this.rand.nextDouble() * ForgeDummyContainer.zombieSummonBaseChance);
    }
 
    protected void entityInit() {

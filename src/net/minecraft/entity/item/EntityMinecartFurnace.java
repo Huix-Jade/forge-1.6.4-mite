@@ -11,6 +11,8 @@ import net.minecraft.util.EnumParticle;
 import net.minecraft.util.EnumSignal;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.minecart.MinecartInteractEvent;
 
 public class EntityMinecartFurnace extends EntityMinecart {
    private int fuel;
@@ -31,7 +33,7 @@ public class EntityMinecartFurnace extends EntityMinecart {
 
    protected void entityInit() {
       super.entityInit();
-      this.dataWatcher.addObject(16, new Byte((byte)0));
+      this.dataWatcher.addObject(16, (byte)0);
    }
 
    public void onUpdate() {
@@ -102,6 +104,11 @@ public class EntityMinecartFurnace extends EntityMinecart {
    }
 
    public boolean onEntityRightClicked(EntityPlayer player, ItemStack item_stack) {
+      if(MinecraftForge.EVENT_BUS.post(new MinecartInteractEvent(this, player)))
+      {
+         return true;
+      }
+
       if (player.getHeldItem() == Item.coal) {
          this.fuel += 3600;
          if (player.onServer() && !player.inCreativeMode()) {

@@ -5,8 +5,11 @@ import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.util.EnumFace;
 import net.minecraft.world.World;
+import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.common.IPlantable;
 
-public final class BlockReed extends Block {
+public final class BlockReed extends Block implements IPlantable {
    protected BlockReed(int par1) {
       super(par1, Material.plants, (new BlockConstants()).setNeverHidesAdjacentFaces().setNotAlwaysLegal());
       float var2 = 0.375F;
@@ -51,24 +54,8 @@ public final class BlockReed extends Block {
    }
 
    public boolean isLegalAt(World world, int x, int y, int z, int metadata) {
-      if (!super.isLegalAt(world, x, y, z, metadata)) {
-         return false;
-      } else if (world.getBlock(x, y - 1, z) == this) {
-         --y;
-         int height = 1;
-
-         while(true) {
-            --y;
-            if (world.getBlock(x, y, z) != this) {
-               return height < 3;
-            }
-
-            ++height;
-         }
-      } else {
-         --y;
-         return world.getNeighborBlockMaterial(x, y, z, EnumFace.NORTH) == Material.water || world.getNeighborBlockMaterial(x, y, z, EnumFace.EAST) == Material.water || world.getNeighborBlockMaterial(x, y, z, EnumFace.SOUTH) == Material.water || world.getNeighborBlockMaterial(x, y, z, EnumFace.WEST) == Material.water;
-      }
+      Block block = Block.blocksList[world.getBlockId(x, y - 1, z)];
+      return (block != null && block.canSustainPlant(world, x, y - 1, z, ForgeDirection.UP, this));
    }
 
    public boolean isLegalOn(int metadata, Block block_below, int block_below_metadata) {
@@ -113,5 +100,23 @@ public final class BlockReed extends Block {
 
    public boolean blocksFluids(boolean[] blocks_fluids, int metadata) {
       return true;
+   }
+
+   @Override
+   public EnumPlantType getPlantType(World world, int x, int y, int z)
+   {
+      return EnumPlantType.Beach;
+   }
+
+   @Override
+   public int getPlantID(World world, int x, int y, int z)
+   {
+      return blockID;
+   }
+
+   @Override
+   public int getPlantMetadata(World world, int x, int y, int z)
+   {
+      return world.getBlockMetadata(x, y, z);
    }
 }

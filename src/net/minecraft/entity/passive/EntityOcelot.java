@@ -238,7 +238,8 @@ public class EntityOcelot extends EntityTameable {
             }
 
             int var4 = this.worldObj.getBlockId(var1, var2 - 1, var3);
-            if (var4 == Block.grass.blockID || var4 == Block.leaves.blockID) {
+            Block block = Block.blocksList[var4];
+            if (var4 == Block.grass.blockID || (block != null && block.isLeaves(worldObj, var1, var2 - 1, var3))) {
                return true;
             }
          }

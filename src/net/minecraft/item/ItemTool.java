@@ -16,6 +16,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.mite.Skill;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumItemInUseAction;
+import net.minecraftforge.event.ForgeEventFactory;
 
 public abstract class ItemTool extends Item implements IDamageableItem {
    private Material effective_material;

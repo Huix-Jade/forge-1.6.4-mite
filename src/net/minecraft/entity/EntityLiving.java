@@ -55,6 +55,12 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.Event.Result;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent.AllowDespawn;
 
 public abstract class EntityLiving extends EntityLivingBase {
    public int livingSoundTime;
@@ -157,6 +163,7 @@ public abstract class EntityLiving extends EntityLivingBase {
       }
 
       this.attackTarget = par1EntityLivingBase;
+      ForgeHooks.onLivingSetAttackTarget(this, par1EntityLivingBase);
    }
 
    public boolean canAttackClass(Class par1Class) {
@@ -787,6 +794,7 @@ public abstract class EntityLiving extends EntityLivingBase {
    }
 
    public void tryDespawnEntity() {
+      Result result = null;
       if (this.persistenceRequired) {
          this.despawn_counter = 0;
       } else if (this.despawn_counter >= 200) {
@@ -807,6 +815,12 @@ public abstract class EntityLiving extends EntityLivingBase {
                this.despawn_counter = (int)(Math.random() * 100.0) - 50;
             }
 
+         }
+      } else if ((this.despawn_counter & 0x1F) == 0x1F && (result = ForgeEventFactory.canEntityDespawn(this)) != Result.DEFAULT) {
+         if (result == Result.DENY) {
+            this.despawn_counter = 0;
+         } else {
+            this.setDead();
          }
       }
    }

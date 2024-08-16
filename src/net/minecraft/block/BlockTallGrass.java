@@ -4,13 +4,19 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Icon;
 import net.minecraft.world.ColorizerFoliage;
 import net.minecraft.world.ColorizerGrass;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.IShearable;
 
-public final class BlockTallGrass extends BlockPlant {
+import java.util.ArrayList;
+
+public final class BlockTallGrass extends BlockPlant implements IShearable {
    private static final String[] grassTypes = new String[]{"deadbush", "tallgrass", "fern"};
    private Icon[] iconArray;
 
@@ -72,6 +78,7 @@ public final class BlockTallGrass extends BlockPlant {
       }
    }
 
+
    public String getNameDisambiguationForReferenceFile(int metadata) {
       return "tall";
    }
@@ -94,5 +101,34 @@ public final class BlockTallGrass extends BlockPlant {
 
    public boolean showDestructionParticlesWhenReplacedBy(int metadata, Block other_block, int other_block_metadata) {
       return true;
+   }
+
+   @Override
+   public boolean isShearable(ItemStack item, World world, int x, int y, int z)
+   {
+      return true;
+   }
+
+   @Override
+   public ArrayList<ItemStack> onSheared(ItemStack item, World world, int x, int y, int z, int fortune)
+   {
+      ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+      ret.add(new ItemStack(this, 1, world.getBlockMetadata(x, y, z)));
+      return ret;
+   }
+
+   @Override
+   public EnumPlantType getPlantType(World world, int x, int y, int z) {
+      return EnumPlantType.Unknown;
+   }
+
+   @Override
+   public int getPlantID(World world, int x, int y, int z) {
+      return 0;
+   }
+
+   @Override
+   public int getPlantMetadata(World world, int x, int y, int z) {
+      return 0;
    }
 }

@@ -30,6 +30,8 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.storage.SaveHandlerMP;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.world.WorldEvent;
 
 public final class WorldClient extends World {
    private NetClientHandler sendQueue;
@@ -45,8 +47,12 @@ public final class WorldClient extends World {
       super(new SaveHandlerMP(), "MpServer", WorldProvider.getProviderForDimension(par3), par2WorldSettings, par5Profiler, par6ILogAgent, world_creation_time, total_world_time);
       this.sendQueue = par1NetClientHandler;
       this.difficultySetting = par4;
-      this.setSpawnLocation(8, 64, 8);
       this.mapStorage = par1NetClientHandler.mapStorage;
+      this.isRemote = true;
+      finishSetup();
+      this.setSpawnLocation(8, 64, 8);
+
+      MinecraftForge.EVENT_BUS.post(new WorldEvent.Load(this));
    }
 
    public void tick() {
@@ -276,6 +282,11 @@ public final class WorldClient extends World {
    }
 
    protected void updateWeather() {
+      super.updateWeather();
+   }
+
+   @Override
+   public void updateWeatherBody() {
       if (!this.provider.hasNoSky) {
          this.prevRainingStrength = this.rainingStrength;
          if (this.isPrecipitating(false)) {

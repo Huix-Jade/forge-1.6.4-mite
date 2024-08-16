@@ -8,5 +8,6 @@ public enum EnumPlantType
     Cave,
     Water,
     Nether,
-    Crop
+    Crop,
+    Unknown
 }

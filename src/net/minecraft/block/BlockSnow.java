@@ -96,7 +96,8 @@ public final class BlockSnow extends Block {
    public boolean updateTick(World par1World, int par2, int par3, int par4, Random par5Random) {
       if (super.updateTick(par1World, par2, par3, par4, par5Random)) {
          return true;
-      } else if ((!par1World.isFreezing(par2, par4) || par1World.getSavedLightValue(EnumSkyBlock.Block, par2, par3 + 1, par4) > 11) && canMelt(par1World, par2, par3, par4)) {
+      } else if ((!par1World.isFreezing(par2, par4) || par1World.getSavedLightValue(EnumSkyBlock.Block, par2, par3 + 1, par4) > 11)
+              && canMelt(par1World, par2, par3, par4)) {
          this.melt(par1World, par2, par3, par4);
          return true;
       } else {
@@ -215,5 +216,28 @@ public final class BlockSnow extends Block {
 
    public boolean showDestructionParticlesWhenReplacedBy(int metadata, Block other_block, int other_block_metadata) {
       return true;
+   }
+
+   @Override
+   public int quantityDropped(int meta, int fortune, Random random)
+   {
+      return (meta & 7) + 1;
+   }
+
+   /**
+    * Determines if a new block can be replace the space occupied by this one,
+    * Used in the player's placement code to make the block act like water, and lava.
+    *
+    * @param world The current world
+    * @param x X Position
+    * @param y Y position
+    * @param z Z position
+    * @return True if the block is replaceable by another block
+    */
+   @Override
+   public boolean isBlockReplaceable(World world, int x, int y, int z)
+   {
+      int meta = world.getBlockMetadata(x, y, z);
+      return (meta >= 7 ? false : blockMaterial.isReplaceable());
    }
 }

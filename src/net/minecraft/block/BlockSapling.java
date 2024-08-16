@@ -12,6 +12,7 @@ import net.minecraft.world.gen.feature.WorldGenHugeTrees;
 import net.minecraft.world.gen.feature.WorldGenTaiga2;
 import net.minecraft.world.gen.feature.WorldGenTrees;
 import net.minecraft.world.gen.feature.WorldGenerator;
+import net.minecraftforge.event.terraingen.TerrainGen;
 
 public class BlockSapling extends BlockPlant {
    public static final String[] WOOD_TYPES = new String[]{"oak", "spruce", "birch", "jungle"};
@@ -58,6 +59,7 @@ public class BlockSapling extends BlockPlant {
    }
 
    private void growTree(World par1World, int par2, int par3, int par4, Random par5Random) {
+      if (!TerrainGen.saplingGrowTree(par1World, par5Random, par2, par3, par4)) return;
       int var6 = par1World.getBlockMetadata(par2, par3, par4) & 3;
       Object var7 = null;
       int var8 = 0;

@@ -166,7 +166,7 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         {
             if (displacementIds.get(bId))
             {
-                Block.blocksList[bId].dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0);
+                Block.blocksList[bId].dropBlockAsEntityItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0);
                 return true;
             }
             return false;
@@ -181,7 +181,7 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         int density = getDensity(world, x, y, z);
         if (density == Integer.MAX_VALUE) 
         {
-        	 Block.blocksList[bId].dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0);
+        	 Block.blocksList[bId].dropBlockAsEntityItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0);
         	 return true;
         }
         
@@ -210,9 +210,10 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     }
 
     @Override
-    public void onNeighborBlockChange(World world, int x, int y, int z, int blockId)
+    public boolean onNeighborBlockChange(World world, int x, int y, int z, int blockId)
     {
         world.scheduleBlockUpdate(x, y, z, blockID, tickRate);
+        return true;
     }
 
     // Used to prevent updates on chunk generation
@@ -222,11 +223,11 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         return false;
     }
 
-    @Override
-    public boolean getBlocksMovement(IBlockAccess world, int x, int y, int z)
-    {
-        return true;
-    }
+//    @Override
+//    public boolean getBlocksMovement(IBlockAccess world, int x, int y, int z)
+//    {
+//        return true;
+//    }
 
     @Override
     public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z)
@@ -234,17 +235,17 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         return null;
     }
 
-    @Override
-    public int idDropped(int par1, Random par2Random, int par3)
-    {
-        return 0;
-    }
-
-    @Override
-    public int quantityDropped(Random par1Random)
-    {
-        return 0;
-    }
+//    @Override
+//    public int idDropped(int par1, Random par2Random, int par3)
+//    {
+//        return 0;
+//    }
+//
+//    @Override
+//    public int quantityDropped(Random par1Random)
+//    {
+//        return 0;
+//    }
 
     @Override
     public int tickRate(World world)
@@ -279,11 +280,11 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         return FluidRegistry.renderIdFluid;
     }
 
-    @Override
-    public boolean isOpaqueCube()
-    {
-        return false;
-    }
+//    @Override
+//    public boolean isOpaqueCube()
+//    {
+//        return false;
+//    }
 
     @Override
     public boolean renderAsNormalBlock()
@@ -323,7 +324,7 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     {
         if (world.getBlockId(x, y, z) != blockID)
         {
-            return !world.isBlockOpaqueCube(x, y, z);
+            return !world. (x, y, z);
         }
         Material mat = world.getBlockMaterial(x, y, z);
         return mat == this.blockMaterial ? false : super.shouldSideBeRendered(world, x, y, z, side);
@@ -428,14 +429,14 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         if (world.getBlockId(x, y + 1, z) == blockID)
         {
             boolean flag =
-                isBlockSolid(world, x,     y,     z - 1, 2) ||
-                isBlockSolid(world, x,     y,     z + 1, 3) ||
-                isBlockSolid(world, x - 1, y,     z,     4) ||
-                isBlockSolid(world, x + 1, y,     z,     5) ||
-                isBlockSolid(world, x,     y + 1, z - 1, 2) ||
-                isBlockSolid(world, x,     y + 1, z + 1, 3) ||
-                isBlockSolid(world, x - 1, y + 1, z,     4) ||
-                isBlockSolid(world, x + 1, y + 1, z,     5);
+                isBlockSolid(world, x,     y,     z - 1) ||
+                isBlockSolid(world, x,     y,     z + 1) ||
+                isBlockSolid(world, x - 1, y,     z) ||
+                isBlockSolid(world, x + 1, y,     z) ||
+                isBlockSolid(world, x,     y + 1, z - 1) ||
+                isBlockSolid(world, x,     y + 1, z + 1) ||
+                isBlockSolid(world, x - 1, y + 1, z) ||
+                isBlockSolid(world, x + 1, y + 1, z);
 
             if (flag)
             {

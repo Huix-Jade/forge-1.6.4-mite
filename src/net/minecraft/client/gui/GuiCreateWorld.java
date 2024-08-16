@@ -236,7 +236,7 @@ public class GuiCreateWorld extends GuiScreen {
                this.commandsAllowed = false;
                this.updateButtonText();
             } else if (par1GuiButton.id == 8) {
-               this.mc.displayGuiScreen(new GuiCreateFlatWorld(this, this.generatorOptionsToUse));
+               WorldType.worldTypes[this.worldTypeId].onCustomizeButton(this.mc, this);
             } else if (par1GuiButton == this.button_skills) {
                this.are_skills_enabled = !this.are_skills_enabled;
                this.updateButtonText();
@@ -259,7 +259,7 @@ public class GuiCreateWorld extends GuiScreen {
       this.button_skills.drawButton = this.moreOptions;
       this.buttonWorldType.drawButton = this.moreOptions;
       this.button_skills.drawButton = false;
-      this.buttonCustomize.drawButton = this.moreOptions && WorldType.worldTypes[this.worldTypeId] == WorldType.FLAT;
+      this.buttonCustomize.drawButton = this.moreOptions && (WorldType.worldTypes[this.worldTypeId].isCustomizable());
       if (this.moreOptions) {
          this.moreWorldOptions.displayString = "Back";
          this.textboxSeed.setFocused(true);

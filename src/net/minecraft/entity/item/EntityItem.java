@@ -42,6 +42,10 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.Event.Result;
+import net.minecraftforge.event.entity.item.ItemExpireEvent;
+import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 
 public class EntityItem extends Entity {
    public int age;
@@ -50,6 +54,11 @@ public class EntityItem extends Entity {
    public float hoverStart;
    public boolean dropped_by_player;
    private float cooking_progress;
+
+   /**
+    * The maximum age of this EntityItem.  The item is expired once this is reached.
+    */
+   public int lifespan = 6000;
 
    public EntityItem(World par1World, double par2, double par4, double par6) {
       super(par1World);
@@ -65,6 +74,7 @@ public class EntityItem extends Entity {
          this.motionZ = (double)((float)(Math.random() * 0.20000000298023224 - 0.10000000149011612));
       }
 
+
    }
 
    public EntityItem(World par1World, double par2, double par4, double par6, ItemStack par8ItemStack) {
@@ -73,6 +83,7 @@ public class EntityItem extends Entity {
       if (par8ItemStack.itemID == Item.manure.itemID) {
          this.motionX = this.motionY = this.motionZ = 0.0;
       }
+      this.lifespan = (par8ItemStack.getItem() == null ? 6000 : par8ItemStack.getItem().getEntityLifespan(par8ItemStack, par1World));
 
    }
 
@@ -97,6 +108,15 @@ public class EntityItem extends Entity {
    }
 
    public void onUpdate() {
+      ItemStack stack = this.getDataWatcher().getWatchableObjectItemStack(10);
+      if (stack != null && stack.getItem() != null)
+      {
+         if (stack.getItem().onEntityItemUpdate(this))
+         {
+            return;
+         }
+      }
+
       super.onUpdate();
       if (this.delayBeforeCanPickup > 0) {
          --this.delayBeforeCanPickup;
@@ -152,10 +172,35 @@ public class EntityItem extends Entity {
       }
 
       ++this.age;
-      if (!this.worldObj.isRemote && this.age >= 6000 && (!this.dropped_by_player || DedicatedServer.tournament_type != EnumTournamentType.score) && !this.isArtifact()) {
-         this.setDead();
-         this.tryRemoveFromWorldUniques();
+      ItemStack item = getDataWatcher().getWatchableObjectItemStack(10);
+
+      if (!this.worldObj.isRemote && this.age >= lifespan)
+      {
+         if (item != null)
+         {
+            ItemExpireEvent event = new ItemExpireEvent(this, (item.getItem() == null ? 6000 : item.getItem().getEntityLifespan(item, worldObj)));
+            if (MinecraftForge.EVENT_BUS.post(event))
+            {
+               lifespan += event.extraLife;
+            }
+            else
+            {
+               this.setDead();
+            }
+         }
+         else
+         {
+            this.setDead();
+         }
       }
+
+      if (item != null && item.stackSize <= 0){
+         if (!this.dropped_by_player || DedicatedServer.tournament_type != EnumTournamentType.score && !this.isArtifact()) {
+            this.setDead();
+            this.tryRemoveFromWorldUniques();
+         }
+      }
+
 
       if (!this.isDead && this.onServer()) {
          float chance_of_snow_items_melting = Item.getChanceOfSnowAndIceItemsMelting(this.getBiome().temperature);
@@ -529,6 +574,8 @@ public class EntityItem extends Entity {
    public void writeEntityToNBT(NBTTagCompound par1NBTTagCompound) {
       par1NBTTagCompound.setShort("Health", (short)((byte)this.health));
       par1NBTTagCompound.setShort("Age", (short)this.age);
+      this.age = par1NBTTagCompound.getShort("Age");
+      par1NBTTagCompound.setInteger("Lifespan", lifespan);
       if (this.getEntityItem() != null) {
          par1NBTTagCompound.setCompoundTag("Item", this.getEntityItem().writeToNBT(new NBTTagCompound()));
       }
@@ -538,7 +585,19 @@ public class EntityItem extends Entity {
 
    public void readEntityFromNBT(NBTTagCompound par1NBTTagCompound) {
       this.health = par1NBTTagCompound.getShort("Health") & 255;
-      this.age = par1NBTTagCompound.getShort("Age");
+
+
+      ItemStack item = getDataWatcher().getWatchableObjectItemStack(10);
+
+      if (item == null || item.stackSize <= 0)
+      {
+         this.setDead();
+      }
+
+      if (par1NBTTagCompound.hasKey("Lifespan"))
+      {
+         lifespan = par1NBTTagCompound.getInteger("Lifespan");
+      }
       NBTTagCompound var2 = par1NBTTagCompound.getCompoundTag("Item");
       this.setEntityItemStack(ItemStack.loadItemStackFromNBT(var2));
       if (this.getEntityItem() == null) {
@@ -552,10 +611,24 @@ public class EntityItem extends Entity {
       if (!par1EntityPlayer.isGhost() && !par1EntityPlayer.isZevimrgvInTournament()) {
          if (!(par1EntityPlayer.ridingEntity instanceof EntityHorse) || !(this.posY - par1EntityPlayer.getFootPosY() < -0.5)) {
             if (!this.worldObj.isRemote) {
+               if (this.delayBeforeCanPickup > 0)
+               {
+                  return;
+               }
+
+               EntityItemPickupEvent event = new EntityItemPickupEvent(par1EntityPlayer, this);
+
+               if (MinecraftForge.EVENT_BUS.post(event))
+               {
+                  return;
+               }
+
+
                boolean was_empty_handed_before = !par1EntityPlayer.hasHeldItem();
                ItemStack var2 = this.getEntityItem();
                int var3 = var2.stackSize;
-               if (this.canBePickedUpBy(par1EntityPlayer) && par1EntityPlayer.inventory.addItemStackToInventory(var2)) {
+               if (this.delayBeforeCanPickup <= 0 && (event.getResult() == Result.ALLOW || var3 <= 0 || par1EntityPlayer.inventory.addItemStackToInventory(var2)))
+               {
                   if (var2.itemID == Block.wood.blockID) {
                      par1EntityPlayer.triggerAchievement(AchievementList.mineWood);
                   }

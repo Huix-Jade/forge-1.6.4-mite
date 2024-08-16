@@ -12,16 +12,19 @@ import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemBow;
-import net.minecraft.item.ItemFishingRod;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.util.EnumItemInUseAction;
 import net.minecraft.util.Icon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.storage.MapData;
 import org.lwjgl.opengl.GL11;
+import net.minecraftforge.client.ForgeHooksClient;
+import net.minecraftforge.client.IItemRenderer;
+import net.minecraftforge.client.IItemRenderer.ItemRenderType;
+import net.minecraftforge.client.MinecraftForgeClient;
+import static net.minecraftforge.client.IItemRenderer.ItemRenderType.*;
+import static net.minecraftforge.client.IItemRenderer.ItemRendererHelper.*;
 
 public class ItemRenderer {
    private static final ResourceLocation RES_ITEM_GLINT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
@@ -50,11 +53,29 @@ public class ItemRenderer {
       this.mapItemRenderer = new MapItemRenderer(par1Minecraft.gameSettings, par1Minecraft.getTextureManager());
    }
 
-   public void renderItem(EntityLivingBase par1EntityLivingBase, ItemStack par2ItemStack, int par3) {
+   public void renderItem(EntityLivingBase par1EntityLivingBase, ItemStack par2ItemStack, int par3)
+   {
+      this.renderItem(par1EntityLivingBase, par2ItemStack, par3, ItemRenderType.EQUIPPED);
+   }
+
+   public void renderItem(EntityLivingBase par1EntityLivingBase, ItemStack par2ItemStack, int par3, ItemRenderType type)
+   {
       GL11.glPushMatrix();
-      TextureManager var4 = this.mc.getTextureManager();
-      if (par2ItemStack.getItemSpriteNumber() == 0 && par2ItemStack.itemID < Block.blocksList.length && Block.blocksList[par2ItemStack.itemID] != null && RenderBlocks.renderItemIn3d(Block.blocksList[par2ItemStack.itemID].getRenderType())) {
-         var4.bindTexture(var4.getResourceLocation(0));
+      TextureManager texturemanager = this.mc.getTextureManager();
+      Block block = null;
+      if (par2ItemStack.getItem() instanceof ItemBlock && par2ItemStack.itemID < Block.blocksList.length)
+      {
+         block = Block.blocksList[par2ItemStack.itemID];
+      }
+
+      IItemRenderer customRenderer = MinecraftForgeClient.getItemRenderer(par2ItemStack, type);
+      if (customRenderer != null)
+      {
+         texturemanager.bindTexture(texturemanager.getResourceLocation(par2ItemStack.getItemSpriteNumber()));
+         ForgeHooksClient.renderEquippedItem(type, customRenderer, renderBlocksInstance, par1EntityLivingBase, par2ItemStack);
+      }
+      else if (block != null && par2ItemStack.getItemSpriteNumber() == 0 && RenderBlocks.renderItemIn3d(Block.blocksList[par2ItemStack.itemID].getRenderType())) {
+         texturemanager.bindTexture(texturemanager.getResourceLocation(0));
          this.renderBlocksInstance.renderBlockAsItem(Block.blocksList[par2ItemStack.itemID], par2ItemStack.getItemSubtype(), 1.0F);
       } else {
          Icon var5 = par1EntityLivingBase.getItemIcon(par2ItemStack, par3);
@@ -67,7 +88,7 @@ public class ItemRenderer {
             return;
          }
 
-         var4.bindTexture(var4.getResourceLocation(par2ItemStack.getItemSpriteNumber()));
+         texturemanager.bindTexture(texturemanager.getResourceLocation(par2ItemStack.getItemSpriteNumber()));
          Tessellator var6 = Tessellator.instance;
          float var7 = var5.getMinU();
          float var8 = var5.getMaxU();
@@ -83,10 +104,10 @@ public class ItemRenderer {
          GL11.glRotatef(335.0F, 0.0F, 0.0F, 1.0F);
          GL11.glTranslatef(-0.9375F, -0.0625F, 0.0F);
          renderItemIn2D(var6, var8, var9, var7, var10, var5.getIconWidth(), var5.getIconHeight(), 0.0625F);
-         if (par2ItemStack.hasEffect() && par3 == 0) {
+         if (par2ItemStack.hasEffect(par3)) {
             GL11.glDepthFunc(514);
             GL11.glDisable(2896);
-            var4.bindTexture(RES_ITEM_GLINT);
+            texturemanager.bindTexture(RES_ITEM_GLINT);
             GL11.glEnable(3042);
             GL11.glBlendFunc(768, 1);
             float var14 = 0.76F;
@@ -242,7 +263,7 @@ public class ItemRenderer {
             float var7 = var5.prevRenderArmYaw + (var5.renderArmYaw - var5.prevRenderArmYaw) * par1;
             GL11.glRotatef((var3.rotationPitch - var6) * 0.1F, 1.0F, 0.0F, 0.0F);
             GL11.glRotatef((var3.rotationYaw - var7) * 0.1F, 0.0F, 1.0F, 0.0F);
-            ItemStack var8 = this.itemToRender;
+            ItemStack itemStack = this.itemToRender;
             float var9 = this.mc.theWorld.getLightBrightness(MathHelper.floor_double(var3.posX), MathHelper.floor_double(var3.posY), MathHelper.floor_double(var3.posZ));
             var9 = 1.0F;
             int var10 = this.mc.theWorld.getLightBrightnessForSkyBlocks(MathHelper.floor_double(var3.posX), MathHelper.floor_double(var3.posY), MathHelper.floor_double(var3.posZ), 0);
@@ -253,8 +274,8 @@ public class ItemRenderer {
             float var13;
             float var20;
             float var22;
-            if (var8 != null) {
-               var10 = Item.itemsList[var8.itemID].getColorFromItemStack(var8, 0);
+            if (itemStack != null) {
+               var10 = Item.itemsList[itemStack.itemID].getColorFromItemStack(itemStack, 0);
                var20 = (float)(var10 >> 16 & 255) / 255.0F;
                var22 = (float)(var10 >> 8 & 255) / 255.0F;
                var13 = (float)(var10 & 255) / 255.0F;
@@ -269,7 +290,7 @@ public class ItemRenderer {
             float var21;
             Render var27;
             RenderPlayer var26;
-            if (var8 != null && var8.itemID == Item.map.itemID) {
+            if (itemStack != null && itemStack.getItem() instanceof ItemMap) {
                GL11.glPushMatrix();
                var21 = 0.8F;
                var20 = var3.getSwingProgress(par1);
@@ -331,20 +352,30 @@ public class ItemRenderer {
                var30.addVertexWithUV((double)(128 + var29), (double)(0 - var29), 0.0, 1.0, 0.0);
                var30.addVertexWithUV((double)(0 - var29), (double)(0 - var29), 0.0, 0.0, 0.0);
                var30.draw();
-               MapData var19 = Item.map.getMapData(var8, this.mc.theWorld);
-               if (var19 != null) {
-                  this.mapItemRenderer.renderMap(this.mc.thePlayer, this.mc.getTextureManager(), var19);
+               IItemRenderer custom = MinecraftForgeClient.getItemRenderer(itemStack, FIRST_PERSON_MAP);
+               MapData mapdata = ((ItemMap)itemStack.getItem()).getMapData(itemStack, this.mc.theWorld);
+
+               if (custom == null)
+               {
+                  if (mapdata != null)
+                  {
+                     this.mapItemRenderer.renderMap(this.mc.thePlayer, this.mc.getTextureManager(), mapdata);
+                  }
+               }
+               else
+               {
+                  custom.renderItem(FIRST_PERSON_MAP, itemStack, mc.thePlayer, mc.getTextureManager(), mapdata);
                }
 
                GL11.glPopMatrix();
-            } else if (var8 != null) {
+            } else if (itemStack != null) {
                GL11.glPushMatrix();
                var21 = 0.8F;
                if (var3.getItemInUseCount() > 0) {
-                  EnumItemInUseAction var23 = var8.getItemInUseAction(this.mc.thePlayer);
+                  EnumItemInUseAction var23 = itemStack.getItemInUseAction(this.mc.thePlayer);
                   if (var23 == EnumItemInUseAction.EAT || var23 == EnumItemInUseAction.DRINK) {
                      var22 = (float)var3.getItemInUseCount() - par1 + 1.0F;
-                     var13 = 1.0F - var22 / (float)var8.getMaxItemUseDuration();
+                     var13 = 1.0F - var22 / (float)itemStack.getMaxItemUseDuration();
                      var14 = 1.0F - var13;
                      var14 = var14 * var14 * var14;
                      var14 = var14 * var14 * var14;
@@ -377,7 +408,7 @@ public class ItemRenderer {
                float var18;
                float var17;
                if (var3.getItemInUseCount() > 0) {
-                  EnumItemInUseAction var25 = var8.getItemInUseAction(this.mc.thePlayer);
+                  EnumItemInUseAction var25 = itemStack.getItemInUseAction(this.mc.thePlayer);
                   if (var25 == EnumItemInUseAction.BLOCK) {
                      GL11.glTranslatef(-0.5F, 0.2F, 0.0F);
                      GL11.glRotatef(30.0F, 0.0F, 1.0F, 0.0F);
@@ -388,8 +419,8 @@ public class ItemRenderer {
                      GL11.glRotatef(-12.0F, 0.0F, 1.0F, 0.0F);
                      GL11.glRotatef(-8.0F, 1.0F, 0.0F, 0.0F);
                      GL11.glTranslatef(-0.9F, 0.2F, 0.0F);
-                     var16 = (float)var8.getMaxItemUseDuration() - ((float)var3.getItemInUseCount() - par1 + 1.0F);
-                     var17 = var16 / (float)ItemBow.getTicksForMaxPull(var8);
+                     var16 = (float)itemStack.getMaxItemUseDuration() - ((float)var3.getItemInUseCount() - par1 + 1.0F);
+                     var17 = var16 / (float)ItemBow.getTicksForMaxPull(itemStack);
                      var17 = (var17 * var17 + var17 * 2.0F) / 3.0F;
                      if (var17 > 1.0F) {
                         var17 = 1.0F;
@@ -411,20 +442,23 @@ public class ItemRenderer {
                   }
                }
 
-               if (var8.getItem().shouldRotateAroundWhenRendering()) {
+               if (itemStack.getItem().shouldRotateAroundWhenRendering()) {
                   GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
                }
 
-               if (var8.getItem().requiresMultipleRenderPasses()) {
-                  this.renderItem(var3, var8, 0);
-                  int var28 = Item.itemsList[var8.itemID].getColorFromItemStack(var8, 1);
-                  var16 = (float)(var28 >> 16 & 255) / 255.0F;
-                  var17 = (float)(var28 >> 8 & 255) / 255.0F;
-                  var18 = (float)(var28 & 255) / 255.0F;
-                  GL11.glColor4f(var9 * var16, var9 * var17, var9 * var18, 1.0F);
-                  this.renderItem(var3, var8, 1);
+               if (itemStack.getItem().requiresMultipleRenderPasses()) {
+                  this.renderItem(var3, itemStack, 0, ItemRenderType.EQUIPPED_FIRST_PERSON);
+                  for (int x = 1; x < itemStack.getItem().getRenderPasses(itemStack.getItemDamage()); x++)
+                  {
+                     int i1 = Item.itemsList[itemStack.itemID].getColorFromItemStack(itemStack, x);
+                     var16 = (float)(i1 >> 16 & 255) / 255.0F;
+                     var17 = (float)(i1 >> 8 & 255) / 255.0F;
+                     var18 = (float)(i1 & 255) / 255.0F;
+                     GL11.glColor4f(var9 * var16, var9 * var17, var9 * var18, 1.0F);
+                     this.renderItem(var3, itemStack, x, ItemRenderType.EQUIPPED_FIRST_PERSON);
+                  }
                } else {
-                  this.renderItem(var3, var8, 0);
+                  this.renderItem(var3, itemStack, 0, ItemRenderType.EQUIPPED_FIRST_PERSON);
                }
 
                GL11.glPopMatrix();

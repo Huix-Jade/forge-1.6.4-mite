@@ -239,8 +239,8 @@ public class BlockFire extends Block {
    }
 
    @Deprecated
-   private void tryToCatchBlockOnFire(World par1World, int par2, int par3, int par4, int par5, Random par6Random, int par7) {
-      tryToCatchBlockOnFire(par1World, par2, par3, par4, par5, par6Random, par7, UP);
+   public boolean tryToCatchBlockOnFire(World par1World, int par2, int par3, int par4, int par5, Random par6Random, int par7) {
+      return tryToCatchBlockOnFire(par1World, par2, par3, par4, par5, par6Random, par7, UP);
    }
 
    private int getChanceOfNeighborsEncouragingFire(World par1World, int par2, int par3, int par4) {

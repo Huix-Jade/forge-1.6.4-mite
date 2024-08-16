@@ -40,6 +40,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import org.lwjgl.opengl.GL11;
+import static net.minecraftforge.common.ForgeDirection.*;
 
 public final class RenderBlocks {
    public IBlockAccess blockAccess;
@@ -140,6 +141,10 @@ public final class RenderBlocks {
    public RenderBlocks() {
       this.minecraftRB = Minecraft.getMinecraft();
       this.thread_index = Minecraft.getThreadIndex();
+   }
+
+   public boolean hasOverrideBlockTexture() {
+      return this.overrideBlockTexture != null;
    }
 
    public void setOverrideBlockTexture(Icon par1Icon) {
@@ -290,8 +295,10 @@ public final class RenderBlocks {
    private boolean renderBlockBed(Block par1Block, int par2, int par3, int par4) {
       Tessellator var5 = Tessellator.instance;
       int var6 = this.blockAccess.getBlockMetadata(par2, par3, par4);
-      int var7 = BlockBed.j(var6);
-      boolean var8 = BlockBed.isBlockHeadOfBed(var6);
+
+      int var7 = par1Block.getBedDirection(blockAccess, par2, par3, par4);
+      boolean var8 = par1Block.isBedFoot(blockAccess, par2, par3, par4);
+
       float var9 = 0.5F;
       float var10 = 1.0F;
       float var11 = 0.8F;
@@ -300,6 +307,7 @@ public final class RenderBlocks {
       var5.setBrightness(var25);
       var5.setColorOpaque_F(var9, var9, var9);
       Icon var27 = this.getBlockIcon(par1Block, this.blockAccess, par2, par3, par4, 0);
+      if (hasOverrideBlockTexture()) var27 = overrideBlockTexture; //BugFix Proper breaking texture on underside
       double var28 = (double)var27.getMinU();
       double var30 = (double)var27.getMaxU();
       double var32 = (double)var27.getMinV();
@@ -316,6 +324,7 @@ public final class RenderBlocks {
       var5.setBrightness(par1Block.getMixedBrightnessForBlock(this.blockAccess, par2, par3 + 1, par4));
       var5.setColorOpaque_F(var10, var10, var10);
       var27 = this.getBlockIcon(par1Block, this.blockAccess, par2, par3, par4, 1);
+      if (hasOverrideBlockTexture()) var27 = overrideBlockTexture; //BugFix Proper breaking texture on underside
       var28 = (double)var27.getMinU();
       var30 = (double)var27.getMaxU();
       var32 = (double)var27.getMinV();
@@ -1778,7 +1787,7 @@ public final class RenderBlocks {
       double var26;
       double var28;
       double var30;
-      if (!this.blockAccess.isBlockTopFlatAndSolid(par2, par3 - 1, par4) && !Block.fire.canBlockCatchFire(this.blockAccess, par2, par3 - 1, par4)) {
+      if (!this.blockAccess.doesBlockHaveSolidTopSurface(par2, par3 - 1, par4) && !Block.fire.canBlockCatchFire(this.blockAccess, par2, par3 - 1, par4, UP)) {
          float var36 = 0.2F;
          float var19 = 0.0625F;
          if ((par2 + par3 + par4 & 1) == 1) {
@@ -1794,7 +1803,7 @@ public final class RenderBlocks {
             var9 = var20;
          }
 
-         if (Block.fire.canBlockCatchFire(this.blockAccess, par2 - 1, par3, par4)) {
+         if (Block.fire.canBlockCatchFire(this.blockAccess, par2 - 1, par3, par4, EAST)) {
             var5.addVertexWithUV((double)((float)par2 + var36), (double)((float)par3 + var17 + var19), (double)(par4 + 1), var13, var11);
             var5.addVertexWithUV((double)(par2 + 0), (double)((float)(par3 + 0) + var19), (double)(par4 + 1), var13, var15);
             var5.addVertexWithUV((double)(par2 + 0), (double)((float)(par3 + 0) + var19), (double)(par4 + 0), var9, var15);
@@ -1805,7 +1814,7 @@ public final class RenderBlocks {
             var5.addVertexWithUV((double)((float)par2 + var36), (double)((float)par3 + var17 + var19), (double)(par4 + 1), var13, var11);
          }
 
-         if (Block.fire.canBlockCatchFire(this.blockAccess, par2 + 1, par3, par4)) {
+         if (Block.fire.canBlockCatchFire(this.blockAccess, par2, par3, par4 - 1, SOUTH)) {
             var5.addVertexWithUV((double)((float)(par2 + 1) - var36), (double)((float)par3 + var17 + var19), (double)(par4 + 0), var9, var11);
             var5.addVertexWithUV((double)(par2 + 1 - 0), (double)((float)(par3 + 0) + var19), (double)(par4 + 0), var9, var15);
             var5.addVertexWithUV((double)(par2 + 1 - 0), (double)((float)(par3 + 0) + var19), (double)(par4 + 1), var13, var15);
@@ -1816,7 +1825,7 @@ public final class RenderBlocks {
             var5.addVertexWithUV((double)((float)(par2 + 1) - var36), (double)((float)par3 + var17 + var19), (double)(par4 + 0), var9, var11);
          }
 
-         if (Block.fire.canBlockCatchFire(this.blockAccess, par2, par3, par4 - 1)) {
+         if (Block.fire.canBlockCatchFire(this.blockAccess, par2, par3, par4 + 1, NORTH)) {
             var5.addVertexWithUV((double)(par2 + 0), (double)((float)par3 + var17 + var19), (double)((float)par4 + var36), var13, var11);
             var5.addVertexWithUV((double)(par2 + 0), (double)((float)(par3 + 0) + var19), (double)(par4 + 0), var13, var15);
             var5.addVertexWithUV((double)(par2 + 1), (double)((float)(par3 + 0) + var19), (double)(par4 + 0), var9, var15);
@@ -1827,7 +1836,7 @@ public final class RenderBlocks {
             var5.addVertexWithUV((double)(par2 + 0), (double)((float)par3 + var17 + var19), (double)((float)par4 + var36), var13, var11);
          }
 
-         if (Block.fire.canBlockCatchFire(this.blockAccess, par2, par3, par4 + 1)) {
+         if (Block.fire.canBlockCatchFire(this.blockAccess, par2, par3 + 1, par4, DOWN)) {
             var5.addVertexWithUV((double)(par2 + 1), (double)((float)par3 + var17 + var19), (double)((float)(par4 + 1) - var36), var9, var11);
             var5.addVertexWithUV((double)(par2 + 1), (double)((float)(par3 + 0) + var19), (double)(par4 + 1 - 0), var9, var15);
             var5.addVertexWithUV((double)(par2 + 0), (double)((float)(par3 + 0) + var19), (double)(par4 + 1 - 0), var13, var15);
@@ -2568,10 +2577,11 @@ public final class RenderBlocks {
       double var48 = (double)par2 + 0.5 + 0.0625;
       double var50 = (double)par4 + 0.5 - 0.0625;
       double var52 = (double)par4 + 0.5 + 0.0625;
-      boolean var54 = par1BlockPane.canThisPaneConnectToThisBlockID(this.blockAccess.getBlockId(par2, par3, par4 - 1));
-      boolean var55 = par1BlockPane.canThisPaneConnectToThisBlockID(this.blockAccess.getBlockId(par2, par3, par4 + 1));
-      boolean var56 = par1BlockPane.canThisPaneConnectToThisBlockID(this.blockAccess.getBlockId(par2 - 1, par3, par4));
-      boolean var57 = par1BlockPane.canThisPaneConnectToThisBlockID(this.blockAccess.getBlockId(par2 + 1, par3, par4));
+      boolean var54 = par1BlockPane.canPaneConnectTo(this.blockAccess,par2, par3, par4, NORTH);
+      boolean var55 = par1BlockPane.canPaneConnectTo(this.blockAccess,par2, par3, par4, SOUTH);
+      boolean var56 = par1BlockPane.canPaneConnectTo(this.blockAccess,par2, par3, par4, WEST);
+      boolean var57 = par1BlockPane.canPaneConnectTo(this.blockAccess,par2, par3, par4, EAST);
+
       boolean var58 = par1BlockPane.shouldSideBeRendered(this.blockAccess, par2, par3 + 1, par4, 1);
       boolean var59 = par1BlockPane.shouldSideBeRendered(this.blockAccess, par2, par3 - 1, par4, 0);
       double var60 = 0.01;

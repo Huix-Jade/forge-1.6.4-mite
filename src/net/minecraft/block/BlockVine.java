@@ -1,10 +1,12 @@
 package net.minecraft.block;
 
+import java.util.ArrayList;
 import java.util.Random;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.RNG;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Direction;
 import net.minecraft.util.EnumFace;
@@ -12,8 +14,9 @@ import net.minecraft.world.ColorizerFoliage;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.IShearable;
 
-public final class BlockVine extends Block {
+public final class BlockVine extends Block implements IShearable {
    public BlockVine(int par1) {
       super(par1, Material.vine, (new BlockConstants()).setNeverHidesAdjacentFaces().setNotAlwaysLegal());
       this.setTickRandomly(true);
@@ -389,6 +392,26 @@ public final class BlockVine extends Block {
    }
 
    public boolean showDestructionParticlesWhenReplacedBy(int metadata, Block other_block, int other_block_metadata) {
+      return true;
+   }
+
+   @Override
+   public boolean isShearable(ItemStack item, World world, int x, int y, int z)
+   {
+      return true;
+   }
+
+   @Override
+   public ArrayList<ItemStack> onSheared(ItemStack item, World world, int x, int y, int z, int fortune)
+   {
+      ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+      ret.add(new ItemStack(this, 1, 0));
+      return ret;
+   }
+
+   @Override
+   public boolean isLadder(World world, int x, int y, int z, EntityLivingBase entity)
+   {
       return true;
    }
 }

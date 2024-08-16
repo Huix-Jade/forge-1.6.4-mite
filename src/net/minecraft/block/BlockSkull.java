@@ -17,6 +17,8 @@ import net.minecraft.util.Icon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
+
 public class BlockSkull extends BlockMountedWithTileEntity {
    protected BlockSkull(int par1) {
       super(par1, Material.circuits, TileEntitySkull.class, (new BlockConstants()).setNeverHidesAdjacentFaces().setNotAlwaysLegal());
@@ -124,6 +126,38 @@ public class BlockSkull extends BlockMountedWithTileEntity {
          }
       }
    }
+
+   @Override
+   public ArrayList<ItemStack> getBlockDropped(World world, int x, int y, int z, int metadata, int fortune) {
+      ArrayList<ItemStack> drops = new ArrayList<ItemStack>();
+      BlockBreakInfo info = new BlockBreakInfo(world, x, y, z);
+      if (info.wasExploded()) {
+         return drops;
+      } else if (info.wasCrushed()) {
+         drops.add(new ItemStack(Item.dyePowder, 1, 15));
+         return drops;
+      } else {
+
+         if ((metadata & 8) == 0)
+         {
+            ItemStack itemstack = new ItemStack(Item.skull.itemID, 1, info.damage);
+            TileEntitySkull tileentityskull = (TileEntitySkull)world.getBlockTileEntity(x, y, z);
+
+            if (tileentityskull == null) {
+               return drops;
+            }
+            if (tileentityskull.getSkullType() == 3 && tileentityskull.getExtraType() != null && tileentityskull.getExtraType().length() > 0)
+            {
+               itemstack.setTagCompound(new NBTTagCompound());
+               itemstack.getTagCompound().setString("SkullOwner", tileentityskull.getExtraType());
+            }
+            drops.add(itemstack);
+         }
+      }
+
+      return drops;
+   }
+
 
    public void breakBlock(World world, int x, int y, int z, int old_block_id, int old_block_metadata) {
       super.breakBlock(world, x, y, z, old_block_id, old_block_metadata);

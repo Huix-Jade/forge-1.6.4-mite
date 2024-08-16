@@ -15,6 +15,9 @@ public class BlockTrapDoor extends BlockMounted {
    private static final int open_bit = 4;
    private static final int height_bit = 8;
 
+//   /** Set this to allow trapdoors to remain free-floating */
+//   public static boolean disableValidation = false;
+
    protected BlockTrapDoor(int par1, Material par2Material) {
       super(par1, par2Material, (new BlockConstants()).setNeverHidesAdjacentFaces().setNotAlwaysLegal());
       float var3 = 0.5F;

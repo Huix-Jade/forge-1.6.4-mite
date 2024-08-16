@@ -134,7 +134,7 @@ public class BlockPortal extends BlockBreakable {
          if (var5 == var6) {
             return false;
          } else {
-            if (par1World.getBlockId(par2 - var5, par3, par4 - var6) == 0) {
+            if (par1World.isAirBlock(par2 - var5, par3, par4 - var6)) {
                par2 -= var5;
                par4 -= var6;
             }
@@ -146,11 +146,12 @@ public class BlockPortal extends BlockBreakable {
                   boolean var9 = var7 == -1 || var7 == 2 || var8 == -1 || var8 == 3;
                   if (var7 != -1 && var7 != 2 || var8 != -1 && var8 != 3) {
                      int var10 = par1World.getBlockId(par2 + var5 * var7, par3 + var8, par4 + var6 * var7);
+                     boolean isAirBlock = par1World.isAirBlock(par2 + var5 * var7, par3 + var8, par4 + var6 * var7);
                      if (var9) {
                         if (var10 != Block.obsidian.blockID) {
                            return false;
                         }
-                     } else if (var10 != 0 && var10 != Block.fire.blockID && var10 != Block.spark.blockID) {
+                     } else if (!isAirBlock && var10 != Block.fire.blockID && var10 != Block.spark.blockID) {
                         return false;
                      }
                   }

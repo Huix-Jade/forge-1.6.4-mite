@@ -1,5 +1,7 @@
 package net.minecraft.client.gui.achievement;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -18,6 +20,7 @@ import net.minecraft.util.Icon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.WorldAchievement;
+import net.minecraftforge.common.AchievementPage;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
@@ -45,12 +48,24 @@ public class GuiAchievements extends GuiScreen {
    public static int view_mode;
    GuiButton button_cycle_view_mode;
 
+   private int currentPage = -1;
+   private GuiSmallButton button;
+   private LinkedList<Achievement> minecraftAchievements = new LinkedList<Achievement>();
+
    public GuiAchievements(StatFileWriter par1StatFileWriter) {
       this.statFileWriter = par1StatFileWriter;
       short var2 = 141;
       short var3 = 141;
       this.field_74117_m = this.guiMapX = this.field_74124_q = (double)(AchievementList.openInventory.displayColumn * 24 - var2 / 2 - 12);
       this.field_74115_n = this.guiMapY = this.field_74123_r = (double)(AchievementList.openInventory.displayRow * 24 - var3 / 2);
+      minecraftAchievements.clear();
+      for (Object achievement : AchievementList.achievementList)
+      {
+         if (!AchievementPage.isAchievementInPages((Achievement)achievement))
+         {
+            minecraftAchievements.add((Achievement)achievement);
+         }
+      }
    }
 
    public void updateViewModeButtonState() {
@@ -68,6 +83,7 @@ public class GuiAchievements extends GuiScreen {
       view_mode = 0;
       this.buttonList.clear();
       this.buttonList.add(new GuiSmallButton(1, this.width / 2 + 24, this.height / 2 + 74, 80, 20, I18n.getString("gui.done")));
+      this.buttonList.add(button = new GuiSmallButton(3, (width - achievementsPaneWidth) / 2 + 24, height / 2 + 74, 125, 20, AchievementPage.getTitle(currentPage)));
       this.buttonList.add(this.button_cycle_view_mode = new GuiSmallButton(2, this.width / 2 - 24 - 80, this.height / 2 + 74, 80, 20, ""));
       this.updateViewModeButtonState();
    }
@@ -82,6 +98,14 @@ public class GuiAchievements extends GuiScreen {
          }
 
          this.updateViewModeButtonState();
+      } else if (par1GuiButton.id == 3) {
+         currentPage++;
+         if (currentPage >= AchievementPage.getAchievementPages().size())
+         {
+            currentPage = -1;
+         }
+         button.displayString = AchievementPage.getTitle(currentPage);
+
       }
 
       super.actionPerformed(par1GuiButton);
@@ -284,9 +308,10 @@ public class GuiAchievements extends GuiScreen {
       int var41;
       int var25;
       for(int pass = 0; pass < 2; ++pass) {
-         for(var20 = 0; var20 < AchievementList.achievementList.size(); ++var20) {
-            Achievement var31 = (Achievement)AchievementList.achievementList.get(var20);
-            if (var31.parentAchievement != null) {
+         List<Achievement> achievementList = (currentPage == -1 ? minecraftAchievements : AchievementPage.getAchievementPage(currentPage).getAchievements());
+         for (var20 = 0; var20 < achievementList.size(); ++var20) {
+            Achievement var31 = achievementList.get(var20);
+            if (var31.parentAchievement != null && achievementList.contains(var31.parentAchievement)) {
                var22 = var31.displayColumn * 24 - var4 + 11 + var8;
                var23 = var31.displayRow * 24 - var5 + 11 + var9;
                var41 = var31.parentAchievement.displayColumn * 24 - var4 + 11 + var8;
@@ -316,7 +341,7 @@ public class GuiAchievements extends GuiScreen {
 
                   var29 = -9408400;
                } else if (var27) {
-                  var29 = Math.sin((double)(Minecraft.getSystemTime() % 600L) / 600.0 * Math.PI * 2.0) > 0.6 ? -16728064 : -16744448;
+                  var29 = Math.sin((double) (Minecraft.getSystemTime() % 600L) / 600.0 * Math.PI * 2.0) > 0.6 ? -16728064 : -16744448;
                }
 
                if (pass == 1 && !var26) {
@@ -329,7 +354,7 @@ public class GuiAchievements extends GuiScreen {
 
                this.drawHorizontalLine(var22, var41, var23, var29);
                this.drawVerticalLine(var41, var23, var25, var29);
-            }
+         }
 
             if (var31.hasSecondParent() && !this.hasAchievementUnlocked(var31.parentAchievement)) {
                this.drawLines(var4, var5, var8, var9, var31, var31.getSecondParent());
@@ -346,7 +371,7 @@ public class GuiAchievements extends GuiScreen {
 
       int var39;
       int var40;
-      for(var22 = 0; var22 < AchievementList.achievementList.size(); ++var22) {
+      for (var22 = 0; var22 < AchievementList.achievementList.size(); ++var22) {
          Achievement var34 = (Achievement)AchievementList.achievementList.get(var22);
          var41 = var34.displayColumn * 24 - var4;
          var25 = var34.displayRow * 24 - var5;

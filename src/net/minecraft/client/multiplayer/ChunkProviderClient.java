@@ -11,6 +11,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.EmptyChunk;
 import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.world.ChunkEvent;
 
 public final class ChunkProviderClient implements IChunkProvider {
    public Chunk blankChunk;
@@ -45,6 +47,7 @@ public final class ChunkProviderClient implements IChunkProvider {
    public Chunk loadChunk(int par1, int par2) {
       Chunk var3 = new Chunk(this.worldObj, par1, par2);
       this.chunkMapping.add(ChunkCoordIntPair.chunkXZ2Int(par1, par2), var3);
+      MinecraftForge.EVENT_BUS.post(new ChunkEvent.Load(var3));
       var3.isChunkLoaded = true;
       return var3;
    }

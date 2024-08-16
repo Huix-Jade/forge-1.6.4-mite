@@ -327,7 +327,7 @@ public final class BlockRedstoneWire extends Block {
       } else if (var5 == 0) {
          return false;
       } else if (!Block.redstoneRepeaterIdle.func_94487_f(var5)) {
-         return Block.blocksList[var5].canProvidePower() && par4 != -1;
+         return (Block.blocksList[var5] != null && Block.blocksList[var5].canConnectRedstone(par0IBlockAccess, par1, par2, par3, par4));
       } else {
          int var6 = par0IBlockAccess.getBlockMetadata(par1, par2, par3);
          return par4 == (var6 & 3) || par4 == Direction.rotateOpposite[var6 & 3];

@@ -26,6 +26,8 @@ import net.minecraft.util.EnumParticle;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.living.EnderTeleportEvent;
 
 public class EntityEnderman extends EntityMob {
    private static final UUID attackingSpeedBoostModifierUUID = UUID.fromString("020E0DFB-87AE-4653-9556-831010E291A0");
@@ -356,12 +358,17 @@ public class EntityEnderman extends EntityMob {
    }
 
    protected boolean teleportTo(double par1, double par3, double par5) {
+      EnderTeleportEvent event = new EnderTeleportEvent(this, par1, par3, par5, 0);
+      if (MinecraftForge.EVENT_BUS.post(event)){
+         return false;
+      }
+
       double var7 = this.posX;
       double var9 = this.posY;
       double var11 = this.posZ;
-      this.posX = par1;
-      this.posY = par3;
-      this.posZ = par5;
+      this.posX = event.targetX;
+      this.posY = event.targetY;
+      this.posZ = event.targetZ;
       boolean var13 = false;
       int var14 = MathHelper.floor_double(this.posX);
       int var15 = MathHelper.floor_double(this.posY);

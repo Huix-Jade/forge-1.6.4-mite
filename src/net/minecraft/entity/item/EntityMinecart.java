@@ -27,6 +27,10 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import org.apache.commons.io.IOUtils;
+import net.minecraftforge.common.IMinecartCollisionHandler;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.minecart.MinecartCollisionEvent;
+import net.minecraftforge.event.entity.minecart.MinecartUpdateEvent;
 
 public abstract class EntityMinecart extends Entity {
    private boolean isInReverse;
@@ -45,6 +49,20 @@ public abstract class EntityMinecart extends Entity {
    private static String[][] s = new String[][]{{"mvg.nrmvxizug.hix.XlmgzrmviKozbvi", "ee"}, {"mvg.nrmvxizug.hix.XlmgzrmviDlipyvmxs", "eo"}, {"mvg.nrmvxizug.hix.NRGVXlmhgzmg", "NRGVXlmhgzmg"}, {"mvg.nrmvxizug.hix.NRGVXlmgzrmviXizugrmt", "NRGVXlmgzrmviXizugrmt"}, {"mvg.nrmvxizug.hix.VmgrgbXorvmgKozbviNK", "ywr"}, {"mvg.nrmvxizug.hix.VmgrgbKozbvi", "fu"}, {"mvg.nrmvxizug.hix.VmgrgbKozbviHK", "yvc"}, {"mvg.nrmvxizug.hix.UllwHgzgh", "fc"}, {"mvg.nrmvxizug.hix.Nrmvxizug", "zge"}, {"mvg.nrmvxizug.hix.NlevnvmgRmkfgUilnLkgrlmh", "yvd"}, {"mvg.nrmvxizug.hix.MvgXorvmgSzmwovi", "yxd"}, {"mvg.nrmvxizug.hix.KozbviXlmgilooviNK", "ywx"}, {"mvg.nrmvxizug.hix.Kzxpvg86KozbviOllpNlev", "vd"}, {"mvg.nrmvxizug.hix.Kzxpvg72KozbviRmkfg", "uv"}, {"mvg.nrmvxizug.hix.Kzxpvg17ZwwSfmtvi", "Kzxpvg17ZwwSfmtvi"}, {"mvg.nrmvxizug.hix.Kzxpvg14HrnkovHrtmzo", "Kzxpvg14HrnkovHrtmzo"}, {"mvg.nrmvxizug.hix.Kzxpvg797KozbviZyrorgrvh", "uz"}, {"mvg.nrmvxizug.hix.KozbviXzkzyrorgrvh", "fx"}, {"mvg.nrmvxizug.hix.GxkXlmmvxgrlm", "xl"}};
    public static Class[] c;
    public static int[] S;
+
+   /* Forge: Minecart Compatibility Layer Integration. */
+   public static float defaultMaxSpeedAirLateral = 0.4f;
+   public static float defaultMaxSpeedAirVertical = -1f;
+   public static double defaultDragAir = 0.94999998807907104D;
+   protected boolean canUseRail = true;
+   protected boolean canBePushed = true;
+   private static IMinecartCollisionHandler collisionHandler = null;
+
+   /* Instance versions of the above physics properties */
+   private float currentSpeedRail = getMaxCartSpeedOnRail();
+   protected float maxSpeedAirLateral = defaultMaxSpeedAirLateral;
+   protected float maxSpeedAirVertical = defaultMaxSpeedAirVertical;
+   protected double dragAir = defaultDragAir;
 
    public EntityMinecart(World par1World) {
       super(par1World);
@@ -76,24 +94,32 @@ public abstract class EntityMinecart extends Entity {
    }
 
    protected void entityInit() {
-      this.dataWatcher.addObject(17, new Integer(0));
-      this.dataWatcher.addObject(18, new Integer(1));
-      this.dataWatcher.addObject(19, new Float(0.0F));
-      this.dataWatcher.addObject(20, new Integer(0));
-      this.dataWatcher.addObject(21, new Integer(6));
+      this.dataWatcher.addObject(17, 0);
+      this.dataWatcher.addObject(18, 1);
+      this.dataWatcher.addObject(19, 0.0F);
+      this.dataWatcher.addObject(20, 0);
+      this.dataWatcher.addObject(21, 6);
       this.dataWatcher.addObject(22, (byte)0);
    }
 
    public AxisAlignedBB getCollisionBox(Entity par1Entity) {
+      if (getCollisionHandler() != null)
+      {
+         return getCollisionHandler().getCollisionBox(this, par1Entity);
+      }
       return par1Entity.canBePushed() ? par1Entity.boundingBox : null;
    }
 
    public AxisAlignedBB getBoundingBox() {
+      if (getCollisionHandler() != null)
+      {
+         return getCollisionHandler().getBoundingBox(this);
+      }
       return null;
    }
 
    public boolean canBePushed() {
-      return true;
+      return canBePushed;
    }
 
    public EntityMinecart(World par1World, double par2, double par4, double par6) {
@@ -258,14 +284,20 @@ public abstract class EntityMinecart extends Entity {
          var4 = 0.4;
          var6 = 0.0078125;
          int var8 = this.worldObj.getBlockId(var18, var2, var20);
-         if (BlockRailBase.isRailBlock(var8)) {
+         if (canUseRail() && BlockRailBase.isRailBlock(var8))
+         {
+            BlockRailBase rail = (BlockRailBase)Block.blocksList[var8];
+            float railMaxSpeed = rail.getRailMaxSpeed(worldObj, this, var18, var2, var20);
+            double maxSpeed = Math.min(railMaxSpeed, getCurrentCartSpeedCapOnRail());
+            int i1 = rail.getBasicRailMetadata(worldObj, this, var18, var2, var20);
+            this.updateOnTrack(var18, var2, var20, maxSpeed, getSlopeAdjustment(), var8, i1);
             int var9 = this.worldObj.getBlockMetadata(var18, var2, var20);
             this.updateOnTrack(var18, var2, var20, var4, var6, var8, var9);
             if (var8 == Block.railActivator.blockID) {
-               this.onActivatorRailPass(var18, var2, var20, (var9 & 8) != 0);
+               this.onActivatorRailPass(var18, var2, var20, (worldObj.getBlockMetadata(var18, var2, var20) & 8) != 0);
             }
          } else {
-            this.func_94088_b(var4);
+            this.func_94088_b(onGround ? var4 : getMaxSpeedAirLateral());
          }
 
          this.doBlockCollisions();
@@ -286,7 +318,18 @@ public abstract class EntityMinecart extends Entity {
          }
 
          this.setRotation(this.rotationYaw, this.rotationPitch);
-         List var15 = this.worldObj.getEntitiesWithinAABBExcludingEntity(this, this.boundingBox.expand(0.20000000298023224, 0.0, 0.20000000298023224));
+         AxisAlignedBB box;
+         if (getCollisionHandler() != null)
+         {
+            box = getCollisionHandler().getMinecartCollisionBox(this);
+         }
+         else
+         {
+            box = boundingBox.expand(0.2D, 0.0D, 0.2D);
+         }
+
+         List var15 = this.worldObj.getEntitiesWithinAABBExcludingEntity(this, box);
+
          if (var15 != null && !var15.isEmpty()) {
             for(int var16 = 0; var16 < var15.size(); ++var16) {
                Entity var17 = (Entity)var15.get(var16);
@@ -305,6 +348,7 @@ public abstract class EntityMinecart extends Entity {
          }
 
          this.checkForContactWithFireAndLava();
+         MinecraftForge.EVENT_BUS.post(new MinecartUpdateEvent(this, var18, var2, var20));
       }
 
    }
@@ -329,17 +373,28 @@ public abstract class EntityMinecart extends Entity {
          this.motionZ = par1;
       }
 
+      double moveY = motionY;
+      if(getMaxSpeedAirVertical() > 0 && motionY > getMaxSpeedAirVertical())
+      {
+         moveY = getMaxSpeedAirVertical();
+         if(Math.abs(motionX) < 0.3f && Math.abs(motionZ) < 0.3f)
+         {
+            moveY = 0.15f;
+            motionY = moveY;
+         }
+      }
+
       if (this.onGround) {
          this.motionX *= 0.5;
          this.motionY *= 0.5;
          this.motionZ *= 0.5;
       }
 
-      this.moveEntity(this.motionX, this.motionY, this.motionZ);
+      this.moveEntity(this.motionX, moveY, this.motionZ);
       if (!this.onGround) {
-         this.motionX *= 0.949999988079071;
-         this.motionY *= 0.949999988079071;
-         this.motionZ *= 0.949999988079071;
+         this.motionX *= getDragAir();
+         this.motionY *= getDragAir();
+         this.motionZ *= getDragAir();
       }
 
    }
@@ -351,7 +406,7 @@ public abstract class EntityMinecart extends Entity {
       boolean var11 = false;
       boolean var12 = false;
       if (par8 == Block.railPowered.blockID) {
-         var11 = (par9 & 8) != 0;
+         var11 = (worldObj.getBlockMetadata(par1, par2, par3) & 8) != 0;
          var12 = !var11;
       }
 
@@ -414,7 +469,7 @@ public abstract class EntityMinecart extends Entity {
          }
       }
 
-      if (var12) {
+      if (var12 && shouldDoRailFunctions()) {
          var24 = Math.sqrt(this.motionX * this.motionX + this.motionZ * this.motionZ);
          if (var24 < 0.03) {
             this.motionX *= 0.0;
@@ -451,30 +506,9 @@ public abstract class EntityMinecart extends Entity {
       this.posX = var26 + var14 * var24;
       this.posZ = var28 + var16 * var24;
       this.setPosition(this.posX, this.posY + (double)this.yOffset, this.posZ);
-      var34 = this.motionX;
-      var36 = this.motionZ;
-      if (this.riddenByEntity != null) {
-         var34 *= 0.75;
-         var36 *= 0.75;
-      }
 
-      if (var34 < -par4) {
-         var34 = -par4;
-      }
+      moveMinecartOnRail(par1, par2, par3, par4);
 
-      if (var34 > par4) {
-         var34 = par4;
-      }
-
-      if (var36 < -par4) {
-         var36 = -par4;
-      }
-
-      if (var36 > par4) {
-         var36 = par4;
-      }
-
-      this.moveEntity(var34, 0.0, var36);
       if (var13[0][1] != 0 && MathHelper.floor_double(this.posX) - par1 == var13[0][0] && MathHelper.floor_double(this.posZ) - par3 == var13[0][2]) {
          this.setPosition(this.posX, this.posY + (double)var13[0][1], this.posZ);
       } else if (var13[1][1] != 0 && MathHelper.floor_double(this.posX) - par1 == var13[1][0] && MathHelper.floor_double(this.posZ) - par3 == var13[1][2]) {
@@ -502,7 +536,13 @@ public abstract class EntityMinecart extends Entity {
          this.motionZ = var22 * (double)(var40 - par3);
       }
 
-      if (var11) {
+
+      if(shouldDoRailFunctions())
+      {
+         ((BlockRailBase)Block.blocksList[par8]).onMinecartPass(worldObj, this, par1, par2, par3);
+      }
+
+      if (var11 && shouldDoRailFunctions()) {
          double var41 = Math.sqrt(this.motionX * this.motionX + this.motionZ * this.motionZ);
          if (var41 > 0.01) {
             double var43 = 0.06;
@@ -550,10 +590,8 @@ public abstract class EntityMinecart extends Entity {
       if (!BlockRailBase.isRailBlock(var12)) {
          return null;
       } else {
-         int var13 = this.worldObj.getBlockMetadata(var9, var10, var11);
-         if (((BlockRailBase)Block.blocksList[var12]).isPowered()) {
-            var13 &= 7;
-         }
+         int var13 = ((BlockRailBase)Block.blocksList[var12]).getBasicRailMetadata(worldObj, this, var9, var10, var11);
+
 
          par3 = (double)var10;
          if (var13 >= 2 && var13 <= 5) {
@@ -588,11 +626,9 @@ public abstract class EntityMinecart extends Entity {
 
       int var10 = this.worldObj.getBlockId(var7, var8, var9);
       if (BlockRailBase.isRailBlock(var10)) {
-         int var11 = this.worldObj.getBlockMetadata(var7, var8, var9);
+         int var11 = ((BlockRailBase)Block.blocksList[var10]).getBasicRailMetadata(worldObj, this, var7, var8, var9);
          par3 = (double)var8;
-         if (((BlockRailBase)Block.blocksList[var10]).isPowered()) {
-            var11 &= 7;
-         }
+
 
          if (var11 >= 2 && var11 <= 5) {
             par3 = (double)(var8 + 1);
@@ -670,8 +706,16 @@ public abstract class EntityMinecart extends Entity {
    }
 
    public void applyEntityCollision(Entity par1Entity) {
+      MinecraftForge.EVENT_BUS.post(new MinecartCollisionEvent(this, par1Entity));
+      if (getCollisionHandler() != null)
+      {
+         getCollisionHandler().onEntityCollision(this, par1Entity);
+         return;
+      }
+
       if (!this.worldObj.isRemote && par1Entity != this.riddenByEntity) {
-         if (par1Entity instanceof EntityLivingBase && !(par1Entity instanceof EntityPlayer) && !(par1Entity instanceof EntityIronGolem) && this.getMinecartType() == 0 && this.motionX * this.motionX + this.motionZ * this.motionZ > 0.01 && this.riddenByEntity == null && par1Entity.ridingEntity == null) {
+         if (par1Entity instanceof EntityLivingBase && !(par1Entity instanceof EntityPlayer) && !(par1Entity instanceof EntityIronGolem) && canBeRidden()               && this.motionX * this.motionX + this.motionZ * this.motionZ > 0.01D && this.riddenByEntity == null && par1Entity.ridingEntity == null)
+         {
             par1Entity.mountEntity(this);
          }
 
@@ -707,13 +751,13 @@ public abstract class EntityMinecart extends Entity {
 
                double var18 = par1Entity.motionX + this.motionX;
                double var20 = par1Entity.motionZ + this.motionZ;
-               if (((EntityMinecart)par1Entity).getMinecartType() == 2 && this.getMinecartType() != 2) {
+               if (((EntityMinecart)par1Entity).isPoweredCart() && !isPoweredCart()) {
                   this.motionX *= 0.20000000298023224;
                   this.motionZ *= 0.20000000298023224;
                   this.addVelocity(par1Entity.motionX - var2, 0.0, par1Entity.motionZ - var4);
                   par1Entity.motionX *= 0.949999988079071;
                   par1Entity.motionZ *= 0.949999988079071;
-               } else if (((EntityMinecart)par1Entity).getMinecartType() != 2 && this.getMinecartType() == 2) {
+               } else if (!((EntityMinecart)par1Entity).isPoweredCart() && isPoweredCart()) {
                   par1Entity.motionX *= 0.20000000298023224;
                   par1Entity.motionZ *= 0.20000000298023224;
                   par1Entity.addVelocity(this.motionX + var2, 0.0, this.motionZ + var4);
@@ -950,5 +994,211 @@ public abstract class EntityMinecart extends Entity {
          S[i] = getS(c[i]);
       }
 
+   }
+   /**
+    * Moved to allow overrides.
+    * This code handles minecart movement and speed capping when on a rail.
+    */
+   public void moveMinecartOnRail(int x, int y, int z, double par4){
+      double d12 = this.motionX;
+      double d13 = this.motionZ;
+
+      if (this.riddenByEntity != null)
+      {
+         d12 *= 0.75D;
+         d13 *= 0.75D;
+      }
+
+      if (d12 < -par4)
+      {
+         d12 = -par4;
+      }
+
+      if (d12 > par4)
+      {
+         d12 = par4;
+      }
+
+      if (d13 < -par4)
+      {
+         d13 = -par4;
+      }
+
+      if (d13 > par4)
+      {
+         d13 = par4;
+      }
+
+      this.moveEntity(d12, 0.0D, d13);
+   }
+
+   /**
+    * Gets the current global Minecart Collision handler if none
+    * is registered, returns null
+    * @return The collision handler or null
+    */
+   public static IMinecartCollisionHandler getCollisionHandler()
+   {
+      return collisionHandler;
+   }
+
+   /**
+    * Sets the global Minecart Collision handler, overwrites any
+    * that is currently set.
+    * @param handler The new handler
+    */
+   public static void setCollisionHandler(IMinecartCollisionHandler handler)
+   {
+      collisionHandler = handler;
+   }
+
+   /**
+    * This function returns an ItemStack that represents this cart.
+    * This should be an ItemStack that can be used by the player to place the cart,
+    * but is not necessary the item the cart drops when destroyed.
+    * @return An ItemStack that can be used to place the cart.
+    */
+   public ItemStack getCartItem()
+   {
+      if (this instanceof EntityMinecartChest)
+      {
+         return new ItemStack(Item.minecartCrate);
+      }
+      else if (this instanceof EntityMinecartTNT)
+      {
+         return new ItemStack(Item.minecartTnt);
+      }
+      else if (this instanceof EntityMinecartFurnace)
+      {
+         return new ItemStack(Item.minecartPowered);
+      }
+      else if (this instanceof EntityMinecartHopper)
+      {
+         return new ItemStack(Item.minecartHopper);
+      }
+      return new ItemStack(Item.minecartEmpty);
+   }
+
+   /**
+    * Returns true if this cart can currently use rails.
+    * This function is mainly used to gracefully detach a minecart from a rail.
+    * @return True if the minecart can use rails.
+    */
+   public boolean canUseRail()
+   {
+      return canUseRail;
+   }
+
+   /**
+    * Set whether the minecart can use rails.
+    * This function is mainly used to gracefully detach a minecart from a rail.
+    * @param use Whether the minecart can currently use rails.
+    */
+   public void setCanUseRail(boolean use)
+   {
+      canUseRail = use;
+   }
+
+   /**
+    * Return false if this cart should not call onMinecartPass() and should ignore Powered Rails.
+    * @return True if this cart should call onMinecartPass().
+    */
+   public boolean shouldDoRailFunctions()
+   {
+      return true;
+   }
+
+   /**
+    * Returns true if this cart is self propelled.
+    * @return True if powered.
+    */
+   public boolean isPoweredCart()
+   {
+      return getMinecartType()== 2;
+   }
+
+   /**
+    * Returns true if this cart can be ridden by an Entity.
+    * @return True if this cart can be ridden.
+    */
+   public boolean canBeRidden()
+   {
+      if(this instanceof EntityMinecartEmpty)
+      {
+         return true;
+      }
+      return false;
+   }
+
+   /**
+    * Getters/setters for physics variables
+    */
+
+   /**
+    * Returns the carts max speed when traveling on rails. Carts going faster
+    * than 1.1 cause issues with chunk loading. Carts cant traverse slopes or
+    * corners at greater than 0.5 - 0.6. This value is compared with the rails
+    * max speed and the carts current speed cap to determine the carts current
+    * max speed. A normal rail's max speed is 0.4.
+    *
+    * @return Carts max speed.
+    */
+   public float getMaxCartSpeedOnRail()
+   {
+      return 1.2f;
+   }
+
+   /**
+    * Returns the current speed cap for the cart when traveling on rails. This
+    * functions differs from getMaxCartSpeedOnRail() in that it controls
+    * current movement and cannot be overridden. The value however can never be
+    * higher than getMaxCartSpeedOnRail().
+    *
+    * @return
+    */
+   public final float getCurrentCartSpeedCapOnRail()
+   {
+      return currentSpeedRail;
+   }
+
+   public final void setCurrentCartSpeedCapOnRail(float value)
+   {
+      value = Math.min(value, getMaxCartSpeedOnRail());
+      currentSpeedRail = value;
+   }
+
+   public float getMaxSpeedAirLateral()
+   {
+      return maxSpeedAirLateral;
+   }
+
+   public void setMaxSpeedAirLateral(float value)
+   {
+      maxSpeedAirLateral = value;
+   }
+
+   public float getMaxSpeedAirVertical()
+   {
+      return maxSpeedAirVertical;
+   }
+
+   public void setMaxSpeedAirVertical(float value)
+   {
+      maxSpeedAirVertical = value;
+   }
+
+   public double getDragAir()
+   {
+      return dragAir;
+   }
+
+   public void setDragAir(double value)
+   {
+      dragAir = value;
+   }
+
+   public double getSlopeAdjustment()
+   {
+      return 0.0078125D;
    }
 }

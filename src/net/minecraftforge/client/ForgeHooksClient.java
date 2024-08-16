@@ -6,6 +6,7 @@ import java.util.TreeSet;
 
 import javax.imageio.ImageIO;
 
+import net.minecraft.raycast.RaycastCollision;
 import net.minecraftforge.client.event.MouseEvent;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraftforge.client.event.FOVUpdateEvent;
@@ -232,7 +233,7 @@ public class ForgeHooksClient
         }
     }
 
-    public static boolean onDrawBlockHighlight(RenderGlobal context, EntityPlayer player, MovingObjectPosition target, int subID, ItemStack currentItem, float partialTicks)
+    public static boolean onDrawBlockHighlight(RenderGlobal context, EntityPlayer player, RaycastCollision target, int subID, ItemStack currentItem, float partialTicks)
     {
         return MinecraftForge.EVENT_BUS.post(new DrawBlockHighlightEvent(context, player, target, subID, currentItem, partialTicks));
     }
@@ -355,7 +356,7 @@ public class ForgeHooksClient
         }
         skyInit = true;
         
-        int distance = Minecraft.getMinecraft().gameSettings.fancyGraphics ? ForgeDummyContainer.blendRanges[Minecraft.getMinecraft().gameSettings.renderDistance] : 0;
+        int distance = Minecraft.getMinecraft().gameSettings.fancyGraphics ? ForgeDummyContainer.blendRanges[Minecraft.getMinecraft().gameSettings.getRenderDistance()] : 0;
         
         int r = 0;
         int g = 0;

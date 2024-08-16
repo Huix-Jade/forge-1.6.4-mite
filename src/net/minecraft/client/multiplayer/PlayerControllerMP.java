@@ -97,6 +97,14 @@ public class PlayerControllerMP {
    }
 
    private boolean onPlayerDestroyBlock(int par1, int par2, int par3, EnumFace face) {
+
+      ItemStack stack = mc.thePlayer.getCurrentEquippedItem();
+      if (stack != null && stack.getItem() != null && stack.getItem().onBlockStartBreak(stack, par1, par2, par3, mc.thePlayer))
+      {
+         return false;
+      }
+
+
       if (this.currentGameType.isAdventure() && !this.mc.thePlayer.isCurrentToolAdventureModeExempt(par1, par2, par3)) {
          return false;
       } else if (this.currentGameType.isCreative() && this.mc.thePlayer.getHeldItemStack() != null && this.mc.thePlayer.getHeldItemStack().getItem() instanceof ItemSword) {
@@ -115,7 +123,7 @@ public class PlayerControllerMP {
 
             var5.playAuxSFX(2001, par1, par2, par3, data);
             boolean is_partner_present = var6 instanceof IBlockWithPartner && var6.isPartnerPresent(var5, par1, par2, par3);
-            boolean var8 = var5.setBlockToAir(par1, par2, par3);
+            boolean var8 = var6.removeBlockByPlayer(var5, mc.thePlayer, par1, par2, par3);
             if (var8 && is_partner_present) {
                int x = var6.getPartnerX(par1, metadata);
                int y = var6.getPartnerY(par2, metadata);

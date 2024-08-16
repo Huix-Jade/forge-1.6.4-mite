@@ -8,18 +8,26 @@ import net.minecraft.world.World;
 public class EntityDiggingFX extends EntityFX {
    private Block blockInstance;
    public long visible_on_tick;
+   private int side;
 
-   public EntityDiggingFX(World par1World, double par2, double par4, double par6, double par8, double par10, double par12, Block par14Block, int par15) {
+   public EntityDiggingFX(World par1World, double par2, double par4, double par6, double par8, double par10, double par12, Block par14Block, int par15)
+   {
+      this(par1World, par2, par4, par6, par8, par10, par12, par14Block, par15, par1World.rand.nextInt(6));
+   }
+
+   public EntityDiggingFX(World par1World, double par2, double par4, double par6, double par8, double par10, double par12, Block par14Block, int par15, int side)
+   {
       super(par1World, par2, par4, par6, par8, par10, par12);
       this.blockInstance = par14Block;
-      this.setParticleIcon(par14Block.getIcon(0, par15));
+      this.setParticleIcon(par14Block.getIcon(side, par15));
       this.particleGravity = par14Block.blockParticleGravity;
       this.particleRed = this.particleGreen = this.particleBlue = 0.6F;
       this.particleScale /= 2.0F;
+      this.side = side;
    }
 
    public EntityDiggingFX applyColourMultiplier(int par1, int par2, int par3) {
-      if (this.blockInstance == Block.grass) {
+      if (this.blockInstance == Block.grass && this.side != 1) {
          return this;
       } else {
          int var4 = this.blockInstance.colorMultiplier(this.worldObj, par1, par2, par3);

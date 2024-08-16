@@ -18,6 +18,7 @@ import net.minecraft.item.Item;
 import net.minecraft.util.Icon;
 import net.minecraft.util.ReportedException;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.ForgeHooksClient;
 
 public class TextureMap extends AbstractTexture implements TickableTextureObject, IconRegister {
    public static final ResourceLocation locationBlocksTexture = new ResourceLocation("textures/atlas/blocks.png", false);
@@ -47,10 +48,12 @@ public class TextureMap extends AbstractTexture implements TickableTextureObject
    }
 
    public void loadTextureAtlas(ResourceManager par1ResourceManager) {
+      registerIcons(); //Re-gather list of Icons, allows for addition/removal of blocks/items after this map was initially constructed.
       int var2 = Minecraft.getGLMaximumTextureSize();
       Stitcher var3 = new Stitcher(var2, var2, true);
       this.mapUploadedSprites.clear();
       this.listAnimatedSprites.clear();
+      ForgeHooksClient.onTextureStitchedPre(this);
       Iterator var4 = this.mapRegisteredSprites.entrySet().iterator();
 
       TextureAtlasSprite var17;
@@ -61,7 +64,7 @@ public class TextureMap extends AbstractTexture implements TickableTextureObject
          ResourceLocation var8 = new ResourceLocation(var6.getResourceDomain(), String.format("%s/%s%s", this.basePath, var6.getResourcePath(), ".png"), false);
 
          try {
-            var17.loadSprite(par1ResourceManager.getResource(var8));
+            if (!var17.load(par1ResourceManager, var8)) continue;
          } catch (RuntimeException var14) {
             RuntimeException var13 = var14;
             Minecraft.getMinecraft().getLogAgent().logSevere(String.format("Unable to parse animation metadata from %s: %s", var8, var13.getMessage()));
@@ -120,6 +123,7 @@ public class TextureMap extends AbstractTexture implements TickableTextureObject
          var17.copyFrom(this.missingImage);
       }
 
+      ForgeHooksClient.onTextureStitchedPost(this);
    }
 
    private void registerIcons() {
@@ -176,6 +180,7 @@ public class TextureMap extends AbstractTexture implements TickableTextureObject
    public Icon registerIcon(String par1Str) {
       if (par1Str == null) {
          (new RuntimeException("Don't register null!")).printStackTrace();
+         par1Str = "null"; //Don't allow things to actually register null..
       }
 
       Object var2 = (TextureAtlasSprite)this.mapRegisteredSprites.get(par1Str);
@@ -204,5 +209,38 @@ public class TextureMap extends AbstractTexture implements TickableTextureObject
 
    public void tick() {
       this.updateAnimations();
+   }
+
+   //===================================================================================================
+   //                                           Forge Start
+   //===================================================================================================
+   /**
+    * Grabs the registered entry for the specified name, returning null if there was not a entry.
+    * Opposed to registerIcon, this will not instantiate the entry, useful to test if a mapping exists.
+    *
+    * @param name The name of the entry to find
+    * @return The registered entry, null if nothing was registered.
+    */
+   public TextureAtlasSprite getTextureExtry(String name)
+   {
+      return (TextureAtlasSprite)mapRegisteredSprites.get(name);
+   }
+
+   /**
+    * Adds a texture registry entry to this map for the specified name if one does not already exist.
+    * Returns false if the map already contains a entry for the specified name.
+    *
+    * @param name Entry name
+    * @param entry Entry instance
+    * @return True if the entry was added to the map, false otherwise.
+    */
+   public boolean setTextureEntry(String name, TextureAtlasSprite entry)
+   {
+      if (!mapRegisteredSprites.containsKey(name))
+      {
+         mapRegisteredSprites.put(name, entry);
+         return true;
+      }
+      return false;
    }
 }

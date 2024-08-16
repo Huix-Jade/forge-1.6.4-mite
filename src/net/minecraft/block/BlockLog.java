@@ -26,11 +26,8 @@ public final class BlockLog extends BlockRotatedPillar implements IBlockWithSubt
             for(int var10 = -var7; var10 <= var7; ++var10) {
                for(int var11 = -var7; var11 <= var7; ++var11) {
                   int var12 = par1World.getBlockId(par2 + var9, par3 + var10, par4 + var11);
-                  if (var12 == Block.leaves.blockID) {
-                     int var13 = par1World.getBlockMetadata(par2 + var9, par3 + var10, par4 + var11);
-                     if ((var13 & 8) == 0) {
-                        par1World.setBlockMetadataWithNotify(par2 + var9, par3 + var10, par4 + var11, var13 | 8, 4);
-                     }
+                  if (Block.blocksList[var12] != null) {
+                     Block.blocksList[var12].beginLeavesDecay(par1World, par2 + var9, par3 + var10, par4 + var11);
                   }
                }
             }
@@ -82,5 +79,17 @@ public final class BlockLog extends BlockRotatedPillar implements IBlockWithSubt
 
    public String[] getNames() {
       return this.subtypes.getNames();
+   }
+
+   @Override
+   public boolean canSustainLeaves(World world, int x, int y, int z)
+   {
+      return true;
+   }
+
+   @Override
+   public boolean isWood(World world, int x, int y, int z)
+   {
+      return true;
    }
 }

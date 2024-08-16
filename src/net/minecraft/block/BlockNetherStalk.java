@@ -1,9 +1,11 @@
 package net.minecraft.block;
 
+import java.util.ArrayList;
 import java.util.Random;
 import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 
@@ -76,18 +78,18 @@ public final class BlockNetherStalk extends BlockPlant {
       return false;
    }
 
-   public int dropBlockAsEntityItem(BlockBreakInfo info) {
-      int quantity = 1;
-      if (info.getMetadata() >= 3) {
-         quantity = 2 + info.world.rand.nextInt(3);
-         int fortune = info.getHarvesterFortune();
-         if (fortune > 0) {
-            quantity += info.world.rand.nextInt(fortune + 1);
-         }
-      }
-
-      return this.dropBlockAsEntityItem(info, Item.netherStalkSeeds.itemID, 0, quantity, 1.0F);
-   }
+//   public int dropBlockAsEntityItem(BlockBreakInfo info) {
+//      int quantity = 1;
+//      if (info.getMetadata() >= 3) {
+//         quantity = 2 + info.world.rand.nextInt(3);
+//         int fortune = info.getHarvesterFortune();
+//         if (fortune > 0) {
+//            quantity += info.world.rand.nextInt(fortune + 1);
+//         }
+//      }
+//
+//      return this.dropBlockAsEntityItem(info, Item.netherStalkSeeds.itemID, 0, quantity, 1.0F);
+//   }
 
    public int idPicked(World par1World, int par2, int par3, int par4) {
       return Item.netherStalkSeeds.itemID;
@@ -100,5 +102,24 @@ public final class BlockNetherStalk extends BlockPlant {
          this.iconArray[var2] = par1IconRegister.registerIcon(this.getTextureName() + "_stage_" + var2);
       }
 
+   }
+
+   @Override
+   public ArrayList<ItemStack> getBlockDropped(World world, int x, int y, int z, int metadata, int fortune)
+   {
+      ArrayList<ItemStack> ret = new ArrayList<>();
+      int count = 1;
+
+      if (metadata >= 3)
+      {
+         count = 2 + world.rand.nextInt(3) + (fortune > 0 ? world.rand.nextInt(fortune + 1) : 0);
+      }
+
+      for (int i = 0; i < count; i++)
+      {
+         ret.add(new ItemStack(Item.netherStalkSeeds));
+      }
+
+      return ret;
    }
 }

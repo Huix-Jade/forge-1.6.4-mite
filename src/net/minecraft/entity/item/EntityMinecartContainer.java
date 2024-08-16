@@ -8,6 +8,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.minecart.MinecartInteractEvent;
 
 public abstract class EntityMinecartContainer extends EntityMinecart implements IInventory {
    private ItemStack[] minecartContainerItems = new ItemStack[36];
@@ -196,6 +198,10 @@ public abstract class EntityMinecartContainer extends EntityMinecart implements 
    }
 
    public boolean onEntityRightClicked(EntityPlayer player, ItemStack item_stack) {
+      if(MinecraftForge.EVENT_BUS.post(new MinecartInteractEvent(this, player)))
+      {
+         return true;
+      }
       if (player.onServer()) {
          player.displayGUIChestForMinecart(this);
       }

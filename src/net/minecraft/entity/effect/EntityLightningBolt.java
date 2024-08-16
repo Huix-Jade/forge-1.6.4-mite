@@ -8,6 +8,8 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.EntityStruckByLightningEvent;
 
 public class EntityLightningBolt extends EntityWeatherEffect {
    private int lightningState;
@@ -75,7 +77,10 @@ public class EntityLightningBolt extends EntityWeatherEffect {
 
             for(int var4 = 0; var4 < var7.size(); ++var4) {
                Entity var5 = (Entity)var7.get(var4);
-               var5.onStruckByLightning(this);
+               if (!MinecraftForge.EVENT_BUS.post(new EntityStruckByLightningEvent(var5, this)))
+               {
+                  var5.onStruckByLightning(this);
+               }
             }
          }
       }

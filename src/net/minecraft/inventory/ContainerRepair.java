@@ -225,6 +225,7 @@ public class ContainerRepair extends Container {
                   }
                }
 
+
                EnchantmentHelper.setEnchantments(enchantments_on_copy_of_item_stack_in_first_slot, copy_of_item_stack_in_first_slot);
             } else if (is_disenchanting) {
                copy_of_item_stack_in_first_slot.clearEnchantTagList();

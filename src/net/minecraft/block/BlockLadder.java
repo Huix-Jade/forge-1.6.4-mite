@@ -95,4 +95,10 @@ public final class BlockLadder extends BlockMounted {
    public void addItemBlockMaterials(ItemBlock item_block) {
       item_block.addMaterial(new Material[]{Material.wood});
    }
+
+   @Override
+   public boolean isLadder(World world, int x, int y, int z, EntityLivingBase entity)
+   {
+      return true;
+   }
 }

@@ -81,7 +81,7 @@ public class BlockFluidClassic extends BlockFluidBase
     }
 
     @Override
-    public void updateTick(World world, int x, int y, int z, Random rand)
+    public boolean updateTick(World world, int x, int y, int z, Random rand)
     {
         int quantaRemaining = quantaPerBlock - world.getBlockMetadata(x, y, z);
         int expQuanta = -101;
@@ -137,14 +137,14 @@ public class BlockFluidClassic extends BlockFluidBase
         if (canDisplace(world, x, y + densityDir, z))
         {
             flowIntoBlock(world, x, y + densityDir, z, 1);
-            return;
+            return false;
         }
 
         // Flow outward if possible
         int flowMeta = quantaPerBlock - quantaRemaining + 1;
         if (flowMeta >= quantaPerBlock)
         {
-            return;
+            return false;
         }
 
         if (isSourceBlock(world, x, y, z) || !isFlowingVertically(world, x, y, z))
@@ -160,6 +160,7 @@ public class BlockFluidClassic extends BlockFluidBase
             if (flowTo[2]) flowIntoBlock(world, x,     y, z - 1, flowMeta);
             if (flowTo[3]) flowIntoBlock(world, x,     y, z + 1, flowMeta);
         }
+        return true;
     }
 
     public boolean isFlowingVertically(IBlockAccess world, int x, int y, int z)

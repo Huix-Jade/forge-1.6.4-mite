@@ -32,7 +32,7 @@ public class GameSettings {
    public boolean anaglyph;
    public boolean advancedOpengl;
    public int limitFramerate = 3;
-   private boolean fancyGraphics = true;
+   public boolean fancyGraphics = true;
    public int ambientOcclusion = 2;
    public boolean clouds = true;
    public String skin = "Default";

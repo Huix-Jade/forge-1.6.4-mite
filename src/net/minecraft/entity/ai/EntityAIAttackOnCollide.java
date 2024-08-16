@@ -24,6 +24,8 @@ public class EntityAIAttackOnCollide extends EntityAIBase {
    private int field_75445_i;
    public int ticks_suppressed;
 
+   private int failedPathFindingPenalty;
+
    public EntityAIAttackOnCollide(EntityCreature par1EntityCreature, Class par2Class, double par3, boolean par5) {
       this(par1EntityCreature, par3, par5);
       this.classTarget = par2Class;
@@ -83,11 +85,16 @@ public class EntityAIAttackOnCollide extends EntityAIBase {
          }
 
          this.attackTick = Math.max(this.attackTick - 1, 0);
-         this.entityPathEntity = this.attacker.getNavigator().getPathToEntityLiving(var1);
-         if (this.attacker.hasLineOfStrikeAndTargetIsWithinStrikingDistance(var1)) {
-            return true;
-         } else {
+
+         if (-- this.field_75445_i <= 0)
+         {
+            this.entityPathEntity = this.attacker.getNavigator().getPathToEntityLiving(var1);
+            this.field_75445_i = 4 + this.attacker.getRNG().nextInt(7);
             return this.entityPathEntity != null;
+         }
+         else
+         {
+            return true;
          }
       }
    }

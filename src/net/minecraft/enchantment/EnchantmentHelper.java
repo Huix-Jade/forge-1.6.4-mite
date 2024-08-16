@@ -492,8 +492,10 @@ public class EnchantmentHelper
       for (int var5 = 0; var5 < Enchantment.enchantmentsList.length; ++var5)
       {
          Enchantment var6 = Enchantment.get(var5);
+         if (var6 == null) continue;
 
-         if (var6 != null && (var3 || var6.canEnchantItem(var2)))
+         boolean flag = (par1ItemStack.itemID == Item.book.itemID) && var6.isAllowedOnBooks();
+         if (var6.canApplyAtEnchantingTable(par1ItemStack) || flag)
          {
             if (var6.hasLevels())
             {

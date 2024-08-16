@@ -273,7 +273,8 @@ public class EntityWither extends EntityMob implements IBossDisplayData, IRanged
                         int var9 = var1 + var7;
                         int var10 = var15 + var19;
                         int var11 = this.worldObj.getBlockId(var20, var9, var10);
-                        if (var11 > 0 && var11 != Block.bedrock.blockID && var11 != Block.endPortal.blockID && var11 != Block.endPortalFrame.blockID && var11 != Block.mantleOrCore.blockID) {
+                        Block block = Block.blocksList[var11];
+                        if (block != null && block.canEntityDestroy(worldObj, var20, var9, var10, this)) {
                            var18 = this.worldObj.destroyBlock((new BlockBreakInfo(this.worldObj, var20, var9, var10)).setDestroyedBy(this), true) || var18;
                         }
                      }

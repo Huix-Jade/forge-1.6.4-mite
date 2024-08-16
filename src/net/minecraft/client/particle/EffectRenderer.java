@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.Entity;
 import net.minecraft.pathfinding.PathFinder;
+import net.minecraft.raycast.RaycastCollision;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.EnumFace;
 import net.minecraft.util.MathHelper;
@@ -53,15 +54,19 @@ public final class EffectRenderer {
    public void updateEffects() {
       for(int var1 = 0; var1 < 4; ++var1) {
          for(int var2 = 0; var2 < this.fxLayers[var1].size(); ++var2) {
-            EntityFX var3 = (EntityFX)this.fxLayers[var1].get(var2);
-            var3.onUpdate();
-            if (var3.isDead) {
-               this.fxLayers[var1].remove(var2--);
+
+            EntityFX entityfx = (EntityFX)this.fxLayers[var1].get(var2);
+            if (entityfx != null)
+            {
+               entityfx.onUpdate();
             }
+
+            if (entityfx == null || entityfx.isDead)
+               this.fxLayers[var1].remove(var2--);
          }
       }
-
    }
+
 
    public void renderParticles(Entity par1Entity, float par2) {
       float var3 = ActiveRenderInfo.rotationX;
@@ -97,6 +102,7 @@ public final class EffectRenderer {
 
             for(int var10 = 0; var10 < this.fxLayers[var8].size(); ++var10) {
                EntityFX var11 = (EntityFX)this.fxLayers[var8].get(var10);
+               if (var11 == null) continue;
                var9.setBrightness(var11.getBrightnessForRender(par2));
                var11.renderParticle(var9, par2, var3, var7, var4, var5, var6);
             }
@@ -141,8 +147,9 @@ public final class EffectRenderer {
    }
 
    public void addBlockDestroyEffectsForSnow(int par1, int par2, int par3, int par4, int par5) {
-      if (par4 != 0) {
-         Block var6 = Block.blocksList[par4];
+      Block var6 = Block.blocksList[par4];
+      if (var6 != null && !var6.addBlockDestroyEffects(worldObj, par1, par2, par3, par5, this))
+      {
          byte var7 = 4;
 
          for(int var8 = 0; var8 < var7; ++var8) {
@@ -320,5 +327,14 @@ public final class EffectRenderer {
       }
 
       return StringHelper.stripTrailing(" ", sb.toString());
+   }
+
+   public void addBlockHitEffects(int x, int y, int z, RaycastCollision target)
+   {
+      Block block = Block.blocksList[worldObj.getBlockId(x, y, z)];
+      if (block != null && !block.addBlockHitEffects(worldObj, target, this))
+      {
+         addBlockHitEffects(x, y, z, target.face_hit);
+      }
    }
 }

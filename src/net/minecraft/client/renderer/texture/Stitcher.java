@@ -143,7 +143,7 @@ public final class Stitcher {
          boolean var12 = var5 != var7;
          boolean var13 = var6 != var8;
          if (var12 ^ var13) {
-            var4 = var12 && var9;
+            var4 = var13 && var10; //Forge: Bug fix: Attempt to fill all downward space before expanding width
          } else {
             var4 = var9 && var5 <= var6;
          }

@@ -95,9 +95,18 @@ public class CrashReportCategory {
    }
 
    public int func_85073_a(int var1) {
-      StackTraceElement[] var2 = Thread.currentThread().getStackTrace();
-      this.stackTrace = new StackTraceElement[var2.length - 3 - var1];
-      System.arraycopy(var2, 3 + var1, this.stackTrace, 0, this.stackTrace.length);
+      StackTraceElement[] astacktraceelement = Thread.currentThread().getStackTrace();
+
+//      this.stackTrace = new StackTraceElement[astacktraceelement.length - 3 - var1];
+//      System.arraycopy(astacktraceelement, 3 + var1, this.stackTrace, 0, this.stackTrace.length);
+
+
+      //BugFix: Causes AIOOB for stacks < 3 + par1
+      int len = astacktraceelement.length - 3 - var1;
+      if (len <= 0) len = astacktraceelement.length;
+      this.stackTrace = new StackTraceElement[len];
+      System.arraycopy(astacktraceelement, astacktraceelement.length - len, this.stackTrace, 0, this.stackTrace.length);
+
       return this.stackTrace.length;
    }
 

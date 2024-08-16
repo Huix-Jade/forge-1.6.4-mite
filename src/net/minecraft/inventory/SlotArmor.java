@@ -22,11 +22,8 @@ class SlotArmor extends Slot {
    }
 
    public boolean isItemValid(ItemStack par1ItemStack) {
-      if (this.parent.player.hasCurse(Curse.cannot_wear_armor, true)) {
-         return false;
-      } else {
-         return par1ItemStack == null ? false : (par1ItemStack.getItem() instanceof ItemArmor ? ((ItemArmor)par1ItemStack.getItem()).armorType == this.armorType : (par1ItemStack.getItem().itemID != Block.pumpkin.blockID && par1ItemStack.getItem().itemID != Item.skull.itemID ? false : this.armorType == 0));
-      }
+      Item item = (par1ItemStack == null ? null : par1ItemStack.getItem());
+      return item != null && item.isValidArmor(par1ItemStack, armorType, parent.thePlayer);
    }
 
    public Icon getBackgroundIconIndex() {

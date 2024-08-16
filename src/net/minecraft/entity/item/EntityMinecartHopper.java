@@ -12,6 +12,8 @@ import net.minecraft.tileentity.TileEntityHopper;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.minecart.MinecartInteractEvent;
 
 public class EntityMinecartHopper extends EntityMinecartContainer implements Hopper {
    private boolean isBlocked = true;
@@ -42,6 +44,10 @@ public class EntityMinecartHopper extends EntityMinecartContainer implements Hop
    }
 
    public boolean onEntityRightClicked(EntityPlayer player, ItemStack item_stack) {
+      if(MinecraftForge.EVENT_BUS.post(new MinecartInteractEvent(this, player)))
+      {
+         return true;
+      }
       if (player.onServer()) {
          player.displayGUIHopperMinecart(this);
       }

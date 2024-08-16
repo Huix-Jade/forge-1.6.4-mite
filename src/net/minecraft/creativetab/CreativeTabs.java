@@ -4,9 +4,10 @@ import java.util.List;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentData;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 
 public class CreativeTabs {
-   public static final CreativeTabs[] creativeTabArray = new CreativeTabs[12];
+   public static CreativeTabs[] creativeTabArray = new CreativeTabs[1024];
    public static final CreativeTabs tabBlock = new CreativeTabCombat(0, "buildingBlocks");
    public static final CreativeTabs tabDecorations = new CreativeTabBlock(1, "decorations");
    public static final CreativeTabs tabRedstone = new CreativeTabDeco(2, "redstone");
@@ -25,7 +26,23 @@ public class CreativeTabs {
    private boolean hasScrollbar = true;
    private boolean drawTitle = true;
 
+   public CreativeTabs(String label)
+   {
+      this(getNextID(), label);
+   }
+
    public CreativeTabs(int par1, String par2Str) {
+
+      if (par1 >= creativeTabArray.length)
+      {
+         CreativeTabs[] tmp = new CreativeTabs[par1 + 1];
+         for (int x = 0; x < creativeTabArray.length; x++)
+         {
+            tmp[x] = creativeTabArray[x];
+         }
+         creativeTabArray = tmp;
+      }
+
       this.tabIndex = par1;
       this.tabLabel = par2Str;
       creativeTabArray[par1] = this;
@@ -79,23 +96,43 @@ public class CreativeTabs {
    }
 
    public int getTabColumn() {
+      if (tabIndex > 11)
+      {
+         return ((tabIndex - 12) % 10) % 5;
+      }
+
       return this.tabIndex % 6;
    }
 
    public boolean isTabInFirstRow() {
+      if (tabIndex > 11)
+      {
+         return ((tabIndex - 12) % 10) < 5;
+      }
+
       return this.tabIndex < 6;
    }
 
    public void displayAllReleventItems(List par1List) {
-      Item[] var2 = Item.itemsList;
-      int var3 = var2.length;
+      Item[] itemsList = Item.itemsList;
 
-      for(int var4 = 0; var4 < var3; ++var4) {
-         Item var5 = var2[var4];
-         if (var5 != null && var5.getCreativeTab() == this) {
-            var5.getSubItems(var5.itemID, this, par1List);
-         }
-      }
+       for (Item item : itemsList) {
+
+          if (item == null)
+          {
+             continue;
+          }
+
+          for (CreativeTabs tab : item.getCreativeTabs())
+          {
+             if (tab == this)
+             {
+                item.getSubItems(item.itemID, this, par1List);
+             }
+          }
+
+
+       }
 
       this.addEnchantmentBooksToList(par1List);
    }
@@ -108,5 +145,38 @@ public class CreativeTabs {
          }
       }
 
+   }
+
+
+   public int getTabPage()
+   {
+      if (tabIndex > 11)
+      {
+         return ((tabIndex - 12) / 10) + 1;
+      }
+      return 0;
+   }
+
+   public static int getNextID()
+   {
+      return creativeTabArray.length;
+   }
+
+   /**
+    * Get the ItemStack that will be rendered to the tab.
+    */
+   public ItemStack getIconItemStack()
+   {
+      return new ItemStack(getTabIconItem());
+   }
+
+   /**
+    * Determines if the search bar should be shown for this tab.
+    *
+    * @return True to show the bar
+    */
+   public boolean hasSearchBar()
+   {
+      return tabIndex == CreativeTabs.tabAllSearch.tabIndex;
    }
 }

@@ -1,5 +1,6 @@
 package net.minecraft.entity.passive;
 
+import java.util.ArrayList;
 import java.util.Random;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockColored;
@@ -29,8 +30,9 @@ import net.minecraft.util.EnumEntityFX;
 import net.minecraft.util.EnumEntityState;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.common.IShearable;
 
-public class EntitySheep extends EntityLivestock {
+public class EntitySheep extends EntityLivestock implements IShearable {
    private final InventoryCrafting field_90016_e = new InventoryCrafting(new ContainerSheep(this), 2, 1);
    public static final float[][] fleeceColorTable = new float[][]{{1.0F, 1.0F, 1.0F}, {0.85F, 0.5F, 0.2F}, {0.7F, 0.3F, 0.85F}, {0.4F, 0.6F, 0.85F}, {0.9F, 0.9F, 0.2F}, {0.5F, 0.8F, 0.1F}, {0.95F, 0.5F, 0.65F}, {0.3F, 0.3F, 0.3F}, {0.6F, 0.6F, 0.6F}, {0.3F, 0.5F, 0.6F}, {0.5F, 0.25F, 0.7F}, {0.2F, 0.3F, 0.7F}, {0.4F, 0.3F, 0.2F}, {0.4F, 0.5F, 0.2F}, {0.6F, 0.2F, 0.2F}, {0.1F, 0.1F, 0.1F}};
    private int sheepTimer;
@@ -279,5 +281,25 @@ public class EntitySheep extends EntityLivestock {
       } else {
          return false;
       }
+   }
+
+   @Override
+   public boolean isShearable(ItemStack item, World world, int X, int Y, int Z)
+   {
+      return !getSheared() && !isChild();
+   }
+
+   @Override
+   public ArrayList<ItemStack> onSheared(ItemStack item, World world, int X, int Y, int Z, int fortune)
+   {
+      ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
+      setSheared(true);
+      int i = 1 + rand.nextInt(3);
+      for (int j = 0; j < i; j++)
+      {
+         ret.add(new ItemStack(Block.cloth.blockID, 1, getFleeceColor()));
+      }
+      this.worldObj.playSoundAtEntity(this, "mob.sheep.shear", 1.0F, 1.0F);
+      return ret;
    }
 }

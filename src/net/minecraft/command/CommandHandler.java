@@ -51,6 +51,8 @@ import net.minecraft.world.CaveNetworkGenerator;
 import net.minecraft.world.CaveNetworkStub;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.storage.WorldInfo;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.CommandEvent;
 
 public class CommandHandler implements ICommandManager {
    private final Map commandMap = new HashMap();
@@ -1108,24 +1110,34 @@ public class CommandHandler implements ICommandManager {
             String[] var3 = par2Str.split(" ");
             String var4 = var3[0];
             var3 = dropFirstString(var3);
-            ICommand var5 = (ICommand)this.commandMap.get(var4);
-            x = this.getUsernameIndex(var5, var3);
+            ICommand icommand = (ICommand)this.commandMap.get(var4);
+            x = this.getUsernameIndex(icommand, var3);
             dx = 0;
-            boolean permission_always_denied = false;
-            if (var5 instanceof CommandTime || var5 instanceof CommandGameMode || var5 instanceof CommandDifficulty || var5 instanceof CommandDefaultGameMode || var5 instanceof CommandToggleDownfall || var5 instanceof CommandWeather || var5 instanceof CommandXP || var5 instanceof CommandEffect || var5 instanceof CommandEnchant || var5 instanceof CommandGameRule || var5 instanceof CommandClearInventory || var5 instanceof CommandGive) {
-               permission_always_denied = true;
-            }
+            boolean permission_always_denied = icommand instanceof CommandTime || icommand instanceof CommandGameMode || icommand instanceof CommandDifficulty
+                    || icommand instanceof CommandDefaultGameMode || icommand instanceof CommandToggleDownfall || icommand instanceof CommandWeather
+                    || icommand instanceof CommandXP || icommand instanceof CommandEffect || icommand instanceof CommandEnchant || icommand instanceof CommandGameRule
+                    || icommand instanceof CommandClearInventory || icommand instanceof CommandGive;
 
-            if (Minecraft.inDevMode()) {
+             if (Minecraft.inDevMode()) {
                permission_always_denied = false;
             }
 
             try {
-               if (var5 == null) {
+               if (icommand == null) {
                   throw new CommandNotFoundException();
                }
 
-               if ((permission_override || var5.canCommandSenderUseCommand(par1ICommandSender)) && !permission_always_denied) {
+               if ((permission_override || icommand.canCommandSenderUseCommand(par1ICommandSender)) && !permission_always_denied) {
+                  CommandEvent event = new CommandEvent(icommand, par1ICommandSender, var3);
+                  if (MinecraftForge.EVENT_BUS.post(event))
+                  {
+                     if (event.exception != null)
+                     {
+                        throw event.exception;
+                     }
+                     return 1;
+                  }
+
                   if (x > -1) {
                      EntityPlayerMP[] var8 = PlayerSelector.matchPlayers(par1ICommandSender, var3[x]);
                      String var9 = var3[x];
@@ -1137,7 +1149,7 @@ public class CommandHandler implements ICommandManager {
                         var3[x] = var13.getEntityName();
 
                         try {
-                           var5.processCommand(par1ICommandSender, var3);
+                           icommand.processCommand(par1ICommandSender, var3);
                            ++dx;
                         } catch (CommandException var21) {
                            CommandException var15 = var21;
@@ -1147,7 +1159,7 @@ public class CommandHandler implements ICommandManager {
 
                      var3[x] = var9;
                   } else {
-                     var5.processCommand(par1ICommandSender, var3);
+                     icommand.processCommand(par1ICommandSender, var3);
                      ++dx;
                   }
                } else {

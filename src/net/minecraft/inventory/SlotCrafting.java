@@ -32,6 +32,8 @@ import net.minecraft.util.EnumQuality;
 import net.minecraft.util.EnumTournamentType;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
 
 public class SlotCrafting extends Slot {
    private final IInventory craftMatrix;
@@ -149,9 +151,8 @@ public class SlotCrafting extends Slot {
          ItemStack var4 = this.craftMatrix.getStackInSlot(var3);
          if (var4 != null) {
             Item item = var4.getItem();
-            if (item instanceof ItemCoin) {
-               ItemCoin coin = (ItemCoin)item;
-               xp_reclaimed += coin.getExperienceValue();
+            if (item instanceof ItemCoin coin) {
+                xp_reclaimed += coin.getExperienceValue();
             }
 
             this.craftMatrix.decrStackSize(var3, consumption);
@@ -159,6 +160,7 @@ public class SlotCrafting extends Slot {
                ItemStack var5 = new ItemStack(var4.getItem().getContainerItem());
                Item container_item = var5.getItem();
                if (container_item.getClass() != par2ItemStack.getItem().getClass() && (!var4.getItem().doesContainerItemLeaveCraftingGrid(var4) || !this.thePlayer.inventory.addItemStackToInventory(var5))) {
+                  MinecraftForge.EVENT_BUS.post(new PlayerDestroyItemEvent(thePlayer, var5));
                   if (this.craftMatrix.getStackInSlot(var3) == null) {
                      this.craftMatrix.setInventorySlotContents(var3, var5);
                   } else {

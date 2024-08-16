@@ -18,6 +18,8 @@ import net.minecraft.util.StringHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import java.util.Objects;
+
 public class BlockPistonBase extends BlockDirectional implements IBlockWithPartner {
    private final boolean isSticky;
    private Icon innerTopIcon;
@@ -61,7 +63,9 @@ public class BlockPistonBase extends BlockDirectional implements IBlockWithPartn
    }
 
    public static Icon getPistonBaseIcon(String par0Str) {
-      return par0Str == "piston_side" ? Block.pistonBase.blockIcon : (par0Str == "piston_top_normal" ? Block.pistonBase.topIcon : (par0Str == "piston_top_sticky" ? Block.pistonStickyBase.topIcon : (par0Str == "piston_inner" ? Block.pistonBase.innerTopIcon : null)));
+      return Objects.equals(par0Str, "piston_side") ? Block.pistonBase.blockIcon : (Objects.equals(par0Str, "piston_top_normal") ?
+              Block.pistonBase.topIcon : (Objects.equals(par0Str, "piston_top_sticky") ? Block.pistonStickyBase.topIcon :
+              (Objects.equals(par0Str, "piston_inner") ? Block.pistonBase.innerTopIcon : null)));
    }
 
    public void registerIcons(IconRegister par1IconRegister) {
@@ -181,8 +185,44 @@ public class BlockPistonBase extends BlockDirectional implements IBlockWithPartn
       return true;
    }
 
-   public void setBlockBoundsBasedOnStateAndNeighbors(IBlockAccess var1, int var2, int var3, int var4) {
-      // $FF: Couldn't be decompiled
+   public void setBlockBoundsBasedOnStateAndNeighbors(IBlockAccess par1IBlockAccess, int par2, int par3, int par4)
+   {
+      int var5 = par1IBlockAccess.getBlockMetadata(par2, par3, par4);
+
+      if (isExtended(var5))
+      {
+         float var6 = 0.25F;
+
+         switch (getOrientation(var5))
+         {
+            case 0:
+               this.setBlockBoundsForCurrentThread(0.0D, 0.25D, 0.0D, 1.0D, 1.0D, 1.0D);
+               break;
+
+            case 1:
+               this.setBlockBoundsForCurrentThread(0.0D, 0.0D, 0.0D, 1.0D, 0.75D, 1.0D);
+               break;
+
+            case 2:
+               this.setBlockBoundsForCurrentThread(0.0D, 0.0D, 0.25D, 1.0D, 1.0D, 1.0D);
+               break;
+
+            case 3:
+               this.setBlockBoundsForCurrentThread(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 0.75D);
+               break;
+
+            case 4:
+               this.setBlockBoundsForCurrentThread(0.25D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
+               break;
+
+            case 5:
+               this.setBlockBoundsForCurrentThread(0.0D, 0.0D, 0.0D, 0.75D, 1.0D, 1.0D);
+         }
+      }
+      else
+      {
+         this.setBlockBoundsForCurrentThread(0.0D, 0.0D, 0.0D, 1.0D, 1.0D, 1.0D);
+      }
    }
 
    public void setBlockBoundsForItemRender(int item_damage) {
@@ -259,9 +299,9 @@ public class BlockPistonBase extends BlockDirectional implements IBlockWithPartn
       BlockInfo crushable_block_info = null;
 
       while(var8 < 13) {
-         if (var6 > 0 && var6 < 255) {
+         if (var6 > 0 && var6 < par0World.getHeight() - 1) {
             int var9 = par0World.getBlockId(var5, var6, var7);
-            if (var9 != 0) {
+            if (!par0World.isAirBlock(var5, var6, var7)) {
                if (!canPushBlock(var9, par0World, var5, var6, var7, true)) {
                   return false;
                }
@@ -308,12 +348,12 @@ public class BlockPistonBase extends BlockDirectional implements IBlockWithPartn
          int x;
          int y;
          if (var9 < 13) {
-            if (var7 <= 0 || var7 >= 255) {
+            if (var7 <= 0 || var7 >= par1World.getHeight() - 1) {
                return false;
             }
 
             var10 = par1World.getBlockId(var6, var7, var8);
-            if (var10 != 0) {
+            if (!par1World.isAirBlock(var6, var7, var8)) {
                if (!canPushBlock(var10, par1World, var6, var7, var8, true)) {
                   return false;
                }
@@ -342,6 +382,7 @@ public class BlockPistonBase extends BlockDirectional implements IBlockWithPartn
                      info.setCrushed(this);
                   }
 
+                  info.chance = (Block.blocksList[var10] instanceof BlockSnow ? -1.0f : 1.0f);
                   info.dropBlockAsEntityItem(true);
                } else {
                   par1World.setBlockToAir(var6, var7, var8);
@@ -357,7 +398,7 @@ public class BlockPistonBase extends BlockDirectional implements IBlockWithPartn
          int[] var13;
          int var14;
          int var15;
-         int var16;
+         int var16 = 0;
          for(var13 = new int[13]; var6 != par2 || var7 != par3 || var8 != par4; var8 = var16) {
             var14 = var6 - Facing.offsetsXForSide[par5];
             var15 = var7 - Facing.offsetsYForSide[par5];

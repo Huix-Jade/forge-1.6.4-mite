@@ -140,6 +140,15 @@ import net.minecraft.world.storage.ISaveFormat;
 import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraft.world.storage.WorldInfo;
+import net.minecraftforge.client.ClientCommandHandler;
+import net.minecraftforge.client.ForgeHooksClient;
+import net.minecraftforge.client.GuiIngameForge;
+import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
@@ -348,7 +357,7 @@ public final class Minecraft implements IPlayerUsage {
 		this.session = par1Session;
 		this.mcLogAgent.logInfo("Starting minecraft client version 1.6.4-MITE (R" + 196 + ")" + (inDevMode() ? " DEV" : ""));
 		this.mcLogAgent.logInfo("Setting user: " + par1Session.getUsername());
-		this.mcLogAgent.logInfo("(Session ID is " + par1Session.getSessionID() + ")");
+		//this.mcLogAgent.logInfo("(Session ID is " + par1Session.getSessionID() + ")"); //don't print the session to the console.. that's stupid...
 		this.isDemo = par5;
 		this.displayWidth = par2;
 		this.displayHeight = par3;
@@ -434,7 +443,7 @@ public final class Minecraft implements IPlayerUsage {
 		}
 
 		try {
-			Display.create((new PixelFormat()).withDepthBits(24));
+			ForgeHooksClient.createDisplay();
 		} catch (LWJGLException var4) {
 			var4.printStackTrace();
 
@@ -503,7 +512,7 @@ public final class Minecraft implements IPlayerUsage {
 		GL11.glViewport(0, 0, this.displayWidth, this.displayHeight);
 		this.effectRenderer = new EffectRenderer(this.theWorld, this.renderEngine);
 		this.checkGLError("Post startup");
-		this.ingameGUI = new GuiIngame(this);
+		this.ingameGUI = new GuiIngameForge(this);
 		if (this.serverName != null) {
 			this.displayGuiScreen(new GuiConnecting(new GuiMainMenu(), this, this.serverName, this.serverPort));
 		} else {
@@ -679,15 +688,29 @@ public final class Minecraft implements IPlayerUsage {
 				this.right_click_counter = 0;
 			}
 
-			if (this.currentScreen != null) {
-				this.currentScreen.onGuiClosed();
-			}
+//			if (this.currentScreen != null) {
+//				this.currentScreen.onGuiClosed();
+//			}
 
 			this.statFileWriter.syncStats();
 			if (par1GuiScreen == null && this.theWorld == null) {
 				par1GuiScreen = new GuiMainMenu();
 			} else if (par1GuiScreen == null && this.thePlayer.getHealth() <= 0.0F) {
 				par1GuiScreen = new GuiGameOver();
+			}
+
+			GuiScreen old = this.currentScreen;
+			GuiOpenEvent event = new GuiOpenEvent(par1GuiScreen);
+
+			if (MinecraftForge.EVENT_BUS.post(event))
+			{
+				return;
+			}
+
+			par1GuiScreen = event.gui;
+			if (old != null && par1GuiScreen != old)
+			{
+				old.onGuiClosed();
 			}
 
 			if (par1GuiScreen instanceof GuiMainMenu) {
@@ -1220,7 +1243,8 @@ public final class Minecraft implements IPlayerUsage {
 									float block_hit_effect_progress_per_tick = damage * 80.0F;
 									this.block_hit_effect_progress += block_hit_effect_progress_per_tick;
 									if (this.block_hit_effect_progress >= 1.0F) {
-										this.effectRenderer.addBlockHitEffects(var3, var4, var5, this.objectMouseOver.face_hit);
+										this.effectRenderer.addBlockHitEffects(var3, var4, var5, this.objectMouseOver);
+//										this.effectRenderer.addBlockHitEffects(var3, var4, var5, this.objectMouseOver.face_hit);
 										this.thePlayer.sendPacketToAssociatedPlayers((new Packet85SimpleSignal(EnumSignal.block_hit_fx)).setBlockCoords(var3, var4, var5).setByte(this.objectMouseOver.face_hit.ordinal()), false);
 										if (block_hit_effect_progress_per_tick < 1.0F) {
 											--this.block_hit_effect_progress;
@@ -1271,7 +1295,10 @@ public final class Minecraft implements IPlayerUsage {
 		int y = this.objectMouseOver.block_hit_y;
 		int z = this.objectMouseOver.block_hit_z;
 		EnumFace face = this.objectMouseOver.face_hit;
-		if (button == 0) {
+		boolean result = ForgeEventFactory.onPlayerInteract(thePlayer, PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK,
+				x, y, z, face.ordinal()).isCanceled();
+
+		if (button == 0 && result)  {
 			this.playerController.clickBlock(x, y, z, face);
 			done = true;
 		} else if (button == 1) {
@@ -1343,9 +1370,9 @@ public final class Minecraft implements IPlayerUsage {
 				ItemStack hotbar_selection = this.thePlayer.inventory.getCurrentItemStack();
 				int hotbar_selection_index = this.thePlayer.inventory.currentItem;
 				if (button == 0) {
-					boolean done = false;
 					if (this.objectMouseOver == null) {
-						if (button == 0 && this.playerController.isNotCreative()) {
+						boolean result = !ForgeEventFactory.onPlayerInteract(thePlayer, PlayerInteractEvent.Action.RIGHT_CLICK_AIR, 0, 0, 0, -1).isCanceled();
+						if (result && button == 0 && this.playerController.isNotCreative()) {
 							this.leftClickCounter = 10;
 						}
 					} else if (this.objectMouseOver.isEntity()) {
@@ -1616,6 +1643,7 @@ public final class Minecraft implements IPlayerUsage {
 
 			int var1;
 			while(Mouse.next()) {
+				if (ForgeHooksClient.postMouseEvent()) continue;
 				var1 = Mouse.getEventButton();
 				if (isRunningOnMac && var1 == 0 && (Keyboard.isKeyDown(29) || Keyboard.isKeyDown(157))) {
 					var1 = 1;
@@ -2101,6 +2129,10 @@ public final class Minecraft implements IPlayerUsage {
 
 	public void loadWorld(WorldClient par1WorldClient, String par2Str) {
 		this.statFileWriter.syncStats();
+		if (theWorld != null)
+		{
+			MinecraftForge.EVENT_BUS.post(new WorldEvent.Unload(theWorld));
+		}
 		if (par1WorldClient == null) {
 			NetClientHandler var3 = this.getNetHandler();
 			if (var3 != null) {
@@ -2113,6 +2145,19 @@ public final class Minecraft implements IPlayerUsage {
 
 			if (this.theIntegratedServer != null) {
 				this.theIntegratedServer.initiateShutdown();
+
+				if (loadingScreen!=null)
+				{
+					this.loadingScreen.resetProgresAndWorkingMessage("Shutting down internal server...");
+				}
+				while (!theIntegratedServer.isServerStopped())
+				{
+					try
+					{
+						Thread.sleep(10);
+					}
+					catch (InterruptedException ie) {}
+				}
 			}
 
 			this.theIntegratedServer = null;
@@ -2237,78 +2282,17 @@ public final class Minecraft implements IPlayerUsage {
 	}
 
 	public boolean handleClientCommand(String par1Str) {
-		return false;
+		return ClientCommandHandler.instance.executeCommand(thePlayer, par1Str) == 1;
 	}
 
 	private void clickMiddleMouseButton() {
 		if (this.objectMouseOver != null) {
 			boolean var1 = this.thePlayer.capabilities.isCreativeMode;
-			int var3 = 0;
-			boolean var4 = false;
-			int var2;
 			int var5;
-			if (this.objectMouseOver.isBlock()) {
-				var5 = this.objectMouseOver.block_hit_x;
-				int var6 = this.objectMouseOver.block_hit_y;
-				int var7 = this.objectMouseOver.block_hit_z;
-				Block var8 = Block.blocksList[this.theWorld.getBlockId(var5, var6, var7)];
-				if (var8 == null) {
-					return;
-				}
-
-				var2 = var8.idPicked(this.theWorld, var5, var6, var7);
-				if (var2 == 0) {
-					return;
-				}
-
-				var4 = Item.itemsList[var2].getHasSubtypes();
-				int var9 = var2 < 256 && !Block.blocksList[var8.blockID].isFlowerPot() ? var2 : var8.blockID;
-				var3 = Block.blocksList[var9].getItemSubtype(this.theWorld.getBlockMetadata(var5, var6, var7));
-			} else {
-				if (!this.objectMouseOver.isEntity() || this.objectMouseOver.getEntityHit() == null || !var1) {
-					return;
-				}
-
-				Entity entity_hit = this.objectMouseOver.getEntityHit();
-				if (entity_hit instanceof EntityPainting) {
-					var2 = Item.painting.itemID;
-				} else if (entity_hit instanceof EntityLeashKnot) {
-					var2 = Item.leash.itemID;
-				} else if (entity_hit instanceof EntityItemFrame) {
-					EntityItemFrame var10 = (EntityItemFrame)entity_hit;
-					if (var10.getDisplayedItem() == null) {
-						var2 = Item.itemFrame.itemID;
-					} else {
-						var2 = var10.getDisplayedItem().itemID;
-						var3 = var10.getDisplayedItem().getItemSubtype();
-						var4 = true;
-					}
-				} else if (entity_hit instanceof EntityMinecart) {
-					EntityMinecart var11 = (EntityMinecart)entity_hit;
-					if (var11.getMinecartType() == 2) {
-						var2 = Item.minecartPowered.itemID;
-					} else if (var11.getMinecartType() == 1) {
-						var2 = Item.minecartCrate.itemID;
-					} else if (var11.getMinecartType() == 3) {
-						var2 = Item.minecartTnt.itemID;
-					} else if (var11.getMinecartType() == 5) {
-						var2 = Item.minecartHopper.itemID;
-					} else {
-						var2 = Item.minecartEmpty.itemID;
-					}
-				} else if (entity_hit instanceof EntityBoat) {
-					var2 = Item.boat.itemID;
-				} else {
-					var2 = Item.monsterPlacer.itemID;
-					var3 = EntityList.getEntityID(entity_hit);
-					var4 = true;
-					if (var3 <= 0 || !EntityList.entityEggs.containsKey(var3)) {
-						return;
-					}
-				}
+			if (!ForgeHooks.onPickBlock(this.objectMouseOver, this.thePlayer, this.theWorld))
+			{
+				return;
 			}
-
-			this.thePlayer.inventory.setCurrentItem(var2, var3, var4, var1);
 			if (var1) {
 				var5 = this.thePlayer.inventoryContainer.inventorySlots.size() - 9 + this.thePlayer.inventory.currentItem;
 				this.playerController.sendSlotPacket(this.thePlayer.inventory.getStackInSlot(this.thePlayer.inventory.currentItem), var5);
@@ -2377,11 +2361,19 @@ public final class Minecraft implements IPlayerUsage {
 		par1PlayerUsageSnooper.addData("gl_max_texture_size", getGLMaximumTextureSize());
 	}
 
+	//Forge: Adds a optimization to the getGLMaximumTextureSize, only calculate it once.
+	private static int max_texture_size = -1;
 	public static int getGLMaximumTextureSize() {
+		if (max_texture_size != -1)
+		{
+			return max_texture_size;
+		}
+
 		for(int var0 = 16384; var0 > 0; var0 >>= 1) {
 			GL11.glTexImage2D(32868, 0, 6408, var0, var0, 0, 6408, 5121, (ByteBuffer)((ByteBuffer)null));
 			int var1 = GL11.glGetTexLevelParameteri(32868, 0, 4096);
 			if (var1 != 0) {
+				max_texture_size = var0;
 				return var0;
 			}
 		}

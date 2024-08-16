@@ -407,8 +407,9 @@ public class EntityDragon extends EntityLiving implements IBossDisplayData, IEnt
          for(int var11 = var3; var11 <= var6; ++var11) {
             for(int var12 = var4; var12 <= var7; ++var12) {
                int var13 = this.worldObj.getBlockId(var10, var11, var12);
-               if (var13 != 0) {
-                  if (var13 != Block.obsidian.blockID && var13 != Block.whiteStone.blockID && var13 != Block.bedrock.blockID && this.worldObj.getGameRules().getGameRuleBooleanValue("mobGriefing")) {
+               Block block = Block.blocksList[var13];
+               if (block != null) {
+                  if (block.canEntityDestroy(worldObj, var10, var11, var12, this) && this.worldObj.getGameRules().getGameRuleBooleanValue("mobGriefing")) {
                      var9 = this.worldObj.setBlockToAir(var10, var11, var12) || var9;
                   } else {
                      var8 = true;

@@ -18,9 +18,15 @@ public class BlockMobSpawner extends BlockContainer {
       return new TileEntityMobSpawner();
    }
 
-   public int dropBlockAsEntityItem(BlockBreakInfo info) {
-      this.dropXpOnBlockBreak(info.world, info.x, info.y, info.z, 15 + info.world.rand.nextInt(15) + info.world.rand.nextInt(15));
-      return 0;
+//   public int dropBlockAsEntityItem(BlockBreakInfo info) {
+//      this.dropXpOnBlockBreak(info.world, info.x, info.y, info.z, 15 + info.world.rand.nextInt(15) + info.world.rand.nextInt(15));
+//      return 0;
+//   }
+
+   @Override
+   public int getExpDrop(World world, int data, int enchantmentLevel)
+   {
+      return 15 + world.rand.nextInt(15) + world.rand.nextInt(15);
    }
 
    public int idPicked(World par1World, int par2, int par3, int par4) {
