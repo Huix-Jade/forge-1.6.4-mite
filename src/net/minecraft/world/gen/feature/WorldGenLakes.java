@@ -263,7 +263,7 @@ public class WorldGenLakes extends WorldGenerator
                   {
                      par1World.setBlock(var36, var39, var38, Block.ice.blockID, 0, 2);
                   }
-                  else if (var40 != Block.ice && par1World.isBlockTopFlatAndSolid(var36, var39, var38) && par1World.isAirBlock(var36, var39 + 1, var38))
+                  else if (var40 != Block.ice && par1World.doesBlockHaveSolidTopSurface(var36, var39, var38) && par1World.isAirBlock(var36, var39 + 1, var38))
                   {
                      par1World.setBlock(var36, var39 + 1, var38, Block.snow.blockID, 0, 2);
                   }

@@ -44,7 +44,7 @@ public abstract class BlockBasePressurePlate extends Block {
       if (block_below == null) {
          return false;
       } else {
-         return block_below.isTopFlatAndSolid(block_below_metadata) || BlockFence.isIdAFence(block_below.blockID);
+         return block_below.isBlockTopFacingSurfaceSolid(block_below_metadata) || BlockFence.isIdAFence(block_below.blockID);
       }
    }
 

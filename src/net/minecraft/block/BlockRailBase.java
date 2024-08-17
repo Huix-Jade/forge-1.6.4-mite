@@ -50,7 +50,7 @@ public abstract class BlockRailBase extends Block {
    }
 
    public boolean isLegalOn(int metadata, Block block_below, int block_below_metadata) {
-      return block_below != null && block_below.isTopFlatAndSolid(block_below_metadata);
+      return block_below != null && block_below.isBlockTopFacingSurfaceSolid(block_below_metadata);
    }
 
    public void onBlockAdded(World par1World, int par2, int par3, int par4) {
@@ -82,14 +82,14 @@ public abstract class BlockRailBase extends Block {
       }
 
       boolean var8 = false;
-      if (var7 == 2 && !world.isBlockTopFlatAndSolid(x + 1, y, z)) {
+      if (var7 == 2 && !world.doesBlockHaveSolidTopSurface(x + 1, y, z)) {
          return false;
-      } else if (var7 == 3 && !world.isBlockTopFlatAndSolid(x - 1, y, z)) {
+      } else if (var7 == 3 && !world.doesBlockHaveSolidTopSurface(x - 1, y, z)) {
          return false;
-      } else if (var7 == 4 && !world.isBlockTopFlatAndSolid(x, y, z - 1)) {
+      } else if (var7 == 4 && !world.doesBlockHaveSolidTopSurface(x, y, z - 1)) {
          return false;
       } else {
-         return var7 == 5 && !world.isBlockTopFlatAndSolid(x, y, z + 1) ? false : super.isLegalAt(world, x, y, z, metadata);
+         return var7 == 5 && !world.doesBlockHaveSolidTopSurface(x, y, z + 1) ? false : super.isLegalAt(world, x, y, z, metadata);
       }
    }
 

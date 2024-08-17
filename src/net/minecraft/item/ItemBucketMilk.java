@@ -20,7 +20,7 @@ public class ItemBucketMilk extends ItemVessel {
 
    public void onItemUseFinish(ItemStack item_stack, World world, EntityPlayer player) {
       if (player.onServer()) {
-         player.clearActivePotions();
+         player.curePotionEffects(item_stack);
          player.foodStats.addFoodValue(this);
       }
 

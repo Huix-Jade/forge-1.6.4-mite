@@ -118,7 +118,7 @@ public class VillageCollection extends WorldSavedData {
          while(var4.hasNext()) {
             Village var5 = (Village)var4.next();
             int var6 = (int)var5.getCenter().getDistanceSquared(var2.posX, var2.posY, var2.posZ);
-            int var7 = 32 + var5.getVillageRadius();
+            float var7 = 32F + var5.getVillageRadius();
             if (var6 <= var7 * var7) {
                var5.addVillageDoorInfo(var2);
                var3 = true;

@@ -17,11 +17,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.stats.AchievementList;
 import net.minecraft.tileentity.TileEntityDispenser;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ChestGenHooks;
 
 public class WeightedRandomChestContent extends WeightedRandomItem {
    private final ItemStack theItemId;
-   private int min_quantity;
-   private int max_quantity;
+   public int min_quantity;
+   public int max_quantity;
 
    public WeightedRandomChestContent(int item_id, int subtype, int min_quantity, int max_quantity, int weight) {
       super(weight);
@@ -130,21 +131,24 @@ public class WeightedRandomChestContent extends WeightedRandomItem {
          }
 
          if (var5 != null) {
-            var6 = var5.min_quantity + par0Random.nextInt(var5.max_quantity - var5.min_quantity + 1);
-            ItemStack item_stack = var5.theItemId;
-            if (item_stack.getMaxStackSize() >= var6) {
-               ItemStack var7 = item_stack.copy();
-               var7.stackSize = var6;
-               var7.applyRandomItemStackDamageForChest();
-               par2IInventory.setInventorySlotContents(par0Random.nextInt(par2IInventory.getSizeInventory()), var7);
-            } else {
-               for(min_day_of_world = 0; min_day_of_world < var6; ++min_day_of_world) {
-                  ItemStack var8 = item_stack.copy();
-                  var8.stackSize = 1;
-                  var8.applyRandomItemStackDamageForChest();
-                  par2IInventory.setInventorySlotContents(par0Random.nextInt(par2IInventory.getSizeInventory()), var8);
-               }
+            ItemStack[] stacks = var5.generateChestContent(par0Random, par2IInventory);
+            for (ItemStack item : stacks) {
+               par2IInventory.setInventorySlotContents(par0Random.nextInt(par2IInventory.getSizeInventory()), item);
             }
+
+//            if (item_stack.getMaxStackSize() >= var6) {
+//               ItemStack var7 = item_stack.copy();
+//               var7.stackSize = var6;
+//               var7.applyRandomItemStackDamageForChest();
+//               par2IInventory.setInventorySlotContents(par0Random.nextInt(par2IInventory.getSizeInventory()), var7);
+//            } else {
+//               for(min_day_of_world = 0; min_day_of_world < var6; ++min_day_of_world) {
+//                  ItemStack var8 = item_stack.copy();
+//                  var8.stackSize = 1;
+//                  var8.applyRandomItemStackDamageForChest();
+//                  par2IInventory.setInventorySlotContents(par0Random.nextInt(par2IInventory.getSizeInventory()), var8);
+//               }
+//            }
          }
       }
 
@@ -159,17 +163,9 @@ public class WeightedRandomChestContent extends WeightedRandomItem {
    public static void generateDispenserContents(Random par0Random, WeightedRandomChestContent[] par1ArrayOfWeightedRandomChestContent, TileEntityDispenser par2TileEntityDispenser, int par3) {
       for(int var4 = 0; var4 < par3; ++var4) {
          WeightedRandomChestContent var5 = (WeightedRandomChestContent)WeightedRandom.getRandomItem(par0Random, (WeightedRandomItem[])par1ArrayOfWeightedRandomChestContent);
-         int var6 = var5.min_quantity + par0Random.nextInt(var5.max_quantity - var5.min_quantity + 1);
-         if (var5.theItemId.getMaxStackSize() >= var6) {
-            ItemStack var7 = var5.theItemId.copy();
-            var7.stackSize = var6;
-            par2TileEntityDispenser.setInventorySlotContents(par0Random.nextInt(par2TileEntityDispenser.getSizeInventory()), var7);
-         } else {
-            for(int var9 = 0; var9 < var6; ++var9) {
-               ItemStack var8 = var5.theItemId.copy();
-               var8.stackSize = 1;
-               par2TileEntityDispenser.setInventorySlotContents(par0Random.nextInt(par2TileEntityDispenser.getSizeInventory()), var8);
-            }
+         ItemStack[] stacks = var5.generateChestContent(par0Random, par2TileEntityDispenser);
+         for (ItemStack item : stacks) {
+            par2TileEntityDispenser.setInventorySlotContents(par0Random.nextInt(par2TileEntityDispenser.getSizeInventory()), item);
          }
       }
 
@@ -192,5 +188,18 @@ public class WeightedRandomChestContent extends WeightedRandomItem {
       }
 
       return var2;
+   }
+
+   // -- Forge hooks
+   /**
+    * Allow a mod to submit a custom implementation that can delegate item stack generation beyond simple stack lookup
+    *
+    * @param random The current random for generation
+    * @param newInventory The inventory being generated (do not populate it, but you can refer to it)
+    * @return An array of {@link ItemStack} to put into the chest
+    */
+   protected ItemStack[] generateChestContent(Random random, IInventory newInventory)
+   {
+      return ChestGenHooks.generateStacks(random, theItemId, min_quantity, max_quantity);
    }
 }

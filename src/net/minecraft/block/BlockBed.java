@@ -155,7 +155,7 @@ public final class BlockBed extends BlockDirectional implements IBlockWithPartne
    }
 
    public boolean isLegalOn(int metadata, Block block_below, int block_below_metadata) {
-      return block_below != null && block_below.isTopFlatAndSolid(block_below_metadata);
+      return block_below != null && block_below.isBlockTopFacingSurfaceSolid(block_below_metadata);
    }
 
    private void setBounds(boolean for_all_threads) {

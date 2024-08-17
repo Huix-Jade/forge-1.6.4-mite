@@ -8,8 +8,11 @@ import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.mite.Skill;
 import net.minecraft.raycast.RaycastCollision;
+import net.minecraft.world.World;
+import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.IPlantable;
 
-public class ItemSeedFood extends ItemFood {
+public class ItemSeedFood extends ItemFood implements IPlantable {
    private int cropId;
    private int soilId;
 
@@ -40,5 +43,23 @@ public class ItemSeedFood extends ItemFood {
 
    public boolean hasIngestionPriority(ItemStack item_stack, boolean ctrl_is_down) {
       return false;
+   }
+
+   @Override
+   public EnumPlantType getPlantType(World world, int x, int y, int z)
+   {
+      return EnumPlantType.Crop;
+   }
+
+   @Override
+   public int getPlantID(World world, int x, int y, int z)
+   {
+      return cropId;
+   }
+
+   @Override
+   public int getPlantMetadata(World world, int x, int y, int z)
+   {
+      return 0;
    }
 }

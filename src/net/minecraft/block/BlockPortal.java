@@ -86,7 +86,7 @@ public class BlockPortal extends BlockBreakable {
             var7.refreshDespawnCounter(-9600);
          } else {
             int var6;
-            for(var6 = y; !world.isBlockTopFlatAndSolid(x, var6, z) && var6 > 0; --var6) {
+            for(var6 = y; !world.doesBlockHaveSolidTopSurface(x, var6, z) && var6 > 0; --var6) {
             }
 
             if (var6 > 0 && !world.isBlockNormalCube(x, var6 + 1, z)) {

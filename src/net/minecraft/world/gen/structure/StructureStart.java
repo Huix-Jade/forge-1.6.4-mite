@@ -53,6 +53,11 @@ public abstract class StructureStart {
    }
 
    public NBTTagCompound func_143021_a(int var1, int var2) {
+      if (MapGenStructureIO.func_143033_a(this) == null)
+      {
+         throw new RuntimeException("StructureStart \"" + this.getClass().getName() + "\" missing ID Mapping, Modder see MapGenStructureIO");
+      }
+
       NBTTagCompound var3 = new NBTTagCompound();
       var3.setString("id", MapGenStructureIO.func_143033_a(this));
       var3.setInteger("ChunkX", var1);

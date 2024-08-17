@@ -198,7 +198,7 @@ public abstract class ItemArmor extends Item implements IDamageableItem {
          ItemStack var5 = player.getCurrentArmor(index);
          if (var5 == null) {
             if (player.onServer()) {
-               player.setCurrentItemOrArmor(index, item_stack.copy());
+               player.setCurrentItemOrArmor(index + 1, var5.copy()); //Forge: Vanilla bug fix associated with fixed setCurrentItemOrArmor indexs for players.
                player.convertOneOfHeldItem((ItemStack)null);
                player.suppressNextStatIncrement();
             }
@@ -312,9 +312,8 @@ public abstract class ItemArmor extends Item implements IDamageableItem {
                ItemStack item_stack = armors[i];
                if (item_stack != null) {
                   Item item = item_stack.getItem();
-                  if (item instanceof ItemHorseArmor) {
-                     ItemHorseArmor barding = (ItemHorseArmor)item;
-                     total_defense += (float)barding.getProtection();
+                  if (item instanceof ItemHorseArmor barding) {
+                      total_defense += (float)barding.getProtection();
                   } else if (item.isArmor()) {
                      ItemArmor armor = (ItemArmor)item_stack.getItem();
                      total_defense += armor.getProtectionAfterDamageFactor(item_stack, owner);

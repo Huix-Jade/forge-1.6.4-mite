@@ -2,7 +2,12 @@ package net.minecraft.potion;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PotionEffect {
    private int potionID;
@@ -11,6 +16,9 @@ public class PotionEffect {
    private boolean isSplashPotion;
    private boolean isAmbient;
    private boolean isPotionDurationMax;
+
+   /** List of ItemStack that can cure the potion effect **/
+   private List<ItemStack> curativeItems;
 
    public PotionEffect(int par1, int par2) {
       this(par1, par2, 0);
@@ -25,12 +33,15 @@ public class PotionEffect {
       this.duration = par2;
       this.amplifier = par3;
       this.isAmbient = par4;
+      this.curativeItems = new ArrayList<ItemStack>();
+      this.curativeItems.add(new ItemStack(Item.bucketIronMilk));
    }
 
    public PotionEffect(PotionEffect par1PotionEffect) {
       this.potionID = par1PotionEffect.potionID;
       this.duration = par1PotionEffect.duration;
       this.amplifier = par1PotionEffect.amplifier;
+      this.curativeItems = par1PotionEffect.getCurativeItems();
    }
 
    public void combine(PotionEffect par1PotionEffect) {
@@ -173,5 +184,57 @@ public class PotionEffect {
 
       this.duration = (int)((float)this.duration * factor);
       return this;
+   }
+
+   /***
+    * Returns a list of curative items for the potion effect
+    * @return The list (ItemStack) of curative items for the potion effect
+    */
+   public List<ItemStack> getCurativeItems()
+   {
+      return this.curativeItems;
+   }
+
+   /***
+    * Checks the given ItemStack to see if it is in the list of curative items for the potion effect
+    * @param stack The ItemStack being checked against the list of curative items for the potion effect
+    * @return true if the given ItemStack is in the list of curative items for the potion effect, false otherwise
+    */
+   public boolean isCurativeItem(ItemStack stack)
+   {
+      boolean found = false;
+      for (ItemStack curativeItem : this.curativeItems)
+      {
+         if (curativeItem.isItemStackEqual(stack, true, true, true, true)) {
+            found = true;
+         }
+      }
+
+      return found;
+   }
+
+   /***
+    * Sets the array of curative items for the potion effect
+    * @param curativeItems The list of ItemStacks being set to the potion effect
+    */
+   public void setCurativeItems(List<ItemStack> curativeItems)
+   {
+      this.curativeItems = curativeItems;
+   }
+
+   /***
+    * Adds the given stack to list of curative items for the potion effect
+    * @param stack The ItemStack being added to the curative item list
+    */
+   public void addCurativeItem(ItemStack stack) {
+      boolean found = false;
+      for (ItemStack curativeItem : this.curativeItems) {
+         if (curativeItem.isItemStackEqual(stack, true, true, true, true)) {
+            found = true;
+         }
+      }
+      if (!found) {
+         this.curativeItems.add(stack);
+      }
    }
 }

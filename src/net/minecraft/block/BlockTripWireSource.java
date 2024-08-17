@@ -70,7 +70,7 @@ public class BlockTripWireSource extends BlockMounted {
       boolean var12 = (par6 & 8) == 8;
       boolean var13 = par5 == Block.tripWireSource.blockID;
       boolean var14 = false;
-      boolean var15 = !par1World.isBlockTopFlatAndSolid(par2, par3 - 1, par4);
+      boolean var15 = !par1World.doesBlockHaveSolidTopSurface(par2, par3 - 1, par4);
       int var16 = Direction.offsetX[var10];
       int var17 = Direction.offsetZ[var10];
       int var18 = 0;

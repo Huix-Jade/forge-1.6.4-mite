@@ -179,10 +179,10 @@ public abstract class MapGenStructure extends MapGenBase {
 
    private void func_143027_a(World var1) {
       if (this.field_143029_e == null) {
-         this.field_143029_e = (MapGenStructureData)var1.loadItemData(MapGenStructureData.class, this.func_143025_a());
+         this.field_143029_e = (MapGenStructureData)var1.perWorldStorage.loadData(MapGenStructureData.class, this.func_143025_a());
          if (this.field_143029_e == null) {
             this.field_143029_e = new MapGenStructureData(this.func_143025_a());
-            var1.setItemData(this.func_143025_a(), this.field_143029_e);
+            var1.perWorldStorage.setData(this.func_143025_a(), this.field_143029_e);
          } else {
             NBTTagCompound var2 = this.field_143029_e.func_143041_a();
             Iterator var3 = var2.getTags().iterator();

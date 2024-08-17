@@ -60,7 +60,7 @@ public class RecipeFireworks implements IRecipe {
       if (var4 <= 3 && var3 <= 1) {
          int var20;
          ItemStack var11;
-         NBTTagCompound var15;
+         NBTTagCompound var15 = new NBTTagCompound();
          NBTTagCompound var18;
          if (var4 >= 1 && var3 == 1 && var7 == 0) {
             this.field_92102_a = new ItemStack(Item.firework);
@@ -75,13 +75,13 @@ public class RecipeFireworks implements IRecipe {
                      var25.appendTag(var11.getTagCompound().getCompoundTag("Explosion"));
                   }
                }
-
                var18.setTag("Explosions", var25);
                var18.setByte("Flight", (byte)var4);
                var15.setTag("Fireworks", var18);
-               this.field_92102_a.setTagCompound(var15);
+
             }
 
+            this.field_92102_a.setTagCompound(var15);
             return true;
          } else {
             int var19;

@@ -65,7 +65,7 @@ public class BlockTripWire extends Block {
       if (isRaised(metadata)) {
          return true;
       } else {
-         return block_below != null && block_below.isTopFlatAndSolid(block_below_metadata);
+         return block_below != null && block_below.isBlockTopFacingSurfaceSolid(block_below_metadata);
       }
    }
 
@@ -88,7 +88,7 @@ public class BlockTripWire extends Block {
    }
 
    public void onBlockAdded(World par1World, int par2, int par3, int par4) {
-      int var5 = par1World.isBlockTopFlatAndSolid(par2, par3 - 1, par4) ? 0 : 2;
+      int var5 = par1World.doesBlockHaveSolidTopSurface(par2, par3 - 1, par4) ? 0 : 2;
       par1World.setBlockMetadataWithNotify(par2, par3, par4, var5, 3);
       this.func_72149_e(par1World, par2, par3, par4, var5);
    }

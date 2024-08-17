@@ -8,6 +8,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumDirection;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ChestGenHooks;
+
+import static net.minecraftforge.common.ChestGenHooks.STRONGHOLD_LIBRARY;
 
 public class ComponentStrongholdLibrary extends ComponentStronghold {
    private static final WeightedRandomChestContent[] strongholdLibraryChestContents;
@@ -134,10 +137,12 @@ public class ComponentStrongholdLibrary extends ComponentStronghold {
          }
 
          float[] chances_of_artifact = new float[]{0.5F};
-         this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 3, 3, 5, Block.chest.blockID, WeightedRandomChestContent.func_92080_a(strongholdLibraryChestContents, Item.enchantedBook.func_92112_a(par2Random, 1, 5, 2)), 1 + par2Random.nextInt(4), chances_of_artifact, EnumDirection.NORTH);
+
+         ChestGenHooks info = ChestGenHooks.getInfo(STRONGHOLD_LIBRARY);
+         this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 3, 3, 5, Block.chest.blockID, info.getItems(par2Random), info.getCount(par2Random), chances_of_artifact, EnumDirection.NORTH);
          if (this.isLargeRoom) {
             this.placeBlockAtCurrentPosition(par1World, 0, 0, 12, 9, 1, par3StructureBoundingBox);
-            this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 12, 8, 1, Block.chest.blockID, WeightedRandomChestContent.func_92080_a(strongholdLibraryChestContents, Item.enchantedBook.func_92112_a(par2Random, 1, 5, 2)), 1 + par2Random.nextInt(4), chances_of_artifact, EnumDirection.WEST);
+            this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 12, 8, 1, Block.chest.blockID, info.getItems(par2Random), info.getCount(par2Random), chances_of_artifact, EnumDirection.WEST);
          }
 
          return true;

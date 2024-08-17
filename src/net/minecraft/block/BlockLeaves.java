@@ -208,7 +208,7 @@ public final class BlockLeaves extends BlockLeavesBase implements IShearable {
    }
 
    public void randomDisplayTick(World par1World, int par2, int par3, int par4, Random par5Random) {
-      if (par1World.canLightningStrikeAt(par2, par3 + 1, par4) && !par1World.isBlockTopFlatAndSolid(par2, par3 - 1, par4) && par5Random.nextInt(15) == 1) {
+      if (par1World.canLightningStrikeAt(par2, par3 + 1, par4) && !par1World.doesBlockHaveSolidTopSurface(par2, par3 - 1, par4) && par5Random.nextInt(15) == 1) {
          double var6 = (double)((float)par2 + par5Random.nextFloat());
          double var8 = (double)par3 - 0.05;
          double var10 = (double)((float)par4 + par5Random.nextFloat());

@@ -15,5 +15,6 @@ public class WorldServerMulti extends WorldServer {
    }
 
    protected void saveLevel() throws MinecraftException {
+      this.perWorldStorage.saveAllData();
    }
 }

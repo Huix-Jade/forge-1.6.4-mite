@@ -81,7 +81,7 @@ public class Village {
    }
 
    private boolean isValidIronGolemSpawningLocation(int par1, int par2, int par3, int par4, int par5, int par6) {
-      if (!this.worldObj.isBlockTopFlatAndSolid(par1, par2 - 1, par3)) {
+      if (!this.worldObj.doesBlockHaveSolidTopSurface(par1, par2 - 1, par3)) {
          return false;
       } else {
          int var7 = par1 - par4 / 2;

@@ -317,7 +317,7 @@ public abstract class BlockFluid extends Block {
          }
       }
 
-      if (par5Random.nextInt(10) == 0 && par1World.isBlockTopFlatAndSolid(par2, par3 - 1, par4) && !par1World.isBlockTopFlatAndSolid(par2, par3 - 2, par4)) {
+      if (par5Random.nextInt(10) == 0 && par1World.doesBlockHaveSolidTopSurface(par2, par3 - 1, par4) && !par1World.doesBlockHaveSolidTopSurface(par2, par3 - 2, par4)) {
          var21 = (double)((float)par2 + par5Random.nextFloat());
          var11 = (double)par3 - 1.05;
          var23 = (double)((float)par4 + par5Random.nextFloat());

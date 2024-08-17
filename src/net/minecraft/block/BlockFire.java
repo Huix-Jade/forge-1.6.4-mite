@@ -17,7 +17,6 @@ import net.minecraft.util.EnumParticle;
 import net.minecraft.util.Icon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldProviderEnd;
 import net.minecraftforge.common.ForgeDirection;
 
 import static net.minecraftforge.common.ForgeDirection.*;
@@ -135,7 +134,7 @@ public class BlockFire extends Block {
 
                par1World.scheduleBlockUpdate(par2, par3, par4, this.blockID, this.tickRate(par1World) + par5Random.nextInt(10));
                if (!var6 && !this.canNeighborBurn(par1World, par2, par3, par4)) {
-                  if (!par1World.isBlockTopFlatAndSolid(par2, par3 - 1, par4) || var7 > 3) {
+                  if (!par1World.doesBlockHaveSolidTopSurface(par2, par3 - 1, par4) || var7 > 3) {
                      par1World.setBlockToAir(par2, par3, par4);
                      changed_state = true;
                   }
@@ -285,7 +284,7 @@ public class BlockFire extends Block {
 
    public void onBlockAdded(World par1World, int par2, int par3, int par4) {
       if (par1World.provider.dimensionId > 0 || par1World.getBlockId(par2, par3 - 1, par4) != Block.obsidian.blockID || !Block.portal.tryToCreatePortal(par1World, par2, par3, par4)) {
-         if (!par1World.isBlockTopFlatAndSolid(par2, par3 - 1, par4) && !this.canNeighborBurn(par1World, par2, par3, par4)) {
+         if (!par1World.doesBlockHaveSolidTopSurface(par2, par3 - 1, par4) && !this.canNeighborBurn(par1World, par2, par3, par4)) {
             par1World.setBlockToAir(par2, par3, par4);
          } else {
             par1World.scheduleBlockUpdate(par2, par3, par4, this.blockID, this.tickRate(par1World) + par1World.rand.nextInt(10));

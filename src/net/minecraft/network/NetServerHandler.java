@@ -100,6 +100,7 @@ import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.ForgeHooks;
 import org.apache.commons.lang3.StringUtils;
 
 public class NetServerHandler extends NetHandler {
@@ -244,6 +245,11 @@ public class NetServerHandler extends NetHandler {
                return;
             }
 
+            if (!this.hasMoved) //Fixes teleportation kick while riding entities
+            {
+               return;
+            }
+
             if (this.playerEntity.inBed()) {
                this.playerEntity.onUpdateEntity();
                this.playerEntity.setPositionAndRotation(this.lastPosX, this.lastPosY, this.lastPosZ, this.playerEntity.rotationYaw, this.playerEntity.rotationPitch);
@@ -301,9 +307,9 @@ public class NetServerHandler extends NetHandler {
             var13 = var5 - this.playerEntity.posX;
             double var15 = var7 - this.playerEntity.posY;
             double var17 = var9 - this.playerEntity.posZ;
-            double var19 = Math.min(Math.abs(var13), Math.abs(this.playerEntity.motionX));
-            double var21 = Math.min(Math.abs(var15), Math.abs(this.playerEntity.motionY));
-            double var23 = Math.min(Math.abs(var17), Math.abs(this.playerEntity.motionZ));
+            double var19 = Math.max(Math.abs(var13), Math.abs(this.playerEntity.motionX));
+            double var21 = Math.max(Math.abs(var15), Math.abs(this.playerEntity.motionY));
+            double var23 = Math.max(Math.abs(var17), Math.abs(this.playerEntity.motionZ));
             double var25 = var19 * var19 + var21 * var21 + var23 * var23;
             if (var25 > 100.0 && (!this.mcServer.isSinglePlayer() || !this.mcServer.getServerOwner().equals(this.playerEntity.getCommandSenderName()))) {
                this.mcServer.getLogAgent().logWarning(this.playerEntity.getCommandSenderName() + " moved too quickly! " + var13 + "," + var15 + "," + var17 + " (" + var19 + ", " + var21 + ", " + var23 + ")");
@@ -315,6 +321,11 @@ public class NetServerHandler extends NetHandler {
             boolean var28 = var2.getCollidingBoundingBoxes(this.playerEntity, this.playerEntity.boundingBox.copy().contract((double)var27, (double)var27, (double)var27)).isEmpty();
             if (this.playerEntity.onGround && !par1Packet10Flying.onGround && var15 > 0.0) {
                this.playerEntity.addHungerServerSide(this.playerEntity.isSprinting() ? 0.8F : 0.2F);
+            }
+
+            if (!this.hasMoved) //Fixes "Moved Too Fast" kick when being teleported while moving
+            {
+               return;
             }
 
             this.playerEntity.moveEntity(var13, var15, var17);
@@ -335,15 +346,21 @@ public class NetServerHandler extends NetHandler {
                this.mcServer.getLogAgent().logWarning(this.playerEntity.getCommandSenderName() + " moved wrongly!");
             }
 
+            if (!this.hasMoved) //Fixes "Moved Too Fast" kick when being teleported while moving
+            {
+               return;
+            }
+
             this.playerEntity.setPositionAndRotation(var5, var7, var9, var11, var12);
             boolean var32 = var2.getCollidingBoundingBoxes(this.playerEntity, this.playerEntity.boundingBox.copy().contract((double)var27, (double)var27, (double)var27)).isEmpty();
-            if (var28 && (var31 || !var32) && !this.playerEntity.inBed()) {
+            if (var28 && (var31 || !var32) && !this.playerEntity.inBed() && !this.playerEntity.noClip) {
                this.setPlayerLocation(this.lastPosX, this.lastPosY, this.lastPosZ, var11, var12);
                return;
             }
 
             AxisAlignedBB var33 = this.playerEntity.boundingBox.copy().expand((double)var27, (double)var27, (double)var27).addCoord(0.0, -0.55, 0.0);
-            if (!this.mcServer.isFlightAllowed() && !this.playerEntity.theItemInWorldManager.isCreative() && !this.playerEntity.isZevimrgvInTournament() && !var2.checkBlockCollision(var33)) {
+            if (!this.mcServer.isFlightAllowed() && !this.playerEntity.theItemInWorldManager.isCreative() && !this.playerEntity.isZevimrgvInTournament()
+                    && !var2.checkBlockCollision(var33) && !this.playerEntity.capabilities.allowFlying) {
                if (var29 >= -0.03125) {
                   ++this.ticksForFloatKick;
                   if (this.ticksForFloatKick > 80) {
@@ -356,9 +373,16 @@ public class NetServerHandler extends NetHandler {
                this.ticksForFloatKick = 0;
             }
 
+            if (!this.hasMoved) //Fixes "Moved Too Fast" kick when being teleported while moving
+            {
+               return;
+            }
+
+
             this.playerEntity.onGround = par1Packet10Flying.onGround;
             this.mcServer.getConfigurationManager().serverUpdateMountedMovingPlayer(this.playerEntity);
             this.playerEntity.updateFlyingState(this.playerEntity.posY - var3, par1Packet10Flying.onGround);
+
          } else if (this.currentTicks % 20 == 0) {
             this.setPlayerLocation(this.lastPosX, this.lastPosY, this.lastPosZ, this.playerEntity.rotationYaw, this.playerEntity.rotationPitch);
          }
@@ -557,6 +581,8 @@ public class NetServerHandler extends NetHandler {
                }
 
                ChatMessageComponent var4 = ChatMessageComponent.createFromTranslationWithSubstitutions("chat.type.text", this.playerEntity.getTranslatedEntityName(), var2);
+               var4 = ForgeHooks.onServerChatEvent(this, var2, var4);
+               if (var4 == null) return;
                this.mcServer.getConfigurationManager().func_110459_a(var4, false);
             }
 
@@ -648,7 +674,7 @@ public class NetServerHandler extends NetHandler {
                return;
             }
 
-            this.playerEntity = this.mcServer.getConfigurationManager().respawnPlayer(this.playerEntity, 0, false);
+            this.playerEntity = this.mcServer.getConfigurationManager().respawnPlayer(this.playerEntity,  playerEntity.dimension, false);
          }
       }
 

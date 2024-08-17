@@ -13,6 +13,9 @@ import net.minecraft.raycast.RaycastCollision;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumFace;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.Event;
+import net.minecraftforge.event.entity.player.UseHoeEvent;
 
 public class ItemHoe extends ItemTool {
    protected ItemHoe(int par1, Material material) {
@@ -61,6 +64,18 @@ public class ItemHoe extends ItemTool {
          if (block != Block.grass && block != Block.dirt) {
             return false;
          } else {
+            UseHoeEvent event = new UseHoeEvent(player, player.itemInUse, world, x, y, z);
+            if (MinecraftForge.EVENT_BUS.post(event))
+            {
+               return false;
+            }
+
+            if (event.getResult() == Event.Result.ALLOW)
+            {
+               player.tryDamageHeldItem(DamageSource.generic, 50);
+               return true;
+            }
+
             if (player.onClient()) {
                player.swingArm();
                Minecraft.theMinecraft.playerController.setUseButtonDelayOverride(200);

@@ -2,7 +2,9 @@ package net.minecraft.world.gen.feature;
 
 import java.util.Random;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockSapling;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ForgeDirection;
 
 public class WorldGenTaiga2 extends WorldGenerator {
    public WorldGenTaiga2(boolean par1) {
@@ -16,23 +18,25 @@ public class WorldGenTaiga2 extends WorldGenerator {
       int var9 = 2 + par2Random.nextInt(2);
       boolean var10 = true;
       if (par4 >= 1 && par4 + var6 + 1 <= 256) {
-         int var11;
-         int var13;
+         int l1;
+         int i2;
          int var15;
          int var21;
-         for(var11 = par4; var11 <= par4 + 1 + var6 && var10; ++var11) {
+         for(l1 = par4; l1 <= par4 + 1 + var6 && var10; ++l1) {
             boolean var12 = true;
-            if (var11 - par4 < var7) {
+            if (l1 - par4 < var7) {
                var21 = 0;
             } else {
                var21 = var9;
             }
 
-            for(var13 = par3 - var21; var13 <= par3 + var21 && var10; ++var13) {
-               for(int var14 = par5 - var21; var14 <= par5 + var21 && var10; ++var14) {
-                  if (var11 >= 0 && var11 < 256) {
-                     var15 = par1World.getBlockId(var13, var11, var14);
-                     if (var15 != 0 && var15 != Block.leaves.blockID) {
+            for(i2 = par3 - var21; i2 <= par3 + var21 && var10; ++i2) {
+               for(int l2 = par5 - var21; l2 <= par5 + var21 && var10; ++l2) {
+                  if (l1 >= 0 && l1 < 256) {
+                     var15 = par1World.getBlockId(i2, l1, l2);
+                     Block block = Block.blocksList[var15];
+
+                     if (var15 != 0 && block != null && !block.isLeaves(par1World, i2, l1, l2)) {
                         var10 = false;
                      }
                   } else {
@@ -46,11 +50,14 @@ public class WorldGenTaiga2 extends WorldGenerator {
             return false;
          } else {
             int radius = 0;
-            var11 = par1World.getBlockId(par3, par4 - 1, par5);
-            if ((var11 == Block.grass.blockID || var11 == Block.dirt.blockID) && par4 < 256 - var6 - 1) {
-               this.setBlock(par1World, par3, par4 - 1, par5, Block.dirt.blockID);
+            l1 = par1World.getBlockId(par3, par4 - 1, par5);
+            Block soil = Block.blocksList[l1];
+            boolean isValidSoil = soil != null && soil.canSustainPlant(par1World, par3, par4 - 1, par5, ForgeDirection.UP, (BlockSapling)Block.sapling);
+
+            if (isValidSoil && par4 < 256 - var6 - 1) {
+               soil.onPlantGrow(par1World, par3, par4 - 1, par5, par3, par4, par5);
                var21 = par2Random.nextInt(2);
-               var13 = 1;
+               i2 = 1;
                byte var22 = 0;
 
                int var17;
@@ -63,7 +70,10 @@ public class WorldGenTaiga2 extends WorldGenerator {
 
                      for(int var19 = par5 - var21; var19 <= par5 + var21; ++var19) {
                         int var20 = var19 - par5;
-                        if ((Math.abs(var18) != var21 || Math.abs(var20) != var21 || var21 <= 0) && !Block.opaqueCubeLookup[par1World.getBlockId(var17, var16, var19)]) {
+                        Block block = Block.blocksList[par1World.getBlockId(var17, var16, var19)];
+
+                        if ((Math.abs(var18) != var21 || Math.abs(var20) != var21 || var21 <= 0) &&
+                                (block == null || block.canBeReplacedByLeaves(par1World, var17, var16, var19))) {
                            this.setBlockAndMetadata(par1World, var17, var16, var19, Block.leaves.blockID, 1);
                            if (var21 > radius) {
                               radius = var21;
@@ -72,12 +82,12 @@ public class WorldGenTaiga2 extends WorldGenerator {
                      }
                   }
 
-                  if (var21 >= var13) {
+                  if (var21 >= i2) {
                      var21 = var22;
                      var22 = 1;
-                     ++var13;
-                     if (var13 > var9) {
-                        var13 = var9;
+                     ++i2;
+                     if (i2 > var9) {
+                        i2 = var9;
                      }
                   } else {
                      ++var21;
@@ -88,7 +98,9 @@ public class WorldGenTaiga2 extends WorldGenerator {
 
                for(var16 = 0; var16 < var6 - var15; ++var16) {
                   var17 = par1World.getBlockId(par3, par4 + var16, par5);
-                  if (var17 == 0 || var17 == Block.leaves.blockID) {
+                  Block block = Block.blocksList[var17];
+
+                  if (var17 == 0 || block == null || block.isLeaves(par1World, par3, par4 + var16, par5)) {
                      this.setBlockAndMetadata(par1World, par3, par4 + var16, par5, Block.wood.blockID, 1);
                   }
                }

@@ -212,7 +212,7 @@ public class BlockCauldron extends Block {
    }
 
    public boolean canBePlacedOnBlock(int metadata, Block block_below, int block_below_metadata, double block_below_bounds_max_y) {
-      return (block_below.isTopFlatAndSolid(block_below_metadata) || block_below == tilledField) && super.canBePlacedOnBlock(metadata, block_below, block_below_metadata, block_below_bounds_max_y);
+      return (block_below.isBlockTopFacingSurfaceSolid(block_below_metadata) || block_below == tilledField) && super.canBePlacedOnBlock(metadata, block_below, block_below_metadata, block_below_bounds_max_y);
    }
 
    public boolean hidesAdjacentSide(IBlockAccess block_access, int x, int y, int z, Block neighbor, int side) {

@@ -11,7 +11,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.util.EnumBlockOperation;
 import net.minecraft.util.EnumDirection;
-import net.minecraft.util.EnumFace;
 import net.minecraft.util.EnumParticle;
 import net.minecraft.util.Icon;
 import net.minecraft.util.StringHelper;
@@ -118,7 +117,7 @@ public class BlockPumpkin extends BlockDirectional {
 
    public boolean canOccurAt(World world, int x, int y, int z, int metadata) {
       Block block_below = world.getBlock(x, y - 1, z);
-      return block_below != null && block_below.isTopFlatAndSolid(world.getBlockMetadata(x, y - 1, z)) ? super.canOccurAt(world, x, y, z, metadata) : false;
+      return block_below != null && block_below.isBlockTopFacingSurfaceSolid(world.getBlockMetadata(x, y - 1, z)) ? super.canOccurAt(world, x, y, z, metadata) : false;
    }
 
    public boolean canBePlacedAt(World world, int x, int y, int z, int metadata) {
@@ -128,7 +127,7 @@ public class BlockPumpkin extends BlockDirectional {
    }
 
    public boolean canBePlacedOnBlock(int metadata, Block block_below, int block_below_metadata, double block_below_bounds_max_y) {
-      return block_below != null && block_below.isTopFlatAndSolid(block_below_metadata) && super.canBePlacedOnBlock(metadata, block_below, block_below_metadata, block_below_bounds_max_y);
+      return block_below != null && block_below.isBlockTopFacingSurfaceSolid(block_below_metadata) && super.canBePlacedOnBlock(metadata, block_below, block_below_metadata, block_below_bounds_max_y);
    }
 
    public void registerIcons(IconRegister par1IconRegister) {

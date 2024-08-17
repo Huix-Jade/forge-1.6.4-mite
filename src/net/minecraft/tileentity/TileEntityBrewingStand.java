@@ -9,6 +9,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.potion.PotionHelper;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.brewing.PotionBrewedEvent;
 
 public class TileEntityBrewingStand extends TileEntity implements ISidedInventory {
    private static final int[] field_102017_a = new int[]{3};
@@ -66,7 +68,7 @@ public class TileEntityBrewingStand extends TileEntity implements ISidedInventor
             boolean var2 = false;
 
             for(int var3 = 0; var3 < 3; ++var3) {
-               if (this.brewingItemStacks[var3] != null && this.brewingItemStacks[var3].itemID == Item.potion.itemID) {
+               if (this.brewingItemStacks[var3] != null && this.brewingItemStacks[var3].getItem() instanceof ItemPotion) {
                   int var4 = this.brewingItemStacks[var3].getItemSubtype();
                   int var5 = this.getPotionResult(var4, var1);
                   if (!ItemPotion.isSplash(var4) && ItemPotion.isSplash(var5)) {
@@ -95,7 +97,7 @@ public class TileEntityBrewingStand extends TileEntity implements ISidedInventor
          ItemStack var1 = this.brewingItemStacks[3];
 
          for(int var2 = 0; var2 < 3; ++var2) {
-            if (this.brewingItemStacks[var2] != null && this.brewingItemStacks[var2].itemID == Item.potion.itemID) {
+            if (this.brewingItemStacks[var2] != null && this.brewingItemStacks[var2].getItem() instanceof ItemPotion) {
                int var3 = this.brewingItemStacks[var2].getItemSubtype();
                int var4 = this.getPotionResult(var3, var1);
                List var5 = Item.potion.getEffects(var3);
@@ -118,6 +120,7 @@ public class TileEntityBrewingStand extends TileEntity implements ISidedInventor
                this.brewingItemStacks[3] = null;
             }
          }
+         MinecraftForge.EVENT_BUS.post(new PotionBrewedEvent(brewingItemStacks));
       }
 
    }
@@ -205,7 +208,7 @@ public class TileEntityBrewingStand extends TileEntity implements ISidedInventor
    }
 
    public boolean isItemValidForSlot(int par1, ItemStack par2ItemStack) {
-      return par1 == 3 ? Item.itemsList[par2ItemStack.itemID].isPotionIngredient() : par2ItemStack.itemID == Item.potion.itemID || par2ItemStack.itemID == Item.glassBottle.itemID;
+      return par1 == 3 ? Item.itemsList[par2ItemStack.itemID].isPotionIngredient() : par2ItemStack.getItem() instanceof ItemPotion || par2ItemStack.itemID == Item.glassBottle.itemID;
    }
 
    public void setBrewTime(int par1) {

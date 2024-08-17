@@ -5,6 +5,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.Vec3Pool;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.ForgeDirection;
 
 public interface IBlockAccess {
    int getBlockId(int var1, int var2, int var3);
@@ -37,7 +38,7 @@ public interface IBlockAccess {
 
    boolean extendedLevelsInChunkCache();
 
-   boolean isBlockTopFlatAndSolid(int var1, int var2, int var3);
+   boolean doesBlockHaveSolidTopSurface(int var1, int var2, int var3);
 
    Vec3Pool getWorldVec3Pool();
 
@@ -46,4 +47,16 @@ public interface IBlockAccess {
    World getWorld();
 
    boolean isBlockSolid(int var1, int var2, int var3);
+
+   /**
+    * FORGE: isBlockSolidOnSide, pulled up from {@link World}
+    *
+    * @param x X coord
+    * @param y Y coord
+    * @param z Z coord
+    * @param side Side
+    * @param _default default return value
+    * @return if the block is solid on the side
+    */
+   boolean isBlockSolidOnSide(int x, int y, int z, ForgeDirection side, boolean _default);
 }

@@ -111,7 +111,7 @@ public class MapData extends WorldSavedData {
       if (var11 >= (float)(-var16) && var12 >= (float)(-var16) && var11 <= (float)var16 && var12 <= (float)var16) {
          par8 += par8 < 0.0 ? -8.0 : 8.0;
          var15 = (byte)((int)(par8 * 16.0 / 360.0));
-         if (this.dimension < 0) {
+         if (par2World.provider.shouldMapSpin(par3Str, par4, par6, par8)) {
             int var17 = par2World.getTimeOfDay() / 10;
             var15 = (byte)(var17 * var17 * 34187121 + var17 * 121 >> 15 & 15);
          }

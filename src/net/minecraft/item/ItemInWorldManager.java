@@ -20,12 +20,23 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.ForgeEventFactory;
 
 import java.util.ArrayList;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.Event;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
+import net.minecraftforge.event.world.BlockEvent;
 
 public class ItemInWorldManager {
    public World theWorld;
    public EntityPlayerMP thisPlayerMP;
    private EnumGameType gameType;
    private boolean tree_felling_in_progress;
+
+   /** Forge reach distance */
+   private double blockReachDistance = 5.0d;
 
    public ItemInWorldManager(World par1World) {
       this.gameType = EnumGameType.NOT_SET;
@@ -68,17 +79,43 @@ public class ItemInWorldManager {
 
    public void onBlockClicked(int par1, int par2, int par3, EnumFace face) {
       if (!this.gameType.isAdventure() || this.thisPlayerMP.isCurrentToolAdventureModeExempt(par1, par2, par3)) {
+         PlayerInteractEvent event = ForgeEventFactory.onPlayerInteract(thisPlayerMP, Action.LEFT_CLICK_BLOCK, par1, par2, par3, face.ordinal());
+         if (event.isCanceled())
+         {
+            thisPlayerMP.playerNetServerHandler.sendPacketToPlayer(new Packet53BlockChange(par1, par2, par3, theWorld));
+            return;
+         }
+
          if (this.isCreative()) {
             if (!this.theWorld.extinguishFire((EntityPlayer)null, par1, par2, par3, face)) {
                this.tryHarvestBlock(par1, par2, par3);
             }
          } else {
-            this.theWorld.extinguishFire((EntityPlayer)null, par1, par2, par3, face);
             float var5 = 1.0F;
             int var6 = this.theWorld.getBlockId(par1, par2, par3);
-            if (var6 > 0) {
-               Block.blocksList[var6].onBlockClicked(this.theWorld, par1, par2, par3, this.thisPlayerMP);
+            Block block = Block.blocksList[var6];
+
+            if (block != null)
+            {
+               if (event.useBlock != Event.Result.DENY)
+               {
+                  block.onBlockClicked(theWorld, par1, par2, par3, thisPlayerMP);
+                  theWorld.extinguishFire(thisPlayerMP, par1, par2, par3, face);
+               }
+               else
+               {
+                  thisPlayerMP.playerNetServerHandler.sendPacketToPlayer(new Packet53BlockChange(par1, par2, par3, theWorld));
+               }
                var5 = this.thisPlayerMP.getDamageVsBlock(par1, par2, par3, true);
+            }
+
+            if (event.useItem == Event.Result.DENY)
+            {
+               if (var5 >= 1.0f)
+               {
+                  thisPlayerMP.playerNetServerHandler.sendPacketToPlayer(new Packet53BlockChange(par1, par2, par3, theWorld));
+               }
+               return;
             }
 
             if (var6 > 0 && var5 >= 1.0F) {
@@ -95,7 +132,7 @@ public class ItemInWorldManager {
       if (var4 != null) {
       }
 
-      boolean var6 = this.theWorld.setBlockToAir(par1, par2, par3);
+      boolean var6 = (var4 != null && var4.removeBlockByPlayer(theWorld, thisPlayerMP, par1, par2, par3));
       if (var4 != null && var6 && var4.isAlwaysOpaqueStandardFormCube() && var4.blockMaterial.requiresTool(var4, var5) && this.theWorld.rand.nextInt(100) == 0) {
          int ran = this.theWorld.rand.nextInt(6);
          int dx = ran == 0 ? -1 : (ran == 1 ? 1 : 0);
@@ -138,11 +175,16 @@ public class ItemInWorldManager {
          Minecraft.setErrorMessage("tryHarvestBlock: called on client?");
       }
 
-      if (this.gameType.isAdventure() && !this.thisPlayerMP.isCurrentToolAdventureModeExempt(x, y, z)) {
-         return false;
-      } else if (this.gameType.isCreative() && this.thisPlayerMP.getHeldItemStack() != null && this.thisPlayerMP.getHeldItemStack().getItem() instanceof ItemSword) {
+      BlockEvent.BreakEvent event = ForgeHooks.onBlockBreakEvent(theWorld, gameType, thisPlayerMP, x, y, z);
+      if (event.isCanceled()) {
          return false;
       } else {
+         ItemStack stack = thisPlayerMP.getHeldItemStack();
+         if (stack != null && stack.getItem().onBlockStartBreak(stack, x, y, z, thisPlayerMP))
+         {
+            return false;
+         }
+
          Block block = this.theWorld.getBlock(x, y, z);
          if (block == null) {
             return false;
@@ -163,8 +205,9 @@ public class ItemInWorldManager {
                   }
 
                   this.theWorld.playAuxSFXAtEntity(this.thisPlayerMP, 2001, x, y, z, data);
-                  boolean block_was_removed = this.removeBlock(x, y, z);
+                  boolean block_was_removed = false;
                   if (this.isCreative()) {
+                     block_was_removed = this.removeBlock(x, y, z);
                      this.thisPlayerMP.playerNetServerHandler.sendPacketToPlayer(new Packet53BlockChange(x, y, z, this.theWorld));
                   } else {
                      ItemStack held_item_stack = this.thisPlayerMP.getHeldItemStack();
@@ -203,6 +246,7 @@ public class ItemInWorldManager {
                      }
                   }
 
+                  block_was_removed = this.removeBlock(x, y, z);
                   int i;
                   if (block_was_removed && !(block instanceof BlockTorch)) {
                      i = this.theWorld.getBlockId(x, y + 1, z);
@@ -229,8 +273,15 @@ public class ItemInWorldManager {
                            this.thisPlayerMP.triggerAchievement(AchievementList.portalToNether);
                            break;
                         }
+
+                        // Drop experience
+                        if (!this.isCreative() && block_was_removed && event != null)
+                        {
+                           Block.blocksList[i].dropXpOnBlockBreak(this.theWorld, x, y, z, event.getExpToDrop());
+                        }
                      }
                   }
+
 
                   return block_was_removed;
                }
@@ -246,5 +297,14 @@ public class ItemInWorldManager {
 
    public void setWorld(WorldServer par1WorldServer) {
       this.theWorld = par1WorldServer;
+   }
+
+   public double getBlockReachDistance()
+   {
+      return blockReachDistance;
+   }
+   public void setBlockReachDistance(double distance)
+   {
+      blockReachDistance = distance;
    }
 }

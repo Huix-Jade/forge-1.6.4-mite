@@ -8,6 +8,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumDirection;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ChestGenHooks;
+
+import static net.minecraftforge.common.ChestGenHooks.STRONGHOLD_CORRIDOR;
 
 public class ComponentStrongholdChestCorridor extends ComponentStronghold {
    private static final WeightedRandomChestContent[] strongholdChestContents;
@@ -66,7 +69,7 @@ public class ComponentStrongholdChestCorridor extends ComponentStronghold {
             int var6 = this.getZWithOffset(3, 3);
             if (par3StructureBoundingBox.isVecInside(var5, var4, var6)) {
                this.hasMadeChest = true;
-               this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 3, 2, 3, Block.chest.blockID, WeightedRandomChestContent.func_92080_a(strongholdChestContents, Item.enchantedBook.func_92114_b(par2Random)), 2 + par2Random.nextInt(2), (float[])null, EnumDirection.WEST);
+               this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 3, 2, 3, Block.chest.blockID, ChestGenHooks.getItems(STRONGHOLD_CORRIDOR, par2Random), ChestGenHooks.getCount(STRONGHOLD_CORRIDOR, par2Random), (float[])null, EnumDirection.WEST);
             }
          }
 

@@ -2,6 +2,7 @@ package net.minecraftforge.event.entity.player;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.raycast.RaycastCollision;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import net.minecraftforge.event.Cancelable;
@@ -23,11 +24,11 @@ public class FillBucketEvent extends PlayerEvent
 
     public final ItemStack current;
     public final World world;
-    public final MovingObjectPosition target;
+    public final RaycastCollision target;
 
     public ItemStack result;
 
-    public FillBucketEvent(EntityPlayer player, ItemStack current, World world, MovingObjectPosition target)
+    public FillBucketEvent(EntityPlayer player, ItemStack current, World world, RaycastCollision target)
     {
         super(player);
         this.current = current;

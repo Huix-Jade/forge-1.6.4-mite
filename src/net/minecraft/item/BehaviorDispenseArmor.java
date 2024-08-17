@@ -25,7 +25,8 @@ final class BehaviorDispenseArmor extends BehaviorDefaultDispenseItem {
          int var11 = EntityLiving.getEquipmentPosition(par2ItemStack);
          ItemStack var12 = par2ItemStack.copy();
          var12.stackSize = 1;
-         var9.setCurrentItemOrArmor(var11 - var10, var12);
+         var9.setCurrentItemOrArmor(var11, var12);  //BUGFIX Forge: Vanilla bug fix associated with fixed setCurrentItemOrArmor indexs for players.
+//         var9.setCurrentItemOrArmor(var11 - var10, var12);
          if (var9 instanceof EntityLiving) {
             ((EntityLiving)var9).setEquipmentDropChance(var11, 2.0F);
          }

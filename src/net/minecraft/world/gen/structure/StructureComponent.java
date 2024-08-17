@@ -32,6 +32,10 @@ public abstract class StructureComponent {
 
    public NBTTagCompound func_143010_b() {
       NBTTagCompound var1 = new NBTTagCompound();
+      if (MapGenStructureIO.func_143036_a(this) == null)
+      {
+         throw new RuntimeException("StructureComponent \"" + this.getClass().getName() + "\" missing ID Mapping, Modder see MapGenStructureIO");
+      }
       var1.setString("id", MapGenStructureIO.func_143036_a(this));
       var1.setTag("BB", this.boundingBox.func_143047_a("BB"));
       var1.setInteger("O", this.coordBaseMode);

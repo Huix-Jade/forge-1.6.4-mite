@@ -13,6 +13,10 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraftforge.event.terraingen.TerrainGen;
+import net.minecraftforge.common.*;
+import net.minecraftforge.event.Event.*;
+import net.minecraftforge.event.terraingen.*;
 
 public final class ChunkProviderEnd implements IChunkProvider {
    private Random endRNG;
@@ -39,6 +43,14 @@ public final class ChunkProviderEnd implements IChunkProvider {
       this.noiseGen3 = new NoiseGeneratorOctaves(this.endRNG, 8);
       this.noiseGen4 = new NoiseGeneratorOctaves(this.endRNG, 10);
       this.noiseGen5 = new NoiseGeneratorOctaves(this.endRNG, 16);
+
+      NoiseGeneratorOctaves[] noiseGens = {noiseGen1, noiseGen2, noiseGen3, noiseGen4, noiseGen5};
+      noiseGens = TerrainGen.getModdedNoiseGenerators(par1World, this.endRNG, noiseGens);
+      this.noiseGen1 = noiseGens[0];
+      this.noiseGen2 = noiseGens[1];
+      this.noiseGen3 = noiseGens[2];
+      this.noiseGen4 = noiseGens[3];
+      this.noiseGen5 = noiseGens[4];
    }
 
    public void generateTerrain(int par1, int par2, byte[] par3ArrayOfByte, BiomeGenBase[] par4ArrayOfBiomeGenBase) {
@@ -102,6 +114,10 @@ public final class ChunkProviderEnd implements IChunkProvider {
    }
 
    public void replaceBlocksForBiome(int par1, int par2, byte[] par3ArrayOfByte, BiomeGenBase[] par4ArrayOfBiomeGenBase) {
+      ChunkProviderEvent.ReplaceBiomeBlocks event = new ChunkProviderEvent.ReplaceBiomeBlocks(this, par1, par2, par3ArrayOfByte, par4ArrayOfBiomeGenBase);
+      MinecraftForge.EVENT_BUS.post(event);
+      if (event.getResult() == Result.DENY) return;
+
       for(int var5 = 0; var5 < 16; ++var5) {
          for(int var6 = 0; var6 < 16; ++var6) {
             byte var7 = 1;
@@ -160,6 +176,10 @@ public final class ChunkProviderEnd implements IChunkProvider {
    }
 
    private double[] initializeNoiseField(double[] par1ArrayOfDouble, int par2, int par3, int par4, int par5, int par6, int par7) {
+      ChunkProviderEvent.InitNoiseField event = new ChunkProviderEvent.InitNoiseField(this, par1ArrayOfDouble, par2, par3, par4, par5, par6, par7);
+      MinecraftForge.EVENT_BUS.post(event);
+      if (event.getResult() == Result.DENY) return event.noisefield;
+
       if (par1ArrayOfDouble == null) {
          par1ArrayOfDouble = new double[par5 * par6 * par7];
       }
@@ -275,10 +295,12 @@ public final class ChunkProviderEnd implements IChunkProvider {
 
    public void populate(IChunkProvider par1IChunkProvider, int par2, int par3) {
       BlockFalling.fallInstantly = true;
+      MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Pre(par1IChunkProvider, endWorld, endWorld.rand, par2, par3, false));
       int var4 = par2 * 16;
       int var5 = par3 * 16;
       BiomeGenBase var6 = this.endWorld.getBiomeGenForCoords(var4 + 16, var5 + 16);
       var6.decorate(this.endWorld, this.endWorld.rand, var4, var5);
+      MinecraftForge.EVENT_BUS.post(new PopulateChunkEvent.Post(par1IChunkProvider, endWorld, endWorld.rand, par2, par3, false));
       BlockFalling.fallInstantly = false;
    }
 

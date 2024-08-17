@@ -12,6 +12,8 @@ import net.minecraft.util.EnumDirection;
 import net.minecraft.util.StringHelper;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ChestGenHooks;
+import net.minecraftforge.common.DungeonHooks;
 
 public class WorldGenDungeons extends WorldGenerator {
    private static final WeightedRandomChestContent[] field_111189_a;
@@ -104,10 +106,10 @@ public class WorldGenDungeons extends WorldGenerator {
 
                   if (var15 == 1) {
                      par1World.setBlock(var12, par4, var14, Block.chest.blockID, Block.chest.getMetadataForDirectionFacing(0, direction), 2);
-                     WeightedRandomChestContent[] var16 = WeightedRandomChestContent.func_92080_a(getChestContentsForWorld(par1World), Item.enchantedBook.func_92114_b(par2Random));
                      TileEntityChest var17 = (TileEntityChest)par1World.getBlockTileEntity(var12, par4, var14);
                      if (var17 != null) {
-                        WeightedRandomChestContent.generateChestContents(par1World, par4, par2Random, var16, var17, 8, (float[])null);
+                        ChestGenHooks info = ChestGenHooks.getInfo(ChestGenHooks.DUNGEON_CHEST);
+                        WeightedRandomChestContent.generateChestContents(par1World, par4, par2Random, info.getItems(par2Random), var17, info.getCount(par2Random), (float[])null);
                      }
                      break;
                   }
@@ -161,8 +163,10 @@ public class WorldGenDungeons extends WorldGenerator {
                return "Wight";
             case 5:
                return "DemonSpider";
-            default:
+            case 6:
                return "Hellhound";
+            default:
+               return DungeonHooks.getRandomDungeonMob(par1Random);
          }
       }
    }

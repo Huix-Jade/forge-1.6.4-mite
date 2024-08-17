@@ -8,6 +8,7 @@ import java.io.IOException;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.ForgeDummyContainer;
 
 public class Packet52MultiBlockChange extends Packet {
    public int xPosition;
@@ -30,8 +31,8 @@ public class Packet52MultiBlockChange extends Packet {
       Chunk var7 = par5World.getChunkFromChunkCoords(par1, par2);
 
       try {
-         if (par4 >= 64) {
-            this.field_98193_m.logInfo("ChunkTilesUpdatePacket compress " + par4);
+         if (par4 >= ForgeDummyContainer.clumpingThreshold) {
+
             if (field_73449_e.length < var6) {
                field_73449_e = new byte[var6];
             }

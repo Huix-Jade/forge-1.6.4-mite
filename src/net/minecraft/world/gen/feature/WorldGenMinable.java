@@ -13,6 +13,7 @@ public class WorldGenMinable extends WorldGenerator {
    private int numberOfBlocks;
    private int blockToReplace;
    private boolean vein_size_increases_with_depth;
+   private int minableBlockMeta = 0;
 
    public WorldGenMinable(int par1, int par2) {
       this(par1, par2, Block.stone.blockID);
@@ -22,6 +23,12 @@ public class WorldGenMinable extends WorldGenerator {
       this.minableBlockId = par1;
       this.numberOfBlocks = par2;
       this.blockToReplace = par3;
+   }
+
+   public WorldGenMinable(int id, int meta, int number, int target)
+   {
+      this(id, number, target);
+      this.minableBlockMeta = meta;
    }
 
    public WorldGenMinable setMinableBlockMetadata(int metadata) {
@@ -38,13 +45,15 @@ public class WorldGenMinable extends WorldGenerator {
    }
 
    public int growVein(World world, Random rand, int blocks_to_grow, int x, int y, int z, boolean must_be_supported, boolean is_dirt) {
-      if (blocks_to_grow >= 1 && world.blockExists(x, y, z) && world.getBlockId(x, y, z) == this.blockToReplace) {
+      Block block = Block.blocksList[world.getBlockId(x, y, z)];
+      if (blocks_to_grow >= 1 && world.blockExists(x, y, z) && world.getBlockId(x, y, z) == this.blockToReplace
+              && (block != null && block.isGenMineableReplaceable(world, x, y, z, this.blockToReplace))) {
          if (must_be_supported && (y < 1 || world.isAirOrPassableBlock(x, y - 1, z, true))) {
             return 0;
          } else {
             if (is_dirt && world.canBlockSeeTheSky(x, y + 1, z)) {
                BiomeGenBase biome = world.getBiomeGenForCoords(x, z);
-               world.setBlock(x, y, z, biome != BiomeGenBase.desert && biome != BiomeGenBase.desertHills ? Block.grass.blockID : Block.sand.blockID, 0, 2);
+               world.setBlock(x, y, z, biome != BiomeGenBase.desert && biome != BiomeGenBase.desertHills ? Block.grass.blockID : Block.sand.blockID, minableBlockMeta, 2);
             } else {
                world.setBlock(x, y, z, this.minableBlockId, this.minable_block_metadata, 2);
             }

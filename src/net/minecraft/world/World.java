@@ -10,6 +10,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+
+import com.google.common.collect.ImmutableSetMultimap;
+import cpw.mods.fml.common.FMLLog;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBreakInfo;
 import net.minecraft.block.BlockFluid;
@@ -24,10 +27,7 @@ import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.EntitySpawnPendingEntry;
+import net.minecraft.entity.*;
 import net.minecraft.entity.ai.EntitySenses;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.item.EntityMinecart;
@@ -85,6 +85,12 @@ import net.minecraft.world.gen.ChunkProviderServer;
 import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.MapStorage;
 import net.minecraft.world.storage.WorldInfo;
+
+import net.minecraftforge.client.ForgeHooksClient;
+import net.minecraftforge.common.*;
+import net.minecraftforge.event.entity.EntityEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 
 public abstract class World implements IBlockAccess {
    public boolean scheduledUpdatesAreImmediate;
@@ -178,7 +184,22 @@ public abstract class World implements IBlockAccess {
    private final int bottom_block_metadata;
    public HashMap pending_sand_falls;
 
-   public BiomeGenBase getBiomeGenForCoords(int par1, int par2) {
+   /**
+    * Used in the getEntitiesWithinAABB functions to expand the search area for entities.
+    * Modders should change this variable to a higher value if it is less then the radius
+    * of one of there entities.
+    */
+   public static double MAX_ENTITY_RADIUS = 2.0D;
+
+   public final MapStorage perWorldStorage;
+
+   public BiomeGenBase getBiomeGenForCoords(int par1, int par2)
+   {
+      return provider.getBiomeGenForCoords(par1, par2);
+   }
+
+   public BiomeGenBase getBiomeGenForCoordsBody(int par1, int par2)
+   {
       if (this.blockExists(par1, 0, par2)) {
          Chunk var3 = this.getChunkFromBlockCoords(par1, par2);
          if (var3 != null) {
@@ -215,7 +236,7 @@ public abstract class World implements IBlockAccess {
       this.is_nether = this.provider.isTheNether();
       this.is_overworld = this.provider.isSurfaceWorld();
       this.is_the_end = this.provider.isTheEnd();
-      this.bottom_block = (Block)(this.isOverworld() ? Block.bedrock : (!this.isUnderworld() && !this.isTheNether() ? null : Block.mantleOrCore));
+      this.bottom_block = (Block) (this.isOverworld() ? Block.bedrock : (!this.isUnderworld() && !this.isTheNether() ? null : Block.mantleOrCore));
       this.bottom_block_metadata = this.isUnderworld() ? 0 : (this.isTheNether() ? 1 : -1);
       this.has_skylight = !this.provider.hasNoSky && this.is_overworld;
       this.block_domain_radius = this.provider.getBlockDomainRadius();
@@ -223,14 +244,27 @@ public abstract class World implements IBlockAccess {
       this.max_chunk_xz = this.block_domain_radius / 16 - 1;
       this.min_block_xz = -this.block_domain_radius;
       this.max_block_xz = this.block_domain_radius - 1;
-      this.min_entity_pos_xz = (double)this.min_block_xz;
-      this.max_entity_pos_xz = (double)this.max_block_xz + 0.9999;
+      this.min_entity_pos_xz = (double) this.min_block_xz;
+      this.max_entity_pos_xz = (double) this.max_block_xz + 0.9999;
       this.runegate_adamantium_domain_radius = Math.min(this.block_domain_radius / 2, 40000);
       this.runegate_mithril_domain_radius = this.runegate_adamantium_domain_radius / 8;
       this.validateDomainValues();
       this.worldInfo.setTotalWorldTime(total_world_time, this);
-      this.mapStorage = new MapStorage(par1ISaveHandler);
+      perWorldStorage = new MapStorage((ISaveHandler) null);
       this.worldLogAgent = par6ILogAgent;
+      // Guarantee the dimension ID was not reset by the provider
+      int providerDim = this.provider.dimensionId;
+      this.provider.registerWorld(this);
+      this.provider.dimensionId = providerDim;
+      this.chunkProvider = this.createChunkProvider();
+      this.calculateInitialSkylight();
+      this.calculateInitialWeather();
+      RNG.init(this);
+      this.mycelium_posts = this.createMyceliumPostField();
+      this.underworld_y_offset = this.is_underworld ? 120 : 0;
+   }
+
+   protected void finishSetup() {
       VillageCollection var7 = (VillageCollection)this.mapStorage.loadData(VillageCollection.class, "villages");
       if (var7 == null) {
          this.villageCollectionObj = new VillageCollection(this);
@@ -239,14 +273,6 @@ public abstract class World implements IBlockAccess {
          this.villageCollectionObj = var7;
          this.villageCollectionObj.func_82566_a(this);
       }
-
-      par3WorldProvider.registerWorld(this);
-      this.chunkProvider = this.createChunkProvider();
-      this.calculateInitialSkylight();
-      this._calculateInitialWeather();
-      RNG.init(this);
-      this.mycelium_posts = this.createMyceliumPostField();
-      this.underworld_y_offset = this.is_underworld ? 120 : 0;
    }
 
    public World(ISaveHandler par1ISaveHandler, String par2Str, WorldSettings par3WorldSettings, WorldProvider par4WorldProvider, Profiler par5Profiler, ILogAgent par6ILogAgent) {
@@ -260,7 +286,7 @@ public abstract class World implements IBlockAccess {
       this.lightUpdateBlockList = new int['Ꝼ'];
       this.saveHandler = par1ISaveHandler;
       this.theProfiler = par5Profiler;
-      this.mapStorage = new MapStorage(par1ISaveHandler);
+      this.mapStorage = getMapStorage(par1ISaveHandler);
       this.worldLogAgent = par6ILogAgent;
       this.worldInfo = par1ISaveHandler.loadWorldInfo();
       if (par4WorldProvider != null) {
@@ -297,6 +323,16 @@ public abstract class World implements IBlockAccess {
       this.provider.registerWorld(this);
       this.updateTickFlags();
       this.chunkProvider = this.createChunkProvider();
+
+      if (this instanceof WorldServer)
+      {
+         this.perWorldStorage = new MapStorage(new WorldSpecificSaveHandler((WorldServer)this, par1ISaveHandler));
+      }
+      else
+      {
+         this.perWorldStorage = new MapStorage((ISaveHandler)null);
+      }
+
       if (!this.worldInfo.isInitialized()) {
          try {
             this.initialize(par3WorldSettings);
@@ -314,10 +350,10 @@ public abstract class World implements IBlockAccess {
          this.worldInfo.setServerInitialized(true);
       }
 
-      VillageCollection var7 = (VillageCollection)this.mapStorage.loadData(VillageCollection.class, "villages");
+      VillageCollection var7 = (VillageCollection)perWorldStorage.loadData(VillageCollection.class, "villages");
       if (var7 == null) {
          this.villageCollectionObj = new VillageCollection(this);
-         this.mapStorage.setData("villages", this.villageCollectionObj);
+         this.perWorldStorage.setData("villages", this.villageCollectionObj);
       } else {
          this.villageCollectionObj = var7;
          this.villageCollectionObj.func_82566_a(this);
@@ -332,6 +368,20 @@ public abstract class World implements IBlockAccess {
       RNG.init(this);
       this.mycelium_posts = this.createMyceliumPostField();
       this.underworld_y_offset = this.is_underworld ? 120 : 0;
+   }
+
+   private static MapStorage s_mapStorage;
+   private static ISaveHandler s_savehandler;
+   //Provides a solution for different worlds getting different copies of the same data, potentially rewriting the data or causing race conditions/stale data
+   //Buildcraft has suffered from the issue this fixes.  If you load the same data from two different worlds they can get two different copies of the same object, thus the last saved gets final say.
+   private MapStorage getMapStorage(ISaveHandler savehandler)
+   {
+      if (s_savehandler != savehandler || s_mapStorage == null)
+      {
+         s_mapStorage = new MapStorage(savehandler);
+         s_savehandler = savehandler;
+      }
+      return s_mapStorage;
    }
 
    private ChunkPostField createMyceliumPostField() {
@@ -994,12 +1044,14 @@ public abstract class World implements IBlockAccess {
    }
 
    public final boolean isAirBlock(int par1, int par2, int par3) {
-      return this.getBlockId(par1, par2, par3) == 0;
+      int id = getBlockId(par1, par2, par3);
+      return id == 0 || Block.blocksList[id] == null || Block.blocksList[id].isAirBlock(this, par1, par2, par3);
    }
 
    public boolean blockHasTileEntity(int par1, int par2, int par3) {
-      int var4 = this.getBlockId(par1, par2, par3);
-      return Block.blocksList[var4] != null && Block.blocksList[var4].hasTileEntity();
+      int l = this.getBlockId(par1, par2, par3);
+      int meta = this.getBlockMetadata(par1, par2, par3);
+      return Block.blocksList[l] != null && Block.blocksList[l].hasTileEntity(meta);
    }
 
    public int blockGetRenderType(int par1, int par2, int par3) {
@@ -1597,9 +1649,9 @@ public abstract class World implements IBlockAccess {
 
          var6.setBlocklightValue(par2 & 15, par3, par4 & 15, par5);
 
-         for(int var7 = 0; var7 < this.worldAccesses.size(); ++var7) {
-            ((IWorldAccess)this.worldAccesses.get(var7)).markBlockForRenderUpdate(par2, par3, par4);
-         }
+          for (Object worldAccess : this.worldAccesses) {
+              ((IWorldAccess) worldAccess).markBlockForRenderUpdate(par2, par3, par4);
+          }
       }
 
    }
@@ -1608,9 +1660,9 @@ public abstract class World implements IBlockAccess {
       if (this.isWithinBlockDomain(par2, par4) && par3 >= 0 && par3 < 256) {
          chunk.setLightValue(par1EnumSkyBlock, par2 & 15, par3, par4 & 15, par5);
 
-         for(int var7 = 0; var7 < this.worldAccesses.size(); ++var7) {
-            ((IWorldAccess)this.worldAccesses.get(var7)).markBlockForRenderUpdate(par2, par3, par4);
-         }
+          for (Object worldAccess : this.worldAccesses) {
+              ((IWorldAccess) worldAccess).markBlockForRenderUpdate(par2, par3, par4);
+          }
       }
 
    }
@@ -1619,9 +1671,9 @@ public abstract class World implements IBlockAccess {
       if (this.isWithinBlockBounds(par2, par3, par4)) {
          chunk.setSkylightValue(par2 & 15, par3, par4 & 15, par5);
 
-         for(int var7 = 0; var7 < this.worldAccesses.size(); ++var7) {
-            ((IWorldAccess)this.worldAccesses.get(var7)).markBlockForRenderUpdate(par2, par3, par4);
-         }
+          for (Object worldAccess : this.worldAccesses) {
+              ((IWorldAccess) worldAccess).markBlockForRenderUpdate(par2, par3, par4);
+          }
       }
 
    }
@@ -1710,8 +1762,7 @@ public abstract class World implements IBlockAccess {
    }
 
    public boolean isDaytime() {
-      long time_of_day = (long)this.getAdjustedTimeOfDay();
-      return time_of_day > (long)getTimeOfSunrise() && time_of_day < (long)getTimeOfSunset();
+      return provider.isDaytime();
    }
 
    public final RaycastCollision tryRaycastVsBlocks(Raycast raycast) {
@@ -1730,7 +1781,7 @@ public abstract class World implements IBlockAccess {
          int var11 = this.getBlockId(var8, var9, var10);
          if (var11 > 0) {
             Block var13 = Block.blocksList[var11];
-            if (var13.canCollideCheck(this.getBlockMetadata(var8, var9, var10), hit_liquids)) {
+            if (var13 != null && var13.canCollideCheck(this.getBlockMetadata(var8, var9, var10), hit_liquids)) {
                RaycastCollision var14 = var13.tryRaycastVsBlock(raycast, var8, var9, var10, par1Vec3, par2Vec3);
                if (var14 != null) {
                   return var14;
@@ -1853,7 +1904,7 @@ public abstract class World implements IBlockAccess {
             int var35 = this.getBlockId(var8, var9, var10);
             if (var35 > 0) {
                Block var37 = Block.blocksList[var35];
-               if (var37.canCollideCheck(this.getBlockMetadata(var8, var9, var10), hit_liquids)) {
+               if (var37 != null && var37.canCollideCheck(this.getBlockMetadata(var8, var9, var10), hit_liquids)) {
                   RaycastCollision var38 = var37.tryRaycastVsBlock(raycast, var8, var9, var10, par1Vec3, par2Vec3);
                   if (var38 != null) {
                      return var38;
@@ -1890,6 +1941,13 @@ public abstract class World implements IBlockAccess {
    }
 
    public void playSoundAtEntity(Entity par1Entity, String par2Str, float par3, float par4) {
+      PlaySoundAtEntityEvent event = new PlaySoundAtEntityEvent(par1Entity, par2Str, par3, par4);
+      if (MinecraftForge.EVENT_BUS.post(event))
+      {
+         return;
+      }
+      par2Str = event.name;
+
       if (par1Entity != null && par2Str != null) {
          if (par1Entity.isZevimrgvInTournament()) {
             return;
@@ -1912,10 +1970,17 @@ public abstract class World implements IBlockAccess {
    }
 
    public void playSoundToNearExcept(EntityPlayer par1EntityPlayer, String par2Str, float par3, float par4) {
+      PlaySoundAtEntityEvent event = new PlaySoundAtEntityEvent(par1EntityPlayer, par2Str, par3, par4);
+      if (MinecraftForge.EVENT_BUS.post(event))
+      {
+         return;
+      }
+      par2Str = event.name;
+
       if (par1EntityPlayer != null && par2Str != null) {
-         for(int var5 = 0; var5 < this.worldAccesses.size(); ++var5) {
-            ((IWorldAccess)this.worldAccesses.get(var5)).playSoundToNearExcept(par1EntityPlayer, par2Str, par1EntityPlayer.posX, par1EntityPlayer.posY - (double)par1EntityPlayer.yOffset, par1EntityPlayer.posZ, par3, par4);
-         }
+          for (Object worldAccess : this.worldAccesses) {
+              ((IWorldAccess) worldAccess).playSoundToNearExcept(par1EntityPlayer, par2Str, par1EntityPlayer.posX, par1EntityPlayer.posY - (double) par1EntityPlayer.yOffset, par1EntityPlayer.posZ, par3, par4);
+          }
       }
 
    }
@@ -1979,9 +2044,13 @@ public abstract class World implements IBlockAccess {
       }
 
       if (var4 || this.chunkExists(var2, var3) && this.isWithinEntityDomain(par1Entity.posX, par1Entity.posZ)) {
-         if (par1Entity instanceof EntityPlayer) {
-            EntityPlayer var5 = (EntityPlayer)par1Entity;
-            this.playerEntities.add(var5);
+         if (par1Entity instanceof EntityPlayer var5) {
+             this.playerEntities.add(var5);
+         }
+
+         if (MinecraftForge.EVENT_BUS.post(new EntityJoinWorldEvent(par1Entity, this)) && !var4)
+         {
+            return false;
          }
 
          this.getChunkFromChunkCoords(var2, var3).addEntity(par1Entity);
@@ -2244,7 +2313,14 @@ public abstract class World implements IBlockAccess {
       return var3 * 0.8F + 0.2F;
    }
 
-   public Vec3 getSkyColor(Entity par1Entity, float par2) {
+   public Vec3 getSkyColor(Entity par1Entity, float par2)
+   {
+      return provider.getSkyColor(par1Entity, par2);
+   }
+
+
+   public Vec3 getSkyColorBody(Entity par1Entity, float par2)
+   {
       float var3 = this.getCelestialAngle(par2);
       float var4 = MathHelper.cos(var3 * 3.1415927F * 2.0F) * 2.0F + 0.5F;
       if (var4 < 0.0F) {
@@ -2274,10 +2350,11 @@ public abstract class World implements IBlockAccess {
          var8 = this.biome_temperature_transition_for_sky_color;
       }
 
-      int var9 = var7.getSkyColorByTemp(var8);
-      float var10 = (float)(var9 >> 16 & 255) / 255.0F;
-      float var11 = (float)(var9 >> 8 & 255) / 255.0F;
-      float var12 = (float)(var9 & 255) / 255.0F;
+      int multiplier = ForgeHooksClient.getSkyBlendColour(this, i, j);
+
+      float var10 = (float)(multiplier >> 16 & 255) / 255.0F;
+      float var11 = (float)(multiplier >> 8 & 255) / 255.0F;
+      float var12 = (float)(multiplier & 255) / 255.0F;
       var10 *= var4;
       var11 *= var4;
       var12 *= var4;
@@ -2443,8 +2520,14 @@ public abstract class World implements IBlockAccess {
       float var2 = this.getCelestialAngle(par1);
       return var2 * 3.1415927F * 2.0F;
    }
+   public Vec3 getCloudColour(float par1)
+   {
+      return provider.drawClouds(par1);
+   }
 
-   public Vec3 getCloudColour(float par1) {
+
+   public Vec3 drawCloudsBody(float par1)
+   {
       float var2 = this.getCelestialAngle(par1);
       float var3 = MathHelper.cos(var2 * 3.1415927F * 2.0F) * 2.0F + 0.5F;
       if (var3 < 0.0F) {
@@ -2504,7 +2587,7 @@ public abstract class World implements IBlockAccess {
          int var5 = var3.getBlockID(par1, var4, par2);
          if (var5 != 0) {
             Block block = Block.getBlock(var5);
-            if (this.isBlockSolid(block, x, var4, z) && block.blockMaterial != Material.tree_leaves) {
+            if (this.isBlockSolid(block, x, var4, z) && block.blockMaterial != Material.tree_leaves && !Block.blocksList[var5].isBlockFoliage(this, x, var4, z)) {
                return var4 + 1;
             }
          }
@@ -2522,7 +2605,8 @@ public abstract class World implements IBlockAccess {
 
       for(par2 &= 15; var4 > 0; --var4) {
          Block block = Block.getBlock(var3.getBlockID(par1, var4, par2));
-         if (block != null && (!ignore_leaves || block.blockMaterial != Material.tree_leaves) && (block.isSolid(this, x, var4, z) || block.blockMaterial.isLiquid())) {
+         if (block != null && (!ignore_leaves || block.blockMaterial != Material.tree_leaves) && (block.isSolid(this, x, var4, z)
+                 || block.blockMaterial.isLiquid())) {
             return var4;
          }
       }
@@ -2530,7 +2614,13 @@ public abstract class World implements IBlockAccess {
       return -1;
    }
 
-   public float getStarBrightness(float par1) {
+   public float getStarBrightness(float par1)
+   {
+      return provider.getStarBrightness(par1);
+   }
+
+
+   public float getStarBrightnessBody(float par1) {
       float var2 = this.getCelestialAngle(par1);
       float var3 = 1.0F - (MathHelper.cos(var2 * 3.1415927F * 2.0F) * 2.0F + 0.25F);
       if (var3 < 0.0F) {
@@ -2581,8 +2671,7 @@ public abstract class World implements IBlockAccess {
             ++var2.despawn_counter;
             var2.onUpdate();
          } catch (Throwable var13) {
-            Throwable var8 = var13;
-            var4 = CrashReport.makeCrashReport(var8, "Ticking entity");
+            var4 = CrashReport.makeCrashReport(var13, "Ticking entity");
             var5 = var4.makeCategory("Entity being ticked");
             if (var2 == null) {
                var5.addCrashSection("Entity", "~~NULL~~");
@@ -2590,7 +2679,15 @@ public abstract class World implements IBlockAccess {
                var2.addEntityCrashInfo(var5);
             }
 
-            throw new ReportedException(var4);
+            if (ForgeDummyContainer.removeErroringEntities)
+            {
+               FMLLog.severe(var4.getCompleteReport());
+               removeEntity(var2);
+            }
+            else
+            {
+               throw new ReportedException(var4);
+            }
          }
 
          if (var2.isDead) {
@@ -2638,7 +2735,16 @@ public abstract class World implements IBlockAccess {
                var4 = CrashReport.makeCrashReport(var12, "Ticking entity");
                var5 = var4.makeCategory("Entity being ticked");
                var2.addEntityCrashInfo(var5);
-               throw new ReportedException(var4);
+
+               if (ForgeDummyContainer.removeErroringEntities)
+               {
+                  FMLLog.severe(var4.getCompleteReport());
+                  removeEntity(var2);
+               }
+               else
+               {
+                  throw new ReportedException(var4);
+               }
             }
          }
 
@@ -2669,11 +2775,20 @@ public abstract class World implements IBlockAccess {
             try {
                var9.updateEntity();
             } catch (Throwable var11) {
-               Throwable var6 = var11;
-               var4 = CrashReport.makeCrashReport(var6, "Ticking tile entity");
+               var4 = CrashReport.makeCrashReport(var11, "Ticking tile entity");
                var5 = var4.makeCategory("Tile entity being ticked");
                var9.func_85027_a(var5);
-               throw new ReportedException(var4);
+
+               if (ForgeDummyContainer.removeErroringTileEntities)
+               {
+                  FMLLog.severe(var4.getCompleteReport());
+                  var9.invalidate();
+                  setBlockToAir(var9.xCoord, var9.yCoord, var9.zCoord);
+               }
+               else
+               {
+                  throw new ReportedException(var4);
+               }
             }
          }
 
@@ -2682,7 +2797,7 @@ public abstract class World implements IBlockAccess {
             if (this.chunkExists(var9.xCoord >> 4, var9.zCoord >> 4)) {
                Chunk var11 = this.getChunkFromChunkCoords(var9.xCoord >> 4, var9.zCoord >> 4);
                if (var11 != null) {
-                  var11.removeChunkBlockTileEntity(var9.xCoord & 15, var9.yCoord, var9.zCoord & 15);
+                  var11.cleanChunkBlockTileEntity(var9.xCoord & 15, var9.yCoord, var9.zCoord & 15);
                }
             }
          }
@@ -2690,6 +2805,10 @@ public abstract class World implements IBlockAccess {
 
       this.scanningTileEntities = false;
       if (!this.entityRemoval.isEmpty()) {
+         for (Object tile : entityRemoval)
+         {
+            ((TileEntity)tile).onChunkUnload();
+         }
          this.loadedTileEntityList.removeAll(this.entityRemoval);
          this.entityRemoval.clear();
       }
@@ -2706,11 +2825,11 @@ public abstract class World implements IBlockAccess {
                if (this.chunkExists(var12.xCoord >> 4, var12.zCoord >> 4)) {
                   Chunk var15 = this.getChunkFromChunkCoords(var12.xCoord >> 4, var12.zCoord >> 4);
                   if (var15 != null) {
-                     var15.setChunkBlockTileEntity(var12.xCoord & 15, var12.yCoord, var12.zCoord & 15, var12);
+                     var15.cleanChunkBlockTileEntity(var12.xCoord & 15, var12.yCoord, var12.zCoord & 15, var12);
                   }
                }
 
-               this.markBlockForUpdate(var12.xCoord, var12.yCoord, var12.zCoord);
+//               this.markBlockForUpdate(var12.xCoord, var12.yCoord, var12.zCoord);
             }
          }
 
@@ -2722,10 +2841,13 @@ public abstract class World implements IBlockAccess {
    }
 
    public void addTileEntity(Collection par1Collection) {
-      if (this.scanningTileEntities) {
-         this.addedTileEntityList.addAll(par1Collection);
-      } else {
-         this.loadedTileEntityList.addAll(par1Collection);
+      List dest = scanningTileEntities ? addedTileEntityList : loadedTileEntityList;
+      for(Object entity : par1Collection)
+      {
+         if(((TileEntity)entity).canUpdate())
+         {
+            dest.add(entity);
+         }
       }
 
    }
@@ -2737,8 +2859,16 @@ public abstract class World implements IBlockAccess {
    public void updateEntityWithOptionalForce(Entity par1Entity, boolean par2) {
       int var3 = MathHelper.floor_double(par1Entity.posX);
       int var4 = MathHelper.floor_double(par1Entity.posZ);
-      byte var5 = 32;
-      if (par2 && !this.checkChunksExist(var3 - var5, 0, var4 - var5, var3 + var5, 0, var4 + var5)) {
+      boolean isForced = getPersistentChunks().containsKey(new ChunkCoordIntPair(var3 >> 4, var4 >> 4));
+      byte b0 = isForced ? (byte)0 : 32;
+      boolean canUpdate = !par2 || this.checkChunksExist(var3 - b0, 0, var4 - b0, var3 + b0, 0, var4 + b0);
+      if (!canUpdate)
+      {
+         EntityEvent.CanUpdate event = new EntityEvent.CanUpdate(par1Entity);
+         MinecraftForge.EVENT_BUS.post(event);
+         canUpdate = event.canUpdate;
+      }
+      if (canUpdate) {
          if (par1Entity instanceof IMob && par1Entity instanceof EntityLiving && par1Entity.ridingEntity == null && par1Entity.riddenByEntity == null) {
             ++par1Entity.despawn_counter;
             ((EntityLiving)par1Entity).tryDespawnEntity();
@@ -2937,6 +3067,12 @@ public abstract class World implements IBlockAccess {
                int block_id = this.getBlockId(x, y, z);
                if (block_id == Block.fire.blockID || include_lava && (block_id == Block.lavaMoving.blockID || block_id == Block.lavaStill.blockID)) {
                   return true;
+               } else {
+                  Block block = Block.blocksList[block_id];
+                  if (block != null && block.isBlockBurning(this, x, y, z))
+                  {
+                     return true;
+                  }
                }
             }
          }
@@ -3222,12 +3358,16 @@ public abstract class World implements IBlockAccess {
    }
 
    public void setBlockTileEntity(int par1, int par2, int par3, TileEntity par4TileEntity) {
-      if (par4TileEntity != null && !par4TileEntity.isInvalid()) {
-         if (this.scanningTileEntities) {
-            par4TileEntity.xCoord = par1;
-            par4TileEntity.yCoord = par2;
-            par4TileEntity.zCoord = par3;
-            Iterator var5 = this.addedTileEntityList.iterator();
+      if (par4TileEntity == null || par4TileEntity.isInvalid())
+      {
+         return;
+      }
+
+      if (par4TileEntity.canUpdate())
+      {
+         if (scanningTileEntities)
+         {
+            Iterator var5 = addedTileEntityList.iterator();
 
             while(var5.hasNext()) {
                TileEntity var6 = (TileEntity)var5.next();
@@ -3237,34 +3377,31 @@ public abstract class World implements IBlockAccess {
                }
             }
 
-            this.addedTileEntityList.add(par4TileEntity);
+            addedTileEntityList.add(par4TileEntity);
          } else {
-            this.loadedTileEntityList.add(par4TileEntity);
-            Chunk var7 = this.getChunkFromChunkCoords(par1 >> 4, par3 >> 4);
-            if (var7 != null) {
-               var7.setChunkBlockTileEntity(par1 & 15, par2, par3 & 15, par4TileEntity);
-            }
+            loadedTileEntityList.add(par4TileEntity);
          }
       }
 
+      Chunk chunk = this.getChunkFromChunkCoords(par1 >> 4, par3 >> 4);
+      if (chunk != null)
+      {
+         chunk.setChunkBlockTileEntity(par1 & 15, par2, par3 & 15, par4TileEntity);
+      }
+      //notify tile changes
+      func_96440_m(par1, par2, par3, 0);
    }
 
-   public void removeBlockTileEntity(int par1, int par2, int par3) {
-      TileEntity var4 = this.getBlockTileEntity(par1, par2, par3);
-      if (var4 != null && this.scanningTileEntities) {
-         var4.invalidate();
-         this.addedTileEntityList.remove(var4);
-      } else {
-         if (var4 != null) {
-            this.addedTileEntityList.remove(var4);
-            this.loadedTileEntityList.remove(var4);
-         }
 
-         Chunk var5 = this.getChunkFromChunkCoords(par1 >> 4, par3 >> 4);
-         if (var5 != null) {
-            var5.removeChunkBlockTileEntity(par1 & 15, par2, par3 & 15);
-         }
+
+   public void removeBlockTileEntity(int par1, int par2, int par3) {
+      Chunk chunk = getChunkFromChunkCoords(par1 >> 4, par3 >> 4);
+      if (chunk != null)
+      {
+         chunk.removeChunkBlockTileEntity(par1 & 15, par2, par3 & 15);
       }
+      //notify tile changes
+      func_96440_m(par1, par2, par3, 0);
 
    }
 
@@ -3277,7 +3414,8 @@ public abstract class World implements IBlockAccess {
    }
 
    public final boolean isBlockNormalCube(int par1, int par2, int par3) {
-      return Block.isNormalCube(this.getBlockId(par1, par2, par3));
+      Block block = Block.blocksList[getBlockId(par1, par2, par3)];
+      return block != null && block.isBlockNormalCube(this, par1, par2, par3);
    }
 
    public final boolean isBlockSolidStandardFormCube(int x, int y, int z) {
@@ -3305,13 +3443,13 @@ public abstract class World implements IBlockAccess {
       }
    }
 
-   public boolean isBlockTopFlatAndSolid(int x, int y, int z) {
-      Block block = Block.blocksList[this.getBlockId(x, y, z)];
-      return block != null && block.isTopFlatAndSolid(this.getBlockMetadata(x, y, z));
+   public boolean doesBlockHaveSolidTopSurface(int x, int y, int z) {
+      return isBlockSolidOnSide(x, y, z, ForgeDirection.UP);
    }
 
-   public static boolean isBlockTopFlatAndSolid(Block block, int metadata) {
-      return block != null && block.isTopFlatAndSolid(metadata);
+   @Deprecated
+   public static boolean isBlockTopFacingSurfaceSolid(Block block, int metadata) {
+      return block != null && block.isBlockTopFacingSurfaceSolid(metadata);
    }
 
    public final boolean isBlockNormalCubeDefault(int par1, int par2, int par3, boolean par4) {
@@ -3332,8 +3470,7 @@ public abstract class World implements IBlockAccess {
    }
 
    public void setAllowedSpawnTypes(boolean par1, boolean par2) {
-      this.spawnHostileMobs = par1;
-      this.spawnPeacefulMobs = par2;
+      provider.setAllowedSpawnTypes(par1, par2);
    }
 
    public void tick() {
@@ -3371,7 +3508,13 @@ public abstract class World implements IBlockAccess {
       }
    }
 
-   public final void _calculateInitialWeather() {
+   public void _calculateInitialWeather()
+   {
+      provider.calculateInitialWeather();
+   }
+
+   public void calculateInitialWeatherBody()
+   {
       if (this.canPrecipitate()) {
          this.rainingStrength = 0.0F;
          this.thunderingStrength = 0.0F;
@@ -3385,7 +3528,12 @@ public abstract class World implements IBlockAccess {
       }
    }
 
-   protected void updateWeather() {
+   protected void updateWeather()
+   {
+      provider.updateWeather();
+   }
+
+   public void updateWeatherBody() {
       if (this.isRemote) {
          Minecraft.setErrorMessage("updateWeather: Called on client?");
       }
@@ -3498,7 +3646,7 @@ public abstract class World implements IBlockAccess {
       if (this.ambientTickCountdown > 0) {
          --this.ambientTickCountdown;
       }
-
+      this.activeChunkSet.addAll(getPersistentChunks().keySet());
       this.theProfiler.startSection("playerCheckLight");
       if (this.isRemote && this.hasSkylight()) {
          this.checkLightingOfRandomBlockInView(true);
@@ -3556,7 +3704,13 @@ public abstract class World implements IBlockAccess {
       return this.getBiomeGenForCoords(x, z).isFreezing();
    }
 
-   public boolean canBlockFreeze(int par1, int par2, int par3, boolean par4) {
+   public boolean canBlockFreeze(int par1, int par2, int par3, boolean par4)
+   {
+      return provider.canBlockFreeze(par1, par2, par3, par4);
+   }
+
+   public boolean canBlockFreezeBody(int par1, int par2, int par3, boolean par4)
+   {
       BiomeGenBase var5 = this.getBiomeGenForCoords(par1, par3);
       float var6 = var5.getFloatTemperature();
       if (var6 > 0.15F) {
@@ -3564,7 +3718,7 @@ public abstract class World implements IBlockAccess {
       } else {
          if (par2 >= 0 && par2 < 256 && this.getSavedLightValue(EnumSkyBlock.Block, par1, par2, par3) < 10) {
             int var7 = this.getBlockId(par1, par2, par3);
-            if ((var7 == Block.waterStill.blockID || var7 == Block.waterMoving.blockID) && this.getBlockMetadata(par1, par2, par3) == 0) {
+            if (var7 != 0  && (var7 == Block.waterStill.blockID || var7 == Block.waterMoving.blockID) && this.getBlockMetadata(par1, par2, par3) == 0) {
                if (!par4) {
                   return true;
                }
@@ -3596,7 +3750,13 @@ public abstract class World implements IBlockAccess {
       }
    }
 
-   public final boolean canSnowAt(int par1, int par2, int par3) {
+   public boolean canSnowAt(int par1, int par2, int par3)
+   {
+      return provider.canSnowAt(par1, par2, par3);
+   }
+
+   public boolean canSnowAtBody(int par1, int par2, int par3)
+   {
       BiomeGenBase var4 = this.getBiomeGenForCoords(par1, par3);
       float var5 = var4.getFloatTemperature();
       if (var5 > 0.15F) {
@@ -3666,11 +3826,12 @@ public abstract class World implements IBlockAccess {
                ++var7;
             }
 
-            if (var7 >= 15) {
-               if (Block.lightValue[var5] <= 0) {
-                  return 0;
-               }
+            Block block = Block.blocksList[l];
+            int blockLight = (block == null ? 0 : block.getLightValue(this, par1, par2, par3));
+            int i1 = par4EnumSkyBlock == EnumSkyBlock.Sky ? 0 : blockLight;
+            int j1 = (block == null ? 0 : block.getLightOpacity(this, par1, par2, par3));
 
+            if (j1 >= 15 && blockLight > 0) {
                var7 = 1;
             }
          }
@@ -4069,7 +4230,9 @@ public abstract class World implements IBlockAccess {
                            x = var10 + Facing.offsetsXForSide[var18];
                            y = var11 + Facing.offsetsYForSide[var18];
                            z = var12 + Facing.offsetsZForSide[var18];
-                           opacity = Block.lightOpacity[this.getBlockId(x, y, z)];
+                           Block block = Block.blocksList[getBlockId(x, y, z)];
+                           int blockOpacity = (block == null ? 0 : block.getLightOpacity(this, x, y, z));
+                           opacity = Math.max(1, blockOpacity);
                            if (opacity == 0 || this.getHeightValue(x, z) - 1 > y) {
                               ++opacity;
                            }
@@ -4311,7 +4474,9 @@ public abstract class World implements IBlockAccess {
                            y = var10 + Facing.offsetsXForSide[x];
                            z = var11 + Facing.offsetsYForSide[x];
                            var21 = var12 + Facing.offsetsZForSide[x];
-                           opacity = Block.lightOpacity[this.getBlockId(y, z, var21)];
+                           Block block = Block.blocksList[getBlockId(x, y, z)];
+                           int blockOpacity = (block == null ? 0 : block.getLightOpacity(this, x, y, z));
+                           opacity = Math.max(1, blockOpacity);
                            if (opacity == 0 || this.getHeightValue(y, var21) - 1 > z) {
                               ++opacity;
                            }
@@ -4545,10 +4710,10 @@ public abstract class World implements IBlockAccess {
 
    public List getEntitiesWithinAABBExcludingEntity(Entity par1Entity, AxisAlignedBB par2AxisAlignedBB, IEntitySelector par3IEntitySelector) {
       ArrayList var4 = new ArrayList();
-      int var5 = MathHelper.floor_double((par2AxisAlignedBB.minX - 2.0) / 16.0);
-      int var6 = MathHelper.floor_double((par2AxisAlignedBB.maxX + 2.0) / 16.0);
-      int var7 = MathHelper.floor_double((par2AxisAlignedBB.minZ - 2.0) / 16.0);
-      int var8 = MathHelper.floor_double((par2AxisAlignedBB.maxZ + 2.0) / 16.0);
+      int var5 = MathHelper.floor_double((par2AxisAlignedBB.minX - MAX_ENTITY_RADIUS) / 16.0);
+      int var6 = MathHelper.floor_double((par2AxisAlignedBB.maxX + MAX_ENTITY_RADIUS) / 16.0);
+      int var7 = MathHelper.floor_double((par2AxisAlignedBB.minZ - MAX_ENTITY_RADIUS) / 16.0);
+      int var8 = MathHelper.floor_double((par2AxisAlignedBB.maxZ + MAX_ENTITY_RADIUS) / 16.0);
 
       for(int var9 = var5; var9 <= var6; ++var9) {
          for(int var10 = var7; var10 <= var8; ++var10) {
@@ -4566,10 +4731,10 @@ public abstract class World implements IBlockAccess {
    }
 
    public List selectEntitiesWithinAABB(Class par1Class, AxisAlignedBB par2AxisAlignedBB, IEntitySelector par3IEntitySelector) {
-      int var4 = MathHelper.floor_double((par2AxisAlignedBB.minX - 2.0) / 16.0);
-      int var5 = MathHelper.floor_double((par2AxisAlignedBB.maxX + 2.0) / 16.0);
-      int var6 = MathHelper.floor_double((par2AxisAlignedBB.minZ - 2.0) / 16.0);
-      int var7 = MathHelper.floor_double((par2AxisAlignedBB.maxZ + 2.0) / 16.0);
+      int var4 = MathHelper.floor_double((par2AxisAlignedBB.minX - MAX_ENTITY_RADIUS) / 16.0);
+      int var5 = MathHelper.floor_double((par2AxisAlignedBB.maxX + MAX_ENTITY_RADIUS) / 16.0);
+      int var6 = MathHelper.floor_double((par2AxisAlignedBB.minZ - MAX_ENTITY_RADIUS) / 16.0);
+      int var7 = MathHelper.floor_double((par2AxisAlignedBB.maxZ + MAX_ENTITY_RADIUS) / 16.0);
       ArrayList var8 = new ArrayList();
 
       for(int var9 = var4; var9 <= var5; ++var9) {
@@ -4737,10 +4902,14 @@ public abstract class World implements IBlockAccess {
    }
 
    public void addLoadedEntities(List par1List) {
-      this.loadedEntityList.addAll(par1List);
 
       for(int var2 = 0; var2 < par1List.size(); ++var2) {
-         this.onEntityAdded((Entity)par1List.get(var2));
+         Entity entity = (Entity)par1List.get(var2);
+         if (!MinecraftForge.EVENT_BUS.post(new EntityJoinWorldEvent(entity, this)))
+         {
+            loadedEntityList.add(entity);
+            this.onEntityAdded(entity);
+         }
       }
 
    }
@@ -4933,11 +5102,17 @@ public abstract class World implements IBlockAccess {
    }
 
    public int getIndirectPowerLevelTo(int par1, int par2, int par3, int par4) {
-      if (this.isBlockNormalCube(par1, par2, par3)) {
+      Block block = Block.blocksList[this.getBlockId(par1, par2, par3)];
+
+      if (block == null)
+      {
+         return 0;
+      }
+
+      if (!block.shouldCheckWeakPower(this, par1, par2, par3, par4)) {
          return this.getBlockPowerInput(par1, par2, par3);
       } else {
-         int var5 = this.getBlockId(par1, par2, par3);
-         return var5 == 0 ? 0 : Block.blocksList[var5].isProvidingWeakPower(this, par1, par2, par3, par4);
+         return block.isProvidingWeakPower(this, par1, par2, par3, par4);
       }
    }
 
@@ -4970,16 +5145,16 @@ public abstract class World implements IBlockAccess {
       double var9 = -1.0;
       EntityPlayer var11 = null;
 
-      for(int var12 = 0; var12 < this.playerEntities.size(); ++var12) {
-         EntityPlayer var13 = (EntityPlayer)this.playerEntities.get(var12);
-         if (!var13.isGhost() && !var13.isZevimrgvInTournament() && (!must_be_alive || !var13.isDead && !(var13.getHealth() <= 0.0F))) {
-            double var14 = var13.getDistanceSq(par1, par3, par5);
-            if ((max_distance < 0.0 || var14 < max_distance * max_distance) && (var9 == -1.0 || var14 < var9)) {
-               var9 = var14;
-               var11 = var13;
-            }
-         }
-      }
+       for (Object playerEntity : this.playerEntities) {
+           EntityPlayer var13 = (EntityPlayer) playerEntity;
+           if (!var13.isGhost() && !var13.isZevimrgvInTournament() && (!must_be_alive || !var13.isDead && !(var13.getHealth() <= 0.0F))) {
+               double var14 = var13.getDistanceSq(par1, par3, par5);
+               if ((max_distance < 0.0 || var14 < max_distance * max_distance) && (var9 == -1.0 || var14 < var9)) {
+                   var9 = var14;
+                   var11 = var13;
+               }
+           }
+       }
 
       return var11;
    }
@@ -5274,7 +5449,7 @@ public abstract class World implements IBlockAccess {
    }
 
    public long getSeed() {
-      return this.worldInfo.getSeed();
+      return provider.getSeed();
    }
 
    public long getHashedSeed() {
@@ -5314,7 +5489,7 @@ public abstract class World implements IBlockAccess {
    }
 
    public ChunkCoordinates getSpawnPoint() {
-      return new ChunkCoordinates(this.worldInfo.getSpawnX(), this.worldInfo.getSpawnY(), this.worldInfo.getSpawnZ());
+      return provider.getSpawnPoint();
    }
 
    public int getSpawnX() {
@@ -5330,7 +5505,7 @@ public abstract class World implements IBlockAccess {
    }
 
    public void setSpawnLocation(int par1, int par2, int par3) {
-      this.worldInfo.setSpawnPosition(par1, par2, par3);
+      provider.setSpawnPoint(par1, par2, par3);
    }
 
    public void joinEntityInSurroundings(Entity par1Entity) {
@@ -5345,12 +5520,20 @@ public abstract class World implements IBlockAccess {
       }
 
       if (!this.loadedEntityList.contains(par1Entity)) {
-         this.loadedEntityList.add(par1Entity);
+         if (!MinecraftForge.EVENT_BUS.post(new EntityJoinWorldEvent(par1Entity, this)))
+         {
+            loadedEntityList.add(par1Entity);
+         }
       }
 
    }
 
-   public boolean canMineBlock(EntityPlayer par1EntityPlayer, int par2, int par3, int par4) {
+   public boolean canMineBlock(EntityPlayer par1EntityPlayer, int par2, int par3, int par4)
+   {
+      return provider.canMineBlock(par1EntityPlayer, par2, par3, par4);
+   }
+
+   public boolean canMineBlockBody(EntityPlayer par1EntityPlayer, int par2, int par3, int par4) {
       return true;
    }
 
@@ -5437,8 +5620,7 @@ public abstract class World implements IBlockAccess {
    }
 
    public boolean isBlockHighHumidity(int par1, int par2, int par3) {
-      BiomeGenBase var4 = this.getBiomeGenForCoords(par1, par3);
-      return var4.isHighHumidity();
+      return provider.isBlockHighHumidity(par1, par2, par3);
    }
 
    public void setItemData(String par1Str, WorldSavedData par2WorldSavedData) {
@@ -5490,7 +5672,7 @@ public abstract class World implements IBlockAccess {
    }
 
    public final int getHeight() {
-      return 256;
+      return provider.getHeight();
    }
 
    public static final int getMaxBlockY() {
@@ -5501,7 +5683,7 @@ public abstract class World implements IBlockAccess {
       if (this.underworld_y_offset != 0) {
          return 256;
       } else {
-         return this.provider.hasNoSky ? 128 : 256;
+         return provider.getActualHeight();
       }
    }
 
@@ -5524,7 +5706,7 @@ public abstract class World implements IBlockAccess {
    }
 
    public double getHorizon() {
-      return this.worldInfo.getTerrainType() == WorldType.FLAT ? 0.0 : 63.0;
+      return provider.getHorizon();
    }
 
    public CrashReportCategory addWorldInfoToCrashReport(CrashReport par1CrashReport) {
@@ -5570,26 +5752,37 @@ public abstract class World implements IBlockAccess {
    }
 
    public void func_96440_m(int par1, int par2, int par3, int par4) {
-      for(int var5 = 0; var5 < 4; ++var5) {
-         int var6 = par1 + Direction.offsetX[var5];
-         int var7 = par3 + Direction.offsetZ[var5];
-         int var8 = this.getBlockId(var6, par2, var7);
-         if (var8 != 0) {
-            Block var9 = Block.blocksList[var8];
-            if (Block.redstoneComparatorIdle.func_94487_f(var8)) {
-               var9.onNeighborBlockChange(this, var6, par2, var7, par4);
-            } else if (Block.isNormalCube(var8)) {
-               var6 += Direction.offsetX[var5];
-               var7 += Direction.offsetZ[var5];
-               var8 = this.getBlockId(var6, par2, var7);
-               var9 = Block.blocksList[var8];
-               if (Block.redstoneComparatorIdle.func_94487_f(var8)) {
-                  var9.onNeighborBlockChange(this, var6, par2, var7, par4);
+      for (ForgeDirection dir : ForgeDirection.VALID_DIRECTIONS) {
+         int var6 = par1 + dir.offsetX;
+         int y = par2 + dir.offsetY;
+         int var7 = par3 + dir.offsetZ;
+         int var8 = getBlockId(var6, y, var7);
+         Block block = Block.blocksList[var8];
+
+         if (block != null) {
+            block.onNeighborTileChange(this, var6, y, var7, par1, par2, par3);
+
+            if (Block.isNormalCube(var8)) {
+               var6 += dir.offsetX;
+               y += dir.offsetY;
+               var7 += dir.offsetZ;
+               var8 = getBlockId(var6, y, var7);
+               Block var9 = Block.blocksList[var8];
+               if (block != null && block.weakTileChanges()) {
+                  block.onNeighborTileChange(this, var6, y, var7, par1, par2, par3);
                }
+//               else if (Block.isNormalCube(var8)) {
+//                  var6 += Direction.offsetX[dir];
+//                  var7 += Direction.offsetZ[var5];
+//                  var8 = this.getBlockId(var6, par2, var7);
+//                  var9 = Block.blocksList[var8];
+//                  if (Block.redstoneComparatorIdle.func_94487_f(var8)) {
+//                     var9.onNeighborBlockChange(this, var6, par2, var7, par4);
+//                  }
+//               }
             }
          }
       }
-
    }
 
    public ILogAgent getWorldLogAgent() {
@@ -6958,5 +7151,114 @@ public abstract class World implements IBlockAccess {
 
    public final boolean isBottomBlock(int x, int y, int z) {
       return this.isBottomBlock(this.getBlock(x, y, z), this.getBlockMetadata(x, y, z));
+   }
+
+   /**
+    * Adds a single TileEntity to the world.
+    * @param entity The TileEntity to be added.
+    */
+   public void addTileEntity(TileEntity entity)
+   {
+      List dest = scanningTileEntities ? addedTileEntityList : loadedTileEntityList;
+      if(entity.canUpdate())
+      {
+         dest.add(entity);
+      }
+   }
+
+   /**
+    * Determine if the given block is considered solid on the
+    * specified side.  Used by placement logic.
+    *
+    * @param x Block X Position
+    * @param y Block Y Position
+    * @param z Block Z Position
+    * @param side The Side in question
+    * @return True if the side is solid
+    */
+   public boolean isBlockSolidOnSide(int x, int y, int z, ForgeDirection side)
+   {
+      return isBlockSolidOnSide(x, y, z, side, false);
+   }
+
+   /**
+    * Determine if the given block is considered solid on the
+    * specified side.  Used by placement logic.
+    *
+    * @param x Block X Position
+    * @param y Block Y Position
+    * @param z Block Z Position
+    * @param side The Side in question
+    * @param _default The defult to return if the block doesn't exist.
+    * @return True if the side is solid
+    */
+   @Override
+   public boolean isBlockSolidOnSide(int x, int y, int z, ForgeDirection side, boolean _default)
+   {
+      if (x < -30000000 || z < -30000000 || x >= 30000000 || z >= 30000000)
+      {
+         return _default;
+      }
+
+      Chunk chunk = this.chunkProvider.provideChunk(x >> 4, z >> 4);
+      if (chunk == null || chunk.isEmpty())
+      {
+         return _default;
+      }
+
+      Block block = Block.blocksList[getBlockId(x, y, z)];
+      if(block == null)
+      {
+         return false;
+      }
+
+      return block.isBlockSolidOnSide(this, x, y, z, side);
+   }
+
+   /**
+    * Get the persistent chunks for this world
+    *
+    * @return
+    */
+   public ImmutableSetMultimap<ChunkCoordIntPair, ForgeChunkManager.Ticket> getPersistentChunks()
+   {
+      return ForgeChunkManager.getPersistentChunksFor(this);
+   }
+
+   /**
+    * Readded as it was removed, very useful helper function
+    *
+    * @param x X position
+    * @param y Y Position
+    * @param z Z Position
+    * @return The blocks light opacity
+    */
+   public int getBlockLightOpacity(int x, int y, int z)
+   {
+      if (x < -30000000 || z < -30000000 || x >= 30000000 || z >= 30000000)
+      {
+         return 0;
+      }
+
+      if (y < 0 || y >= 256)
+      {
+         return 0;
+      }
+
+      return getChunkFromChunkCoords(x >> 4, z >> 4).getBlockLightOpacity(x & 15, y, z & 15);
+   }
+
+   /**
+    * Returns a count of entities that classify themselves as the specified creature type.
+    */
+   public int countEntities(EnumCreatureType type, boolean forSpawnCount)
+   {
+      int count = 0;
+       for (Object o : loadedEntityList) {
+           if (((Entity) o).isCreatureType(type, forSpawnCount)) {
+               count++;
+           }
+       }
+      return count;
    }
 }

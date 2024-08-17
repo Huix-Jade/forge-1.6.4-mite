@@ -110,7 +110,7 @@ public class MapGenRavine extends MapGenBase {
                      for(int var43 = var37 + 1; !var58 && var43 >= var55 - 1; --var43) {
                         var44 = (var41 * 16 + var42) * 128 + var43;
                         if (var43 >= 0 && var43 < 128) {
-                           if (par5ArrayOfByte[var44] == Block.waterMoving.blockID || par5ArrayOfByte[var44] == Block.waterStill.blockID) {
+                           if (isOceanBlock(par5ArrayOfByte, var44, var43, var42, var41, par3, par4)) {
                               var58 = true;
                            }
 
@@ -135,32 +135,11 @@ public class MapGenRavine extends MapGenBase {
                               double var50 = ((double)var49 + 0.5 - par8) / var30;
                               if ((var59 * var59 + var45 * var45) * (double)this.field_75046_d[var49] + var50 * var50 / 6.0 < 1.0) {
                                  byte var52 = par5ArrayOfByte[var47];
-                                 if (var52 == Block.grass.blockID) {
+                                 if (isTopBlock(par5ArrayOfByte, var47, var41, var49, var44, par3, par4)) {
                                     var48 = true;
                                  }
 
-                                 if (var52 == stone_block_id || var52 == dirt_block_id || var52 == grass_block_id || var52 == sand_block_id || var52 == sand_stone_block_id) {
-                                    if (var49 < 10) {
-                                       par5ArrayOfByte[var47] = (byte)Block.lavaMoving.blockID;
-                                    } else {
-                                       par5ArrayOfByte[var47] = 0;
-                                       if (var48 && par5ArrayOfByte[var47 - 1] == Block.dirt.blockID) {
-                                          par5ArrayOfByte[var47 - 1] = this.worldObj.getBiomeGenForCoords(var41 + par3 * 16, var44 + par4 * 16).topBlock;
-                                       } else if (par5ArrayOfByte[var47 + 1] == sand_block_id) {
-                                          int index = var47 + 1;
-                                          par5ArrayOfByte[index] = 0;
-
-                                          while(true) {
-                                             ++index;
-                                             if (par5ArrayOfByte[index] != sand_block_id) {
-                                                break;
-                                             }
-
-                                             par5ArrayOfByte[index] = 0;
-                                          }
-                                       }
-                                    }
-                                 }
+                                 digBlock(par5ArrayOfByte, var47, var41, var49, var44, par3, par4, var48);
                               }
 
                               --var47;
@@ -177,6 +156,67 @@ public class MapGenRavine extends MapGenBase {
          }
       }
 
+   }
+
+   protected boolean isOceanBlock(byte[] data, int index, int x, int y, int z, int chunkX, int chunkZ)
+   {
+      return data[index] == Block.waterMoving.blockID || data[index] == Block.waterStill.blockID;
+   }
+
+   //Exception biomes to make sure we generate like vanilla
+   private boolean isExceptionBiome(BiomeGenBase biome)
+   {
+      if (biome == BiomeGenBase.beach) return true;
+      if (biome == BiomeGenBase.desert) return true;
+      return false;
+   }
+
+   //Determine if the block at the specified location is the top block for the biome, we take into account
+   //Vanilla bugs to make sure that we generate the map the same way vanilla does.
+   private boolean isTopBlock(byte[] data, int index, int x, int y, int z, int chunkX, int chunkZ)
+   {
+      BiomeGenBase biome = worldObj.getBiomeGenForCoords(x + chunkX * 16, z + chunkZ * 16);
+      return (isExceptionBiome(biome) ? data[index] == Block.grass.blockID : data[index] == biome.topBlock);
+   }
+
+   /**
+    * Digs out the current block, default implementation removes stone, filler, and top block
+    * Sets the block to lava if y is less then 10, and air other wise.
+    * If setting to air, it also checks to see if we've broken the surface and if so
+    * tries to make the floor the biome's top block
+    *
+    * @param data Block data array
+    * @param index Pre-calculated index into block data
+    * @param x local X position
+    * @param y local Y position
+    * @param z local Z position
+    * @param chunkX Chunk X position
+    * @param chunkZ Chunk Y position
+    * @param foundTop True if we've encountered the biome's top block. Ideally if we've broken the surface.
+    */
+   protected void digBlock(byte[] data, int index, int x, int y, int z, int chunkX, int chunkZ, boolean foundTop)
+   {
+      BiomeGenBase biome = worldObj.getBiomeGenForCoords(x + chunkX * 16, z + chunkZ * 16);
+      int top    = (isExceptionBiome(biome) ? Block.grass.blockID : biome.topBlock);
+      int filler = (isExceptionBiome(biome) ? Block.dirt.blockID  : biome.fillerBlock);
+      int block  = data[index];
+
+      if (block == Block.stone.blockID || block == filler || block == top)
+      {
+         if (y < 10)
+         {
+            data[index] = (byte)Block.lavaMoving.blockID;
+         }
+         else
+         {
+            data[index] = 0;
+
+            if (foundTop && data[index - 1] == filler)
+            {
+               data[index - 1] = (byte)top;
+            }
+         }
+      }
    }
 
    protected void recursiveGenerate(World par1World, int par2, int par3, int par4, int par5, byte[] par6ArrayOfByte) {

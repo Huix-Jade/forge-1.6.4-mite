@@ -21,6 +21,10 @@ import net.minecraft.util.Icon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Translator;
 import net.minecraft.world.World;
+import net.minecraftforge.common.FakePlayerFactory;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.Event;
+import net.minecraftforge.event.entity.player.BonemealEvent;
 
 public class ItemDye extends Item {
    public static final String[] dyeColorNames = new String[]{"black", "red", "green", "brown", "blue", "purple", "cyan", "silver", "gray", "pink", "lime", "yellow", "lightBlue", "magenta", "orange", "white"};
@@ -96,7 +100,7 @@ public class ItemDye extends Item {
             return false;
          } else {
             if (item_stack.getItemSubtype() == 15) {
-               if (tryFertilize(item_stack, world, x, y, z, rc.face_hit)) {
+               if (tryFertilize(item_stack, world, x, y, z, rc.face_hit, player)) {
                   if (player.onServer() && !player.inCreativeMode()) {
                      player.convertOneOfHeldItem((ItemStack)null);
                   }
@@ -133,15 +137,35 @@ public class ItemDye extends Item {
       }
    }
 
-   public static boolean tryFertilize(ItemStack item_stack, World world, int x, int y, int z, EnumFace face) {
+
+   public static boolean tryFertilize(ItemStack par0ItemStack, World par1World, int par2, int par3, int par4, EnumFace face)
+   {
+      return tryFertilize(par0ItemStack, par1World, par2, par3, par4, face, FakePlayerFactory.getMinecraft(par1World));
+   }
+
+   public static boolean tryFertilize(ItemStack item_stack, World world, int x, int y, int z, EnumFace face, EntityPlayer player) {
       Block block = Block.blocksList[world.getBlockId(x, y, z)];
+      BonemealEvent event = new BonemealEvent(player, world, block.blockID, x, y, z);
+      if (MinecraftForge.EVENT_BUS.post(event))
+      {
+         return false;
+      }
+
+      if (event.getResult() == Event.Result.ALLOW)
+      {
+         if (!world.isRemote)
+         {
+            item_stack.stackSize--;
+         }
+         return true;
+      }
+
       world.getBlockMetadata(x, y, z);
       if (block == Block.grass) {
          BlockGrass grass = (BlockGrass)block;
          return grass.fertilize(world, x, y, z, item_stack);
-      } else if (block instanceof BlockCrops) {
-         BlockCrops crops = (BlockCrops)block;
-         return crops.fertilize(world, x, y, z, item_stack);
+      } else if (block instanceof BlockCrops crops) {
+          return crops.fertilize(world, x, y, z, item_stack);
       } else {
          return false;
       }

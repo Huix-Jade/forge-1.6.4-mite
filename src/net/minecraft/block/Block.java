@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EffectRenderer;
@@ -1424,7 +1423,7 @@ public class Block {
       }
    }
 
-   protected void dropXpOnBlockBreak(World par1World, int par2, int par3, int par4, int par5) {
+   public void dropXpOnBlockBreak(World par1World, int par2, int par3, int par4, int par5) {
       if (!par1World.isRemote) {
          while(par5 > 0) {
             int var6 = EntityXPOrb.getXPSplit(par5);
@@ -1522,7 +1521,7 @@ public class Block {
       return 0;
    }
 
-   public final boolean isTopFlatAndSolid(int metadata) {
+   public final boolean isBlockTopFacingSurfaceSolid(int metadata) {
       return this.isFaceFlatAndSolid(metadata, EnumFace.TOP);
    }
 

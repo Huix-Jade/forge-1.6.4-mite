@@ -1614,12 +1614,12 @@ public abstract class EntityLivingBase extends Entity {
                int var14 = (int)(this.posZ + var11);
                AxisAlignedBB var2 = this.boundingBox.getOffsetBoundingBox(var9, 1.0, var11);
                if (this.worldObj.getCollidingBlockBounds(var2, this).isEmpty()) {
-                  if (this.worldObj.isBlockTopFlatAndSolid(var13, (int)this.posY, var14)) {
+                  if (this.worldObj.doesBlockHaveSolidTopSurface(var13, (int)this.posY, var14)) {
                      this.setPositionAndUpdate(this.posX + var9, this.posY + 1.0, this.posZ + var11);
                      return;
                   }
 
-                  if (this.worldObj.isBlockTopFlatAndSolid(var13, (int)this.posY - 1, var14) || this.worldObj.getBlockMaterial(var13, (int)this.posY - 1, var14) == Material.water) {
+                  if (this.worldObj.doesBlockHaveSolidTopSurface(var13, (int)this.posY - 1, var14) || this.worldObj.getBlockMaterial(var13, (int)this.posY - 1, var14) == Material.water) {
                      var3 = this.posX + var9;
                      var5 = this.posY + 1.0;
                      var7 = this.posZ + var11;

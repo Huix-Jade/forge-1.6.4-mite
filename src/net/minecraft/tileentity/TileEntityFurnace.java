@@ -184,8 +184,7 @@ public class TileEntityFurnace extends TileEntity implements ISidedInventory {
                   if (this.furnaceItemStacks[1] != null) {
                      --this.furnaceItemStacks[1].stackSize;
                      if (this.furnaceItemStacks[1].stackSize == 0) {
-                        Item var3 = this.furnaceItemStacks[1].getItem().getContainerItem();
-                        this.furnaceItemStacks[1] = var3 != null ? new ItemStack(var3) : null;
+                        this.furnaceItemStacks[1] = this.furnaceItemStacks[1].getItem().getContainerItemStack(furnaceItemStacks[1]);
                      }
                   }
                }
@@ -278,20 +277,19 @@ public class TileEntityFurnace extends TileEntity implements ISidedInventory {
          if (furnace == null || !this.acceptsLargeItems() && Slot.isLargeItem(this.getInputItemStack().getItem())) {
             return false;
          } else {
-            ItemStack var1 = FurnaceRecipes.smelting().getSmeltingResult(this.getInputItemStack(), heat_level);
-            if (var1 == null) {
-               return false;
-            } else {
-               ItemStack output_item_stack = this.getOutputItemStack();
-               return output_item_stack == null ? true : (!output_item_stack.isItemStackEqual(var1, true, false, false, true) ? false : (output_item_stack.stackSize < this.getInventoryStackLimit() && output_item_stack.stackSize < output_item_stack.getMaxStackSize() ? true : output_item_stack.stackSize < var1.getMaxStackSize()));
-            }
+            ItemStack itemstack = FurnaceRecipes.smelting().getSmeltingResult(this.furnaceItemStacks[0]);
+            if (itemstack == null) return false;
+            if (this.furnaceItemStacks[2] == null) return true;
+            if (!this.furnaceItemStacks[2].isItemStackEqual(itemstack, true, true, true, true)) return false;
+            int result = furnaceItemStacks[2].stackSize + itemstack.stackSize;
+            return (result <= getInventoryStackLimit() && result <= itemstack.getMaxStackSize());
          }
       }
    }
 
    public void smeltItem(int heat_level) {
       if (this.canSmelt(heat_level)) {
-         ItemStack var1 = FurnaceRecipes.smelting().getSmeltingResult(this.getInputItemStack(), heat_level);
+         ItemStack var1 = FurnaceRecipes.smelting().getSmeltingResult(this.furnaceItemStacks[0]);
          ItemStack var10000;
          if (this.furnaceItemStacks[2] == null) {
             this.furnaceItemStacks[2] = var1.copy();

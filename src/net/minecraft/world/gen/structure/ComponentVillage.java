@@ -5,11 +5,16 @@ import java.util.Random;
 import net.minecraft.block.Block;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.Event;
+import net.minecraftforge.event.terraingen.BiomeEvent;
 
 abstract class ComponentVillage extends StructureComponent {
    protected int field_143015_k = -1;
    private int villagersSpawned;
    private boolean field_143014_b;
+
+   private ComponentVillageStartPiece startPiece;
 
    public ComponentVillage() {
    }
@@ -18,6 +23,7 @@ abstract class ComponentVillage extends StructureComponent {
       super(par2);
       if (par1ComponentVillageStartPiece != null) {
          this.field_143014_b = par1ComponentVillageStartPiece.inDesert;
+         startPiece = par1ComponentVillageStartPiece;
       }
 
    }
@@ -96,6 +102,11 @@ abstract class ComponentVillage extends StructureComponent {
    }
 
    protected int getBiomeSpecificBlock(int par1, int par2) {
+      BiomeEvent.GetVillageBlockID event = new BiomeEvent.GetVillageBlockID(startPiece == null ? null : startPiece.biome
+              , par1, par2);
+      MinecraftForge.TERRAIN_GEN_BUS.post(event);
+      if (event.getResult() == Event.Result.DENY) return event.replacement;
+
       if (this.field_143014_b) {
          if (par1 == Block.wood.blockID) {
             return Block.sandStone.blockID;
@@ -126,6 +137,10 @@ abstract class ComponentVillage extends StructureComponent {
    }
 
    protected int getBiomeSpecificBlockMetadata(int par1, int par2) {
+      BiomeEvent.GetVillageBlockMeta event = new BiomeEvent.GetVillageBlockMeta(startPiece == null ? null : startPiece.biome, par1, par2);
+      MinecraftForge.TERRAIN_GEN_BUS.post(event);
+      if (event.getResult() == Event.Result.DENY) return event.replacement;
+
       if (this.field_143014_b) {
          if (par1 == Block.wood.blockID) {
             return 0;

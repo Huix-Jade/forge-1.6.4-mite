@@ -49,6 +49,9 @@ import net.minecraft.world.gen.feature.WorldGenSwamp;
 import net.minecraft.world.gen.feature.WorldGenTallGrass;
 import net.minecraft.world.gen.feature.WorldGenTrees;
 import net.minecraft.world.gen.feature.WorldGenerator;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.terraingen.BiomeEvent;
+import net.minecraftforge.event.terraingen.DeferredBiomeDecorator;
 
 public abstract class BiomeGenBase {
    public static final BiomeGenBase[] biomeList = new BiomeGenBase[256];
@@ -100,7 +103,12 @@ public abstract class BiomeGenBase {
    protected WorldGenForest worldGeneratorForest;
    protected WorldGenSwamp worldGeneratorSwamp;
 
-   protected BiomeGenBase(int par1) {
+   public BiomeGenBase(int par1)
+   {
+      this(par1, true);
+   }
+
+   public BiomeGenBase(int par1, boolean register) {
       this.topBlock = (byte)Block.grass.blockID;
       this.fillerBlock = (byte)Block.dirt.blockID;
       this.field_76754_C = 5169201;
@@ -119,6 +127,7 @@ public abstract class BiomeGenBase {
       this.worldGeneratorForest = new WorldGenForest(false);
       this.worldGeneratorSwamp = new WorldGenSwamp();
       this.biomeID = par1;
+      if (register)
       biomeList[par1] = this;
       this.theBiomeDecorator = this.createBiomeDecorator();
       this.spawnableCreatureList.add(new SpawnListEntry(EntitySheep.class, 10, 1, 1));
@@ -154,7 +163,7 @@ public abstract class BiomeGenBase {
    }
 
    protected BiomeDecorator createBiomeDecorator() {
-      return new BiomeDecorator(this);
+      return getModdedBiomeDecorator(new BiomeDecorator(this));
    }
 
    private BiomeGenBase setTemperatureRainfall(float par1, float par2) {
@@ -300,13 +309,39 @@ public abstract class BiomeGenBase {
    public int getBiomeGrassColor() {
       double var1 = (double)MathHelper.clamp_float(this.getFloatTemperature(), 0.0F, 1.0F);
       double var3 = (double)MathHelper.clamp_float(this.getFloatRainfall(), 0.0F, 1.0F);
-      return ColorizerGrass.getGrassColor(var1, var3);
+      return getModdedBiomeGrassColor(ColorizerGrass.getGrassColor(var1, var3));
    }
 
    public int getBiomeFoliageColor() {
       double var1 = (double)MathHelper.clamp_float(this.getFloatTemperature(), 0.0F, 1.0F);
       double var3 = (double)MathHelper.clamp_float(this.getFloatRainfall(), 0.0F, 1.0F);
-      return ColorizerFoliage.getFoliageColor(var1, var3);
+      return getModdedBiomeFoliageColor(ColorizerFoliage.getFoliageColor(var1, var3));
+   }
+
+   public BiomeDecorator getModdedBiomeDecorator(BiomeDecorator original)
+   {
+      return new DeferredBiomeDecorator(this, original);
+   }
+
+   public int getWaterColorMultiplier()
+   {
+      BiomeEvent.GetWaterColor event = new BiomeEvent.GetWaterColor(this, waterColorMultiplier);
+      MinecraftForge.EVENT_BUS.post(event);
+      return event.newColor;
+   }
+
+   public int getModdedBiomeGrassColor(int original)
+   {
+      BiomeEvent.GetGrassColor event = new BiomeEvent.GetGrassColor(this, original);
+      MinecraftForge.EVENT_BUS.post(event);
+      return event.newColor;
+   }
+
+   public int getModdedBiomeFoliageColor(int original)
+   {
+      BiomeEvent.GetFoliageColor event = new BiomeEvent.GetFoliageColor(this, original);
+      MinecraftForge.EVENT_BUS.post(event);
+      return event.newColor;
    }
 
    public boolean isFreezing() {

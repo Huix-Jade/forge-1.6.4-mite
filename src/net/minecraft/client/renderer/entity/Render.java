@@ -257,7 +257,7 @@ public abstract class Render {
 
 				Tessellator var19 = Tessellator.instance;
 				double block_top_y = world.getBlockRenderTopY(block_x, block_y, block_z);
-				if (block instanceof BlockStairs && !block.isTopFlatAndSolid(metadata)) {
+				if (block instanceof BlockStairs && !block.isBlockTopFacingSurfaceSolid(metadata)) {
 					this.renderShadowOnTopOfStairs(par2, par4, par6, block_x, block_y, block_z, par11, par12, par13, par15, par17, opacity_of_object, entity_min_y, entity);
 					block_top_y -= 0.5;
 				}

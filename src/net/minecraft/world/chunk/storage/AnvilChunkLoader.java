@@ -33,12 +33,14 @@ import net.minecraft.world.chunk.EmptyChunk;
 import net.minecraft.world.chunk.NibbleArray;
 import net.minecraft.world.storage.IThreadedFileIO;
 import net.minecraft.world.storage.ThreadedFileIOBase;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.world.ChunkDataEvent;
 
 public final class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
    private List chunksToRemove = new ArrayList();
    private Set pendingAnvilChunksCoordinates = new HashSet();
    private Object syncLockObject = new Object();
-   private final File chunkSaveLocation;
+   public final File chunkSaveLocation;
    public static final String vanilla_blocks_tag = "Blocks";
    public static final String new_blocks_tag = "BlockData";
    public static final String vanilla_entities_tag = "Entities";
@@ -94,6 +96,7 @@ public final class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
             par4NBTTagCompound.getCompoundTag("Level").setInteger("xPos", par2);
             par4NBTTagCompound.getCompoundTag("Level").setInteger("zPos", par3);
             var5 = this.readChunkFromNBT(par1World, par4NBTTagCompound.getCompoundTag("Level"));
+            MinecraftForge.EVENT_BUS.post(new ChunkDataEvent.Load(var5, par4NBTTagCompound));
             if (!var5.isAtLocation(par2, par3)) {
                Minecraft.setErrorMessage("checkedReadChunkFromNBT: chunk relocation failed");
             } else {
@@ -114,6 +117,7 @@ public final class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
          NBTTagCompound var3 = new NBTTagCompound();
          NBTTagCompound var4 = new NBTTagCompound();
          var3.setTag("Level", var4);
+         MinecraftForge.EVENT_BUS.post(new ChunkDataEvent.Save(par2Chunk, var3));
          this.writeChunkToNBT(par2Chunk, par1World, var4);
          this.addChunkToPending(par2Chunk.getChunkCoordIntPair(), var3);
          if (par2Chunk.xPosition != x_position_before) {

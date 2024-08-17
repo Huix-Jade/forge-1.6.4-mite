@@ -44,7 +44,7 @@ public final class BlockRedstoneWire extends Block {
    }
 
    public boolean isLegalOn(int metadata, Block block_below, int block_below_metadata) {
-      return block_below == null ? false : block_below.isTopFlatAndSolid(block_below_metadata);
+      return block_below == null ? false : block_below.isBlockTopFacingSurfaceSolid(block_below_metadata);
    }
 
    private boolean updateAndPropagateCurrentStrength(World par1World, int par2, int par3, int par4) {

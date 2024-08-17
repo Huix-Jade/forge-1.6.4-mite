@@ -9,8 +9,11 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.mite.Skill;
 import net.minecraft.raycast.RaycastCollision;
+import net.minecraft.world.World;
+import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.IPlantable;
 
-public class ItemSeeds extends ItemFood {
+public class ItemSeeds extends ItemFood implements IPlantable {
    private int blockType;
    private int soilBlockID;
 
@@ -48,5 +51,23 @@ public class ItemSeeds extends ItemFood {
 
    public float getCompostingValue() {
       return 0.0F;
+   }
+
+   @Override
+   public EnumPlantType getPlantType(World world, int x, int y, int z)
+   {
+      return (blockType == Block.netherStalk.blockID ? EnumPlantType.Nether : EnumPlantType.Crop);
+   }
+
+   @Override
+   public int getPlantID(World world, int x, int y, int z)
+   {
+      return blockType;
+   }
+
+   @Override
+   public int getPlantMetadata(World world, int x, int y, int z)
+   {
+      return 0;
    }
 }

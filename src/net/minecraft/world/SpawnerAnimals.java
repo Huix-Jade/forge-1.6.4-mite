@@ -1,10 +1,7 @@
 package net.minecraft.world;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockMushroomCap;
 import net.minecraft.block.BlockSlab;
@@ -39,6 +36,8 @@ import net.minecraft.util.WeightedRandom;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.biome.SpawnListEntry;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.event.Event.Result;
+import net.minecraftforge.event.ForgeEventFactory;
 
 public final class SpawnerAnimals {
    private HashMap eligibleChunksForSpawning = new HashMap();
@@ -378,6 +377,9 @@ public final class SpawnerAnimals {
          int total_spawned = 0;
          ChunkCoordinates spawn_point = world.getSpawnPoint();
          Iterator eligible_chunk_iterator = this.eligibleChunksForSpawning.keySet().iterator();
+         ArrayList<ChunkCoordIntPair> tmp = new ArrayList(eligibleChunksForSpawning.keySet());
+         Collections.shuffle(tmp);
+         eligible_chunk_iterator = tmp.iterator();
 
          label118:
          while(true) {
@@ -454,9 +456,8 @@ public final class SpawnerAnimals {
                               EntityLiving entity_living;
                               try {
                                  entity_living = (EntityLiving)this.getSubstituteClassToSpawn(world, y, suitable_creature_class).getConstructor(World.class).newInstance(world);
-                              } catch (Exception var35) {
-                                 Exception e = var35;
-                                 e.printStackTrace();
+                              } catch (Exception e) {
+                                  e.printStackTrace();
                                  return total_spawned;
                               }
 
@@ -464,15 +465,21 @@ public final class SpawnerAnimals {
                                  pos_y = this.tryHangBatFromCeiling(world, (EntityBat)entity_living, x_with_random_offset, y, z_with_random_offset, pos_x, pos_y, pos_z);
                               }
 
-                              entity_living.setLocationAndAngles((double)pos_x, (double)pos_y, (double)pos_z, world.rand.nextFloat() * 360.0F, 0.0F);
-                              if (!entity_living.getCanSpawnHere(creature_type != EnumCreatureType.animal || !is_blue_moon_animal_spawning_period)) {
+                              entity_living.setLocationAndAngles(pos_x, pos_y, pos_z, world.rand.nextFloat() * 360.0F, 0.0F);
+                              Result canSpawn = ForgeEventFactory.canEntitySpawn(entity_living, world, pos_x, pos_y, pos_z);
+                              if (canSpawn == Result.ALLOW || (canSpawn == Result.DEFAULT && entity_living.getCanSpawnHere(creature_type != EnumCreatureType.animal || !is_blue_moon_animal_spawning_period)))
+                              {
                                  ++var25;
                               } else {
                                  ++num_spawned;
                                  ++total_spawned;
-                                 entity_living_data = entity_living.onSpawnWithEgg(entity_living_data);
-                                 world.spawnEntityInWorld(entity_living);
-                                 if (num_spawned >= entity_living.getMaxSpawnedInChunk()) {
+
+                                 if (!ForgeEventFactory.doSpecialSpawn(entity_living, world, pos_x, pos_y, pos_z))
+                                 {
+                                    entity_living_data = entity_living.onSpawnWithEgg(entity_living_data);
+                                 }
+
+                                 if (num_spawned >= ForgeEventFactory.getMaxSpawnPackSize(entity_living)) {
                                     continue label118;
                                  }
 
@@ -565,21 +572,23 @@ public final class SpawnerAnimals {
       }
    }
 
-   public static final boolean canCreatureTypeSpawnOn(EnumCreatureType creature_type, Block block, int metadata, boolean initial_spawn) {
+   public static final boolean canCreatureTypeSpawnOn(World world, EnumCreatureType creature_type, Block block, int x, int y, int z
+           , int metadata, boolean initial_spawn) {
       if (creature_type == EnumCreatureType.ambient) {
          return true;
       } else if (block == null) {
          return false;
       } else {
+         boolean spawnBlock = block != null && block.canCreatureSpawn(creature_type, world, x, y, z);
          Material creature_spawn_material = creature_type.getCreatureMaterial();
          if (creature_spawn_material == Material.water) {
             return block.blockMaterial == Material.water;
-         } else if (block != Block.bedrock && block != Block.mantleOrCore) {
+         } else if (!spawnBlock && block != Block.bedrock && block != Block.mantleOrCore) {
             if (block != Block.mycelium && !(block instanceof BlockMushroomCap)) {
                if (creature_type == EnumCreatureType.animal) {
                   return block == Block.grass;
                } else {
-                  return block == Block.snow || block == Block.waterlily || block instanceof BlockSlab || block instanceof BlockStairs || block.isTopFlatAndSolid(metadata);
+                  return block == Block.snow || block == Block.waterlily || block instanceof BlockSlab || block instanceof BlockStairs || block.isBlockTopFacingSurfaceSolid(metadata);
                }
             } else {
                return false;
@@ -622,14 +631,14 @@ public final class SpawnerAnimals {
                } else {
                   block_below.setBlockBoundsBasedOnStateAndNeighbors(world, x, y - 1, z);
                   resulting_y_pos[0] = (double)(y - 1) + block_below.maxY[Minecraft.getThreadIndex()] + 0.005;
-                  return canCreatureTypeSpawnOn(creature_type, block_below, world.getBlockMetadata(x, y - 1, z), initial_spawn);
+                  return canCreatureTypeSpawnOn(world, creature_type, block_below, x, y - 1, z,  world.getBlockMetadata(x, y - 1, z), initial_spawn);
                }
             } else if (resulting_y_pos == null) {
                return true;
             } else {
                block.setBlockBoundsBasedOnStateAndNeighbors(world, x, y, z);
                resulting_y_pos[0] = (double)y + block.maxY[Minecraft.getThreadIndex()] + 0.005;
-               return block == Block.snow ? canCreatureTypeSpawnOn(creature_type, world.getBlock(x, y - 1, z), world.getBlockMetadata(x, y - 1, z), initial_spawn) : canCreatureTypeSpawnOn(creature_type, block, world.getBlockMetadata(x, y, z), initial_spawn);
+               return block == Block.snow ? canCreatureTypeSpawnOn(world, creature_type, world.getBlock(x, y - 1, z), x, y - 1, z, world.getBlockMetadata(x, y - 1, z), initial_spawn) : canCreatureTypeSpawnOn(creature_type, block, world.getBlockMetadata(x, y, z), initial_spawn);
             }
          }
       }

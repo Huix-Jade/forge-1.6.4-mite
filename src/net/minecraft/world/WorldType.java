@@ -1,5 +1,9 @@
 package net.minecraft.world;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiCreateFlatWorld;
+import net.minecraft.client.gui.GuiCreateWorld;
+
 public class WorldType {
    public static final WorldType[] worldTypes = new WorldType[16];
    public static final WorldType DEFAULT = (new WorldType(0, "default", 1)).setVersioned();
@@ -59,16 +63,58 @@ public class WorldType {
    }
 
    public static WorldType parseWorldType(String var0) {
-      for(int var1 = 0; var1 < worldTypes.length; ++var1) {
-         if (worldTypes[var1] != null && worldTypes[var1].worldType.equalsIgnoreCase(var0)) {
-            return worldTypes[var1];
-         }
-      }
+       for (WorldType type : worldTypes) {
+           if (type != null && type.worldType.equalsIgnoreCase(var0)) {
+               return type;
+           }
+       }
 
       return null;
    }
 
    public int getWorldTypeID() {
       return this.worldTypeId;
+   }
+
+   /**
+    * Gets the spawn fuzz for players who join the world.
+    * Useful for void world types.
+    * @return Fuzz for entity initial spawn in blocks.
+    */
+   public int getSpawnFuzz()
+   {
+      return 20;
+   }
+
+   /**
+    * Called when the 'Customize' button is pressed on world creation GUI
+    * @param instance The minecraft instance
+    * @param guiCreateWorld the createworld GUI
+    */
+
+   public void onCustomizeButton(Minecraft instance, GuiCreateWorld guiCreateWorld)
+   {
+      if (this == FLAT)
+      {
+         instance.displayGuiScreen(new GuiCreateFlatWorld(guiCreateWorld, guiCreateWorld.generatorOptionsToUse));
+      }
+   }
+
+   /*
+    * Should world creation GUI show 'Customize' button for this world type?
+    * @return if this world type has customization parameters
+    */
+   public boolean isCustomizable()
+   {
+      return this == FLAT;
+   }
+
+
+   /**
+    * the y level at which clouds are rendered.
+    */
+   public float getCloudHeight()
+   {
+      return 128.0F;
    }
 }

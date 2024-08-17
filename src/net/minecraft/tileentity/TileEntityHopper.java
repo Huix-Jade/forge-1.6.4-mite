@@ -312,15 +312,26 @@ public class TileEntityHopper extends TileEntity implements Hopper {
       if (canInsertItemToInventory(par0IInventory, par1ItemStack, par2, par3)) {
          boolean var5 = false;
          if (var4 == null) {
-            par0IInventory.setInventorySlotContents(par2, par1ItemStack);
-            par1ItemStack = null;
+            int max = Math.min(par1ItemStack.getMaxStackSize(), par0IInventory.getInventoryStackLimit());
+            if (max >= par1ItemStack.stackSize)
+            {
+               par0IInventory.setInventorySlotContents(par2, par1ItemStack);
+               par1ItemStack = null;
+            }
+            else
+            {
+               par0IInventory.setInventorySlotContents(par2, par1ItemStack.splitStack(max));
+            }
             var5 = true;
          } else if (areItemStacksEqualItem(var4, par1ItemStack)) {
-            int var6 = par1ItemStack.getMaxStackSize() - var4.stackSize;
-            int var7 = Math.min(par1ItemStack.stackSize, var6);
-            par1ItemStack.stackSize -= var7;
-            var4.stackSize += var7;
-            var5 = var7 > 0;
+            int max = Math.min(par1ItemStack.getMaxStackSize(), par0IInventory.getInventoryStackLimit());
+            if (max > var4.stackSize)
+            {
+               int l = Math.min(par1ItemStack.stackSize, max - var4.stackSize);
+               par1ItemStack.stackSize -= l;
+               var4.stackSize += l;
+               var5 = l > 0;
+            }
          }
 
          if (var5) {

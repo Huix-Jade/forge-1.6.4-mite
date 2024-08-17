@@ -32,7 +32,7 @@ public class WorldGenSwamp extends WorldGenerator {
                for(var11 = par5 - var13; var11 <= par5 + var13 && var7; ++var11) {
                   if (var8 >= 0 && var8 < 128) {
                      var12 = par1World.getBlockId(var10, var8, var11);
-                     if (var12 != 0 && var12 != Block.leaves.blockID) {
+                     if (var12 != 0 && (Block.blocksList[var12] != null && !Block.blocksList[var12].isLeaves(par1World, var10, var8, var11))) {
                         if (var12 != Block.waterStill.blockID && var12 != Block.waterMoving.blockID) {
                            var7 = false;
                         } else if (var8 > par4) {
@@ -63,7 +63,10 @@ public class WorldGenSwamp extends WorldGenerator {
 
                      for(int var14 = par5 - var11; var14 <= par5 + var11; ++var14) {
                         int var15 = var14 - par5;
-                        if ((Math.abs(var13) != var11 || Math.abs(var15) != var11 || par2Random.nextInt(2) != 0 && var10 != 0) && !Block.opaqueCubeLookup[par1World.getBlockId(var12, var16, var14)]) {
+                        Block block = Block.blocksList[par1World.getBlockId(par3, par4, par5)];
+
+                        if ((Math.abs(var13) != var11 || Math.abs(var15) != var11 || par2Random.nextInt(2) != 0 && var10 != 0) &&
+                                (block == null || block.canBeReplacedByLeaves(par1World, par3, par4, par5))) {
                            this.setBlock(par1World, var12, var16, var14, Block.leaves.blockID);
                         }
                      }
@@ -72,7 +75,11 @@ public class WorldGenSwamp extends WorldGenerator {
 
                for(var16 = 0; var16 < var6; ++var16) {
                   var10 = par1World.getBlockId(par3, par4 + var16, par5);
-                  if (var10 == 0 || var10 == Block.leaves.blockID || var10 == Block.waterMoving.blockID || var10 == Block.waterStill.blockID) {
+                  Block block = Block.blocksList[var10];
+
+                  if (var10 == 0 || (block != null && block.isLeaves(par1World, par3, par4 + var16, par5)) || var10 == Block.waterMoving.blockID
+                          || var10 == Block.waterStill.blockID)
+                  {
                      this.setBlock(par1World, par3, par4 + var16, par5, Block.wood.blockID);
                   }
                }
@@ -83,7 +90,8 @@ public class WorldGenSwamp extends WorldGenerator {
 
                   for(var12 = par3 - var11; var12 <= par3 + var11; ++var12) {
                      for(var13 = par5 - var11; var13 <= par5 + var11; ++var13) {
-                        if (par1World.getBlockId(var12, var16, var13) == Block.leaves.blockID) {
+                        Block block = Block.blocksList[par1World.getBlockId(par3, par4, par5)];
+                        if (block != null && block.isLeaves(par1World, par3, par4, par5)) {
                            if (par2Random.nextInt(4) == 0 && par1World.getBlockId(var12 - 1, var16, var13) == 0) {
                               this.generateVines(par1World, var12 - 1, var16, var13, 8);
                            }

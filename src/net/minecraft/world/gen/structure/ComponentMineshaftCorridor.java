@@ -9,6 +9,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ChestGenHooks;
+
+import static net.minecraftforge.common.ChestGenHooks.MINESHAFT_CORRIDOR;
 
 public class ComponentMineshaftCorridor extends StructureComponent {
    private boolean hasRails;
@@ -206,12 +209,14 @@ public class ComponentMineshaftCorridor extends StructureComponent {
                par2Random.nextFloat();
             }
 
+            ChestGenHooks info = ChestGenHooks.getInfo(MINESHAFT_CORRIDOR);
+
             if (par2Random.nextInt(100) == 0) {
-               this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 2, 0, var10 - 1, Block.rail.blockID, WeightedRandomChestContent.func_92080_a(StructureMineshaftPieces.func_78816_a(), Item.enchantedBook.func_92114_b(par2Random)), 3 + par2Random.nextInt(4));
+               this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 2, 0, var10 - 1, Block.rail.blockID, info.getItems(par2Random), info.getCount(par2Random));
             }
 
             if (par2Random.nextInt(100) == 0) {
-               this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 0, 0, var10 + 1, Block.rail.blockID, WeightedRandomChestContent.func_92080_a(StructureMineshaftPieces.func_78816_a(), Item.enchantedBook.func_92114_b(par2Random)), 3 + par2Random.nextInt(4));
+               this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 0, 0, var10 + 1, Block.rail.blockID, info.getItems(par2Random), info.getCount(par2Random));
             }
 
             if (this.hasSpiders && !this.spawnerPlaced) {

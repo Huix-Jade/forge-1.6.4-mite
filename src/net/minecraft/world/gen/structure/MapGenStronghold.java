@@ -1,17 +1,17 @@
 package net.minecraft.world.gen.structure;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.ChunkPosition;
 import net.minecraft.world.biome.BiomeGenBase;
 
 public class MapGenStronghold extends MapGenStructure {
+   public static ArrayList<BiomeGenBase> allowedBiomes = new ArrayList<BiomeGenBase>(Arrays.asList(BiomeGenBase.desert, BiomeGenBase.forest,
+           BiomeGenBase.extremeHills, BiomeGenBase.swampland, BiomeGenBase.taiga, BiomeGenBase.icePlains, BiomeGenBase.iceMountains, BiomeGenBase.desertHills,
+           BiomeGenBase.forestHills, BiomeGenBase.extremeHillsEdge, BiomeGenBase.jungle, BiomeGenBase.jungleHills));
+
    private BiomeGenBase[] allowedBiomeGenBases;
    private boolean ranBiomeCheck;
    private ChunkCoordIntPair[] structureCoords;
@@ -19,7 +19,7 @@ public class MapGenStronghold extends MapGenStructure {
    private int field_82672_i;
 
    public MapGenStronghold() {
-      this.allowedBiomeGenBases = new BiomeGenBase[]{BiomeGenBase.desert, BiomeGenBase.forest, BiomeGenBase.extremeHills, BiomeGenBase.swampland, BiomeGenBase.taiga, BiomeGenBase.icePlains, BiomeGenBase.iceMountains, BiomeGenBase.desertHills, BiomeGenBase.forestHills, BiomeGenBase.extremeHillsEdge, BiomeGenBase.jungle, BiomeGenBase.jungleHills};
+      this.allowedBiomeGenBases = allowedBiomes.toArray(new BiomeGenBase[0]);
       this.structureCoords = new ChunkCoordIntPair[3];
       this.field_82671_h = 32.0;
       this.field_82671_h *= 16.0;
@@ -27,7 +27,7 @@ public class MapGenStronghold extends MapGenStructure {
    }
 
    public MapGenStronghold(Map par1Map) {
-      this.allowedBiomeGenBases = new BiomeGenBase[]{BiomeGenBase.desert, BiomeGenBase.forest, BiomeGenBase.extremeHills, BiomeGenBase.swampland, BiomeGenBase.taiga, BiomeGenBase.icePlains, BiomeGenBase.iceMountains, BiomeGenBase.desertHills, BiomeGenBase.forestHills, BiomeGenBase.extremeHillsEdge, BiomeGenBase.jungle, BiomeGenBase.jungleHills};
+      this.allowedBiomeGenBases =allowedBiomes.toArray(new BiomeGenBase[0]);
       this.structureCoords = new ChunkCoordIntPair[3];
       this.field_82671_h = 32.0;
       this.field_82671_h *= 16.0;

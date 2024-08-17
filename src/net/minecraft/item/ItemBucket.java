@@ -24,6 +24,9 @@ import net.minecraft.util.EnumItemInUseAction;
 import net.minecraft.util.Translator;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.Event;
+import net.minecraftforge.event.entity.player.FillBucketEvent;
 
 public class ItemBucket extends ItemVessel {
    public ItemBucket(int id, Material material, Material contents) {
@@ -75,6 +78,33 @@ public class ItemBucket extends ItemVessel {
                               player.getAsEntityPlayerMP().prevent_item_pickup_due_to_held_item_breaking_until = System.currentTimeMillis() + 1500L;
                            }
                         } else {
+
+                           FillBucketEvent event = new FillBucketEvent(player, player.itemInUse, player.worldObj, rc);
+                           if (MinecraftForge.EVENT_BUS.post(event))
+                           {
+                              return true;
+                           }
+
+                           if (event.getResult() == Event.Result.ALLOW)
+                           {
+                              if (player.capabilities.isCreativeMode)
+                              {
+                                 return false;
+                              }
+
+                              if (--player.itemInUse.stackSize <= 0)
+                              {
+                                 return false;
+                              }
+
+                              if (!player.inventory.addItemStackToInventory(event.result))
+                              {
+                                 player.dropPlayerItem(event.result);
+                              }
+
+                              return false;
+                           }
+
                            player.convertOneOfHeldItem(new ItemStack(this.getPeerForContents(material)));
                         }
                      }

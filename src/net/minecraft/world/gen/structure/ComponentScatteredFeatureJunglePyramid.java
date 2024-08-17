@@ -8,6 +8,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumDirection;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ChestGenHooks;
+
+import static net.minecraftforge.common.ChestGenHooks.PYRAMID_JUNGLE_CHEST;
+import static net.minecraftforge.common.ChestGenHooks.PYRAMID_JUNGLE_DISPENSER;
 
 public class ComponentScatteredFeatureJunglePyramid extends ComponentScatteredFeature {
    private boolean field_74947_h;
@@ -160,8 +164,12 @@ public class ComponentScatteredFeatureJunglePyramid extends ComponentScatteredFe
          this.placeBlockAtCurrentPosition(par1World, Block.redstoneWire.blockID, 0, 5, -3, 1, par3StructureBoundingBox);
          this.placeBlockAtCurrentPosition(par1World, Block.redstoneWire.blockID, 0, 4, -3, 1, par3StructureBoundingBox);
          this.placeBlockAtCurrentPosition(par1World, Block.cobblestoneMossy.blockID, 0, 3, -3, 1, par3StructureBoundingBox);
+
+         ChestGenHooks dispenser = ChestGenHooks.getInfo(PYRAMID_JUNGLE_DISPENSER);
+         ChestGenHooks chest = ChestGenHooks.getInfo(PYRAMID_JUNGLE_CHEST);
+
          if (!this.field_74945_j) {
-            this.field_74945_j = this.generateStructureDispenserContents(par1World, par3StructureBoundingBox, par2Random, 3, -2, 1, 2, junglePyramidsDispenserContents, 2);
+            this.field_74945_j = this.generateStructureDispenserContents(par1World, par3StructureBoundingBox, par2Random, 3, -2, 1, 2, dispenser.getItems(par2Random), dispenser.getCount(par2Random));
          }
 
          this.placeBlockAtCurrentPosition(par1World, Block.vine.blockID, 15, 3, -2, 2, par3StructureBoundingBox);
@@ -176,13 +184,13 @@ public class ComponentScatteredFeatureJunglePyramid extends ComponentScatteredFe
          this.placeBlockAtCurrentPosition(par1World, Block.cobblestoneMossy.blockID, 0, 9, -3, 4, par3StructureBoundingBox);
          this.placeBlockAtCurrentPosition(par1World, Block.redstoneWire.blockID, 0, 9, -2, 4, par3StructureBoundingBox);
          if (!this.field_74946_k) {
-            this.field_74946_k = this.generateStructureDispenserContents(par1World, par3StructureBoundingBox, par2Random, 9, -2, 3, 4, junglePyramidsDispenserContents, 2);
+            this.field_74946_k = this.generateStructureDispenserContents(par1World, par3StructureBoundingBox, par2Random, 9, -2, 3, 4, dispenser.getItems(par2Random), dispenser.getCount(par2Random));
          }
 
          this.placeBlockAtCurrentPosition(par1World, Block.vine.blockID, 15, 8, -1, 3, par3StructureBoundingBox);
          this.placeBlockAtCurrentPosition(par1World, Block.vine.blockID, 15, 8, -2, 3, par3StructureBoundingBox);
          if (!this.field_74947_h) {
-            this.field_74947_h = this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 8, -3, 3, Block.chest.blockID, WeightedRandomChestContent.func_92080_a(junglePyramidsChestContents, Item.enchantedBook.func_92114_b(par2Random)), 2 + par2Random.nextInt(5), (float[])null, EnumDirection.WEST);
+            this.field_74947_h = this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 8, -3, 3, Block.chest.blockID, chest.getItems(par2Random), chest.getCount(par2Random), (float[])null, EnumDirection.WEST);
          }
 
          this.placeBlockAtCurrentPosition(par1World, Block.cobblestoneMossy.blockID, 0, 9, -3, 2, par3StructureBoundingBox);
@@ -214,7 +222,7 @@ public class ComponentScatteredFeatureJunglePyramid extends ComponentScatteredFe
          this.placeBlockAtCurrentPosition(par1World, Block.redstoneRepeaterIdle.blockID, this.getMetadataWithOffset(Block.redstoneRepeaterIdle.blockID, 2), 10, -2, 10, par3StructureBoundingBox);
          if (!this.field_74948_i) {
             float[] chances_of_artifact = new float[]{0.25F};
-            this.field_74948_i = this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 9, -3, 10, Block.chest.blockID, WeightedRandomChestContent.func_92080_a(junglePyramidsChestContents, Item.enchantedBook.func_92114_b(par2Random)), 2 + par2Random.nextInt(5), chances_of_artifact, EnumDirection.SOUTH);
+            this.field_74948_i = this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 9, -3, 10, Block.chest.blockID, chest.getItems(par2Random), chest.getCount(par2Random), chances_of_artifact, EnumDirection.SOUTH);
          }
 
          return true;

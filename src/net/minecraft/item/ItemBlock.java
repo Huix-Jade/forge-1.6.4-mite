@@ -31,6 +31,7 @@ import net.minecraft.world.WorldServer;
 public class ItemBlock extends Item {
    private int blockID;
    private Icon field_94588_b;
+   private float partial_tick;
 
    public ItemBlock(Block block) {
       super(block.blockID - 256, (String)null, block.getNumSubBlocks());
@@ -67,12 +68,15 @@ public class ItemBlock extends Item {
 
          return true;
       } else {
+         this.partial_tick = partial_tick;
          RaycastCollision rc = player.getSelectedObject(partial_tick, false);
          if (rc != null && rc.isBlock()) {
             if (player.worldObj.areSkillsEnabled() && this.getBlock() instanceof BlockMushroom && !player.hasSkill(Skill.FARMING)) {
                return false;
             } else {
-               return player.onClient() && System.currentTimeMillis() < player.getAsEntityClientPlayerMP().prevent_block_placement_due_to_picking_up_held_item_until ? false : player.tryPlaceHeldItemAsBlock(rc, Block.getBlock(this.blockID));
+               return player.onClient() && System.currentTimeMillis() < player.getAsEntityClientPlayerMP().prevent_block_placement_due_to_picking_up_held_item_until
+                       ? false : this.placeBlockAt(player.getHeldItemStack(), player, player.worldObj, rc.block_hit_x, rc.block_hit_y, rc.block_hit_z
+                       , 0, rc.block_hit_x, rc.block_hit_y, rc.block_hit_z, rc.block_hit_metadata);
             }
          } else {
             return false;
@@ -183,6 +187,7 @@ public class ItemBlock extends Item {
       return block instanceof BlockTorch ? true : block.blockMaterial.canCatchFire();
    }
 
+
    public boolean canBurnAsFuelSource() {
       Block block = this.getBlock();
       if (!(block instanceof BlockTorch) && !(block instanceof BlockSapling)) {
@@ -277,5 +282,29 @@ public class ItemBlock extends Item {
    public Item getCompostingRemains(ItemStack item_stack) {
       Block block = this.getBlock();
       return block == Block.melon ? Item.melonSeeds : (block != Block.pumpkin && block != Block.pumpkinLantern ? null : Item.pumpkinSeeds);
+   }
+
+   /**
+    * Called to actually place the block, after the location is determined
+    * and all permission checks have been made.
+    *
+    * @param stack The item stack that was used to place the block. This can be changed inside the method.
+    * @param player The player who is placing the block. Can be null if the block is not being placed by a player.
+    * @param side The side the player (or machine) right-clicked on.
+    */
+   public boolean placeBlockAt(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ, int metadata)
+   {
+      if (!world.setBlock(x, y, z, this.blockID, metadata, 3))
+      {
+         return false;
+      }
+
+      if (world.getBlockId(x, y, z) == this.blockID)
+      {
+         RaycastCollision rc = player.getSelectedObject(partial_tick, false);
+         return player.tryPlaceHeldItemAsBlock(rc, Block.getBlock(this.blockID));
+      }
+
+      return true;
    }
 }

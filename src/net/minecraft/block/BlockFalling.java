@@ -95,7 +95,7 @@ public class BlockFalling extends Block {
       if (this.usesNewSandPhysics() && (!this.canFallDownTo(world, x, y - 1, z, metadata) || y < 0)) {
          for(int dx = -1; dx <= 1; ++dx) {
             for(int dz = -1; dz <= 1; ++dz) {
-               if ((dx == 0 || dz == 0) && (dx == 0 && dz == 0 || !world.doesBlockBlockFluids(x + dx, y, z + dz)) && !world.isBlockTopFlatAndSolid(x + dx, y - 1, z + dz)) {
+               if ((dx == 0 || dz == 0) && (dx == 0 && dz == 0 || !world.doesBlockBlockFluids(x + dx, y, z + dz)) && !world.doesBlockHaveSolidTopSurface(x + dx, y - 1, z + dz)) {
                   return false;
                }
             }

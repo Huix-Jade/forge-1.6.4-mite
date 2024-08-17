@@ -58,7 +58,7 @@ public final class BlockSnow extends Block {
       if (getDepth(metadata) == getMaxDepth()) {
          return Block.blockSnow.isLegalOn(metadata, block_below, block_below_metadata);
       } else {
-         return block_below != null && block_below.isTopFlatAndSolid(block_below_metadata);
+         return block_below != null && block_below.isBlockTopFacingSurfaceSolid(block_below_metadata);
       }
    }
 

@@ -23,6 +23,8 @@ import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.EmptyChunk;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraft.world.chunk.storage.IChunkLoader;
+import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.common.ForgeChunkManager;
 
 public final class ChunkProviderServer implements IChunkProvider
 {
@@ -33,7 +35,7 @@ public final class ChunkProviderServer implements IChunkProvider
 	private Set chunksToUnload = new HashSet();
 	public Chunk defaultEmptyChunk;
 	private IChunkProvider currentChunkProvider;
-	private IChunkLoader currentChunkLoader;
+	public IChunkLoader currentChunkLoader;
 
 	/**
 	 * if this is false, the defaultEmptyChunk will be returned by the provider
@@ -70,7 +72,7 @@ public final class ChunkProviderServer implements IChunkProvider
 	 */
 	public void unloadChunksIfNotNearSpawn(int par1, int par2)
 	{
-		if (this.worldObj.provider.canRespawnHere())
+		if (this.worldObj.provider.canRespawnHere() && DimensionManager.shouldLoadSpawn(this.worldObj.provider.dimensionId))
 		{
 			ChunkCoordinates var3 = this.worldObj.getSpawnPoint();
 			int var4 = par1 * 16 + 8 - var3.posX;
@@ -120,7 +122,12 @@ public final class ChunkProviderServer implements IChunkProvider
 
 		if (var5 == null)
 		{
-			var5 = this.safeLoadChunk(par1, par2);
+
+			var5 = ForgeChunkManager.fetchDormantChunk(var3, this.worldObj);
+			if (var5 == null)
+			{
+				var5 = this.safeLoadChunk(par1, par2);
+			}
 
 			if (var5 == null)
 			{
@@ -318,6 +325,11 @@ public final class ChunkProviderServer implements IChunkProvider
 	{
 		if (!this.worldObj.canNotSave)
 		{
+			for (ChunkCoordIntPair forced : this.worldObj.getPersistentChunks().keySet())
+			{
+				this.chunksToUnload.remove(ChunkCoordIntPair.chunkXZ2Int(forced.chunkXPos, forced.chunkZPos));
+			}
+
 			for (int var1 = 0; var1 < 100; ++var1)
 			{
 				if (!this.chunksToUnload.isEmpty())
@@ -335,6 +347,11 @@ public final class ChunkProviderServer implements IChunkProvider
 					this.chunksToUnload.remove(var2);
 					this.loadedChunkHashMap.remove(var2.longValue());
 					this.loadedChunks.remove(var3);
+					ForgeChunkManager.putDormantChunk(ChunkCoordIntPair.chunkXZ2Int(var3.xPosition, var3.zPosition), var3);
+					if(loadedChunks.size() == 0 && ForgeChunkManager.getPersistentChunksFor(this.worldObj).size() == 0 && !DimensionManager.shouldLoadSpawn(this.worldObj.provider.dimensionId)) {
+						DimensionManager.unloadWorld(this.worldObj.provider.dimensionId);
+						return currentChunkProvider.unloadQueuedChunks();
+					}
 				}
 			}
 

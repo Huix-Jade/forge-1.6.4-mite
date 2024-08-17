@@ -1,6 +1,7 @@
 package net.minecraft.server.management;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -15,6 +16,9 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.ForgeDummyContainer;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.world.ChunkWatchEvent;
 
 class PlayerInstance {
    private final List playersInChunk;
@@ -43,6 +47,7 @@ class PlayerInstance {
 
          this.playersInChunk.add(par1EntityPlayerMP);
          par1EntityPlayerMP.loadedChunks.add(this.chunkLocation);
+         MinecraftForge.EVENT_BUS.post(new ChunkWatchEvent.UnWatch(chunkLocation, par1EntityPlayerMP));
       }
    }
 
@@ -82,13 +87,18 @@ class PlayerInstance {
       }
 
       this.flagsYAreasToUpdate |= 1 << (par2 >> 4);
-      if (this.numberOfTilesToUpdate < 64) {
+      //if (this.numberOfTilesToUpdate < 64)
+      {
          short var4 = (short)(par1 << 12 | par3 << 8 | par2);
 
          for(int var5 = 0; var5 < this.numberOfTilesToUpdate; ++var5) {
             if (this.locationOfBlockChange[var5] == var4) {
                return;
             }
+         }
+         if (numberOfTilesToUpdate == locationOfBlockChange.length)
+         {
+            locationOfBlockChange = Arrays.copyOf(locationOfBlockChange, locationOfBlockChange.length << 1);
          }
 
          this.locationOfBlockChange[this.numberOfTilesToUpdate++] = var4;
@@ -140,10 +150,12 @@ class PlayerInstance {
                      }
                   }
                } else {
-                  var1 = this.chunkLocation.chunkXPos * 16;
-                  var2 = this.chunkLocation.chunkZPos * 16;
-                  this.sendToAllPlayersWatchingChunk(new Packet51MapChunk(PlayerManager.getWorldServer(this.thePlayerManager).getChunkFromChunkCoords(this.chunkLocation.chunkXPos, this.chunkLocation.chunkZPos), false, this.flagsYAreasToUpdate));
-
+                  if (this.numberOfTilesToUpdate >= ForgeDummyContainer.clumpingThreshold) {
+                     var1 = this.chunkLocation.chunkXPos * 16;
+                     var2 = this.chunkLocation.chunkZPos * 16;
+                     this.sendToAllPlayersWatchingChunk(new Packet51MapChunk(PlayerManager.getWorldServer(this.thePlayerManager).getChunkFromChunkCoords(this.chunkLocation.chunkXPos, this.chunkLocation.chunkZPos), false, this.flagsYAreasToUpdate));
+                  }
+                  /* Forge: Grabs ALL tile entities is costly on a modded server, only send needed ones
                   for(var3 = 0; var3 < 16; ++var3) {
                      if ((this.flagsYAreasToUpdate & 1 << var3) != 0) {
                         var4 = var3 << 4;
@@ -154,6 +166,7 @@ class PlayerInstance {
                         }
                      }
                   }
+                */
                }
             }
 

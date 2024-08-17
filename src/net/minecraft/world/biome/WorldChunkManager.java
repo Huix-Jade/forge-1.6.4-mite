@@ -1,6 +1,7 @@
 package net.minecraft.world.biome;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import net.minecraft.world.ChunkPosition;
@@ -8,6 +9,10 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldType;
 import net.minecraft.world.gen.layer.GenLayer;
 import net.minecraft.world.gen.layer.IntCache;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.terraingen.WorldTypeEvent;
+
+import static net.minecraft.world.biome.BiomeGenBase.*;
 
 public class WorldChunkManager {
    private GenLayer genBiomes;
@@ -15,23 +20,26 @@ public class WorldChunkManager {
    private BiomeCache biomeCache;
    private List biomesToSpawnIn;
 
+   public static ArrayList<BiomeGenBase> allowedBiomes = new ArrayList<BiomeGenBase>(Arrays.asList(forest, plains, taiga, taigaHills, forestHills, jungle, jungleHills));
+
    protected WorldChunkManager() {
       this.biomeCache = new BiomeCache(this);
       this.biomesToSpawnIn = new ArrayList();
-      this.biomesToSpawnIn.add(BiomeGenBase.forest);
-      this.biomesToSpawnIn.add(BiomeGenBase.plains);
-      this.biomesToSpawnIn.add(BiomeGenBase.taiga);
-      this.biomesToSpawnIn.add(BiomeGenBase.taigaHills);
-      this.biomesToSpawnIn.add(BiomeGenBase.forestHills);
-      this.biomesToSpawnIn.add(BiomeGenBase.jungle);
-      this.biomesToSpawnIn.add(BiomeGenBase.jungleHills);
+      this.biomesToSpawnIn.addAll(allowedBiomes);
    }
 
    public WorldChunkManager(long par1, WorldType par3WorldType) {
       this();
       GenLayer[] var4 = GenLayer.initializeAllBiomeGenerators(par1, par3WorldType);
+      var4 = getModdedBiomeGenerators(par3WorldType, par1, var4);
       this.genBiomes = var4[0];
       this.biomeIndexLayer = var4[1];
+   }
+   public GenLayer[] getModdedBiomeGenerators(WorldType worldType, long seed, GenLayer[] original)
+   {
+      WorldTypeEvent.InitBiomeGens event = new WorldTypeEvent.InitBiomeGens(worldType, seed, original);
+      MinecraftForge.TERRAIN_GEN_BUS.post(event);
+      return event.newBiomeGens;
    }
 
    public WorldChunkManager(World par1World) {

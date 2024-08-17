@@ -29,6 +29,12 @@ public final class RaycastCollision {
    public final EnumFace face_hit;
    public final Vec3 position_hit;
 
+   /** Used to determine what sub-segment is hit */
+   public int subHit = -1;
+
+   /** Used to add extra hit info */
+   public Object hitInfo = null;
+
    public RaycastCollision(Raycast raycast, Entity entity_hit, AABBIntercept intercept) {
       this.raycast = raycast.setHasProducedCollisions();
       this.world = entity_hit.worldObj;

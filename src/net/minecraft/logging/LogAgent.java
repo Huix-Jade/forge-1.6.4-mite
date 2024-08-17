@@ -58,7 +58,7 @@ public class LogAgent implements ILogAgent {
    }
 
    public void logWarningFormatted(String par1Str, Object... par2ArrayOfObj) {
-      this.serverLogger.log(Level.WARNING, par1Str, par2ArrayOfObj);
+      this.serverLogger.log(Level.WARNING, String.format(par1Str, par2ArrayOfObj));
    }
 
    public void logWarningException(String par1Str, Throwable par2Throwable) {

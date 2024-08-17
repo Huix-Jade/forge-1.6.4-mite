@@ -8,6 +8,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumDirection;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ChestGenHooks;
+
+import static net.minecraftforge.common.ChestGenHooks.VILLAGE_BLACKSMITH;
 
 public class ComponentVillageHouse2 extends ComponentVillage {
    private static final WeightedRandomChestContent[] villageBlacksmithChestContents;
@@ -90,7 +93,7 @@ public class ComponentVillageHouse2 extends ComponentVillage {
          int var6 = this.getZWithOffset(5, 5);
          if (par3StructureBoundingBox.isVecInside(var5, var4, var6)) {
             this.hasMadeChest = true;
-            this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 5, 1, 5, Block.chestIron.blockID, villageBlacksmithChestContents, 3 + par2Random.nextInt(6), (float[])null, EnumDirection.SOUTH);
+            this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 5, 1, 5, Block.chestIron.blockID, ChestGenHooks.getItems(VILLAGE_BLACKSMITH, par2Random), ChestGenHooks.getCount(VILLAGE_BLACKSMITH, par2Random), (float[])null, EnumDirection.SOUTH);
          }
       }
 

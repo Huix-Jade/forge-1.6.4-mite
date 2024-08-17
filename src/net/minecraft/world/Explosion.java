@@ -77,7 +77,7 @@ public class Explosion {
                      int var25 = this.worldObj.getBlockId(var22, var23, var24);
                      if (var25 > 0) {
                         Block var26 = Block.blocksList[var25];
-                        float var27 = var26.getExplosionResistance(this);
+                        float var27 = var26.getExplosionResistance(this.exploder, worldObj, var22, var23, var24, explosionX, explosionY, explosionZ);
                         if (!(var27 < 0.0F) && !(var27 > 0.1F)) {
                            var14 -= (var27 + 0.3F) * var21;
                         } else {
@@ -294,8 +294,7 @@ public class Explosion {
                   var25.dropBlockAsEntityItem(info);
                }
 
-               this.worldObj.setBlock(var4, var5, var6, 0, 0, 3);
-               var25.onBlockDestroyedByExplosion(this.worldObj, var4, var5, var6, this);
+               var25.onBlockExploded(this.worldObj, var4, var5, var6, this);
             }
          }
       }

@@ -7,6 +7,7 @@ import net.minecraft.util.EnumDirection;
 import net.minecraft.util.Vec3Pool;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.ForgeDirection;
 
 public final class ChunkCache implements IBlockAccess {
    private int chunkX;
@@ -78,9 +79,17 @@ public final class ChunkCache implements IBlockAccess {
    }
 
    public TileEntity getBlockTileEntity(int par1, int par2, int par3) {
-      int var4 = (par1 >> 4) - this.chunkX;
-      int var5 = (par3 >> 4) - this.chunkZ;
-      return this.chunkArray[var4][var5].getChunkBlockTileEntity(par1 & 15, par2, par3 & 15);
+      int l = (par1 >> 4) - this.chunkX;
+      int i1 = (par3 >> 4) - this.chunkZ;
+      if (l >= 0 && l < this.chunkArray.length && i1 >= 0 && i1 < this.chunkArray[l].length)
+      {
+         Chunk chunk = this.chunkArray[l][i1];
+         return chunk == null ? null : chunk.getChunkBlockTileEntity(par1 & 15, par2, par3 & 15);
+      }
+      else
+      {
+         return null;
+      }
    }
 
    public float getBrightness(int par1, int par2, int par3, int par4) {
@@ -159,9 +168,14 @@ public final class ChunkCache implements IBlockAccess {
       } else if (par2 >= 256) {
          return 0;
       } else {
-         int var4 = (par1 >> 4) - this.chunkX;
-         int var5 = (par3 >> 4) - this.chunkZ;
-         return this.chunkArray[var4][var5].getBlockMetadata(par1 & 15, par2, par3 & 15);
+         int l = (par1 >> 4) - this.chunkX;
+         int i1 = (par3 >> 4) - this.chunkZ;
+         if (l >= 0 && l < this.chunkArray.length && i1 >= 0 && i1 < this.chunkArray[l].length)
+         {
+            Chunk chunk = this.chunkArray[l][i1];
+            return chunk == null ? 0 : chunk.getBlockMetadata(par1 & 15, par2, par3 & 15);
+         }
+         return 0;
       }
    }
 
@@ -186,9 +200,9 @@ public final class ChunkCache implements IBlockAccess {
       return Block.isNormalCube(this.getBlockId(par1, par2, par3));
    }
 
-   public boolean isBlockTopFlatAndSolid(int x, int y, int z) {
+   public boolean doesBlockHaveSolidTopSurface(int x, int y, int z) {
       Block block = Block.blocksList[this.getBlockId(x, y, z)];
-      return block != null && block.isTopFlatAndSolid(this.getBlockMetadata(x, y, z));
+      return block != null && block.isBlockTopFacingSurfaceSolid(this.getBlockMetadata(x, y, z));
    }
 
    public Vec3Pool getWorldVec3Pool() {
@@ -196,8 +210,8 @@ public final class ChunkCache implements IBlockAccess {
    }
 
    public boolean isAirBlock(int par1, int par2, int par3) {
-      Block var4 = Block.blocksList[this.getBlockId(par1, par2, par3)];
-      return var4 == null;
+      int id = getBlockId(par1, par2, par3);
+      return id == 0 || Block.blocksList[id] == null || Block.blocksList[id].isAirBlock(this.worldObj, par1, par2, par3);
    }
 
    public int getSkyBlockTypeBrightness(EnumSkyBlock par1EnumSkyBlock, int par2, int par3, int par4) {
@@ -264,5 +278,20 @@ public final class ChunkCache implements IBlockAccess {
 
    public World getWorld() {
       return this.worldObj;
+   }
+
+   public boolean isBlockSolidOnSide(int x, int y, int z, ForgeDirection side, boolean _default) {
+      if (x < -30000000 || z < -30000000 || x >= 30000000 || z >= 30000000) {
+         return _default;
+      }
+
+      int blockId = getBlockId(x, y, z);
+      Block block = Block.blocksList[blockId];
+
+      if (block != null) {
+         return block.isBlockSolidOnSide(this.worldObj, x, y, z, side);
+      }
+
+      return false;
    }
 }

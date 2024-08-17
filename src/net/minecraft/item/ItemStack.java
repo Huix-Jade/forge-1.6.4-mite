@@ -40,6 +40,7 @@ import net.minecraft.util.Icon;
 import net.minecraft.util.StatCollector;
 import net.minecraft.util.Translator;
 import net.minecraft.world.World;
+import net.minecraftforge.event.ForgeEventFactory;
 
 public final class ItemStack {
    public static final DecimalFormat field_111284_a = new DecimalFormat("#.###");
@@ -219,7 +220,7 @@ public final class ItemStack {
    }
 
    public int getMaxStackSize() {
-      return this.getItem().getItemStackLimit(this.subtype, this.damage);
+      return this.getItem().getItemStackLimit(this);
    }
 
    public boolean isStackable() {
@@ -248,6 +249,10 @@ public final class ItemStack {
    }
 
    public int getItemDamageForDisplay() {
+      if (getItem() != null)
+      {
+         return getItem().getDisplayDamage(this);
+      }
       return this.damage;
    }
 
@@ -256,6 +261,10 @@ public final class ItemStack {
    }
 
    public int getItemDamage() {
+      if (getItem() != null)
+      {
+         return getItem().getDamage(this);
+      }
       return this.damage;
    }
 
@@ -808,6 +817,8 @@ public final class ItemStack {
          }
       }
 
+      ForgeEventFactory.onItemTooltip(this, par1EntityPlayer, var3, par2);
+
       if (this.isArtifact()) {
          var3.add("");
          var3.add(EnumChatFormatting.AQUA + "Artifact");
@@ -874,7 +885,12 @@ public final class ItemStack {
    }
 
    public boolean hasEffect() {
-      return this.getItem().hasEffect(this);
+      return this.hasEffect(0);
+   }
+
+   public boolean hasEffect(int pass)
+   {
+      return this.getItem().hasEffect(this, pass);
    }
 
    public EnumRarity getRarity() {

@@ -19,6 +19,9 @@ import net.minecraft.util.EnumSignal;
 import net.minecraft.util.Icon;
 import net.minecraft.util.Translator;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.ArrowLooseEvent;
+import net.minecraftforge.event.entity.player.ArrowNockEvent;
 
 public class ItemBow extends Item implements IDamageableItem {
    private static final Material[] possible_arrow_materials;
@@ -52,6 +55,17 @@ public class ItemBow extends Item implements IDamageableItem {
    }
 
    public void onPlayerStoppedUsing(ItemStack item_stack, World world, EntityPlayer player, int item_in_use_count) {
+      int j = this.getMaxItemUseDuration(item_stack) - item_in_use_count;
+
+      ArrowLooseEvent event = new ArrowLooseEvent(player, item_stack, j);
+      MinecraftForge.EVENT_BUS.post(event);
+      if (event.isCanceled())
+      {
+         return;
+      }
+      j = event.charge;
+
+
       if (!world.isRemote) {
          ItemArrow arrow = player.inventory.getReadiedArrow();
          if (arrow == null) {
@@ -117,6 +131,13 @@ public class ItemBow extends Item implements IDamageableItem {
    }
 
    public boolean onItemRightClick(EntityPlayer player, float partial_tick, boolean ctrl_is_down) {
+      ArrowNockEvent event = new ArrowNockEvent(player, player.itemInUse);
+      MinecraftForge.EVENT_BUS.post(event);
+      if (event.isCanceled())
+      {
+         return false;
+      }
+
       if (!player.inCreativeMode() && player.inventory.getReadiedArrow() == null) {
          return false;
       } else {

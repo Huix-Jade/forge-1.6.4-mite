@@ -6,10 +6,7 @@ import java.io.IOException;
 import java.net.Proxy;
 import java.security.KeyPair;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.minecraft.client.Minecraft;
@@ -64,6 +61,9 @@ import net.minecraft.world.storage.ISaveFormat;
 import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.ThreadedFileIOBase;
 import net.minecraft.world.storage.WorldInfo;
+import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.world.WorldEvent;
 
 public abstract class MinecraftServer implements ICommandSender, Runnable, IPlayerUsage
 {
@@ -90,7 +90,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
    private int serverPort = -1;
 
    /** The server world instances. */
-   public WorldServer[] worldServers;
+   public WorldServer[] worldServers = new WorldServer[0];
 
    /** The ServerConfigurationManager instance. */
    private ServerConfigurationManager serverConfigManager;
@@ -145,7 +145,8 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
    public final long[] tickTimeArray;
 
    /** Stats are [dimension][tick%100] system.nanoTime is stored. */
-   public long[][] timeOfLastDimensionTick;
+   //public long[][] timeOfLastDimensionTick;
+   public Hashtable<Integer, long[]> worldTickTimes = new Hashtable<Integer, long[]>();
    private KeyPair serverKeyPair;
 
    /** Username of the server owner (for integrated servers) */
@@ -246,10 +247,10 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
    {
       this.convertMapIfNeeded(par1Str);
       this.setUserMessage("menu.loadingLevel");
-      this.worldServers = new WorldServer[4];
-      this.timeOfLastDimensionTick = new long[this.worldServers.length][100];
-      ISaveHandler var7 = this.anvilConverterForAnvilFile.getSaveLoader(par1Str, true);
-      WorldInfo var8 = var7.loadWorldInfo();
+//      this.worldServers = new WorldServer[4];
+//      this.timeOfLastDimensionTick = new long[this.worldServers.length][100];
+      ISaveHandler saveLoader = this.anvilConverterForAnvilFile.getSaveLoader(par1Str, true);
+      WorldInfo var8 = saveLoader.loadWorldInfo();
       WorldSettings var9;
 
       if (var8 == null)
@@ -267,35 +268,22 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
          var9.enableBonusChest();
       }
 
-      for (int var10 = 0; var10 < this.worldServers.length; ++var10)
+      WorldServer overWorld = (isDemo() ? new DemoWorldServer(this, saveLoader, par2Str, 0, theProfiler, getLogAgent()) : new WorldServer(this, saveLoader, par2Str, 0, var9, theProfiler, getLogAgent()));
+      for (int dim : DimensionManager.getStaticDimensionIDs())
       {
-         byte var11 = (byte)getWorldDimensionIdFromIndex(var10);
-
-         if (var10 == 0)
-         {
-            if (this.isDemo())
-            {
-               this.worldServers[var10] = new DemoWorldServer(this, var7, par2Str, var11, this.theProfiler, this.getLogAgent());
-            }
-            else
-            {
-               this.worldServers[var10] = new WorldServer(this, var7, par2Str, var11, var9, this.theProfiler, this.getLogAgent());
-            }
-         }
-         else
-         {
-            this.worldServers[var10] = new WorldServerMulti(this, var7, par2Str, var11, var9, this.worldServers[0], this.theProfiler, this.getLogAgent());
-         }
-
-         this.worldServers[var10].addWorldAccess(new WorldManager(this, this.worldServers[var10]));
+         WorldServer world = (dim == 0 ? overWorld : new WorldServerMulti(this, saveLoader, par2Str, dim, var9, overWorld, theProfiler, getLogAgent()));
+         world.addWorldAccess(new WorldManager(this, world));
 
          if (!this.isSinglePlayer())
          {
-            this.worldServers[var10].getWorldInfo().setGameType(this.getGameType());
+            world.getWorldInfo().setGameType(this.getGameType());
          }
 
          this.serverConfigManager.setPlayerManager(this.worldServers);
+         MinecraftForge.EVENT_BUS.post(new WorldEvent.Load(world));
       }
+
+      this.serverConfigManager.setPlayerManager(new WorldServer[]{ overWorld });
 
       this.setDifficultyForAllWorlds(this.getDifficulty());
       this.initialWorldChunkLoad();
@@ -375,6 +363,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
          if (!this.worldIsBeingDeleted)
          {
             WorldServer[] var2 = this.worldServers;
+            if (var2 == null) return; //ForgE: Just in case, NPE protection as it has been encountered.
             int var3 = var2.length;
 
             for (int var4 = 0; var4 < var3; ++var4)
@@ -454,10 +443,15 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
             clearTreacheryDetected();
          }
 
-         for (int var3 = 0; var3 < this.worldServers.length; ++var3)
+          for (WorldServer var2 : this.worldServers) {
+              MinecraftForge.EVENT_BUS.post(new WorldEvent.Unload(var2));
+              var2.flush();
+          }
+
+         WorldServer[] tmp = worldServers;
+         for (WorldServer world : tmp)
          {
-            WorldServer var2 = this.worldServers[var3];
-            var2.flush();
+            DimensionManager.setWorld(world.provider.dimensionId, null);
          }
 
          if (this.usageSnooper != null && this.usageSnooper.isSnooperRunning())
@@ -797,13 +791,14 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
 
       int var1;
 
-      for (var1 = 0; var1 < this.worldServers.length; ++var1)
-      {
+      Integer[] ids = DimensionManager.getIDs(this.tickCounter % 200 == 0);
+      for (var1 = 0; var1 < ids.length; var1++) {
+         int id = ids[var1];
          long var2 = System.nanoTime();
 
-         if (var1 == 0 || this.getAllowNether())
+         if (id == 0 || this.getAllowNether())
          {
-            WorldServer var4 = this.worldServers[var1];
+            WorldServer var4 = DimensionManager.getWorld(id);
             this.theProfiler.startSection(var4.getWorldInfo().getWorldName());
             this.theProfiler.startSection("pools");
             var4.getWorldVec3Pool().clear();
@@ -842,8 +837,11 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
             this.theProfiler.endSection();
          }
 
-         this.timeOfLastDimensionTick[var1][this.tickCounter % 100] = System.nanoTime() - var2;
+         worldTickTimes.get(id)[this.tickCounter % 100] = System.nanoTime() - var1;
       }
+
+      this.theProfiler.endStartSection("dim_unloading");
+      DimensionManager.unloadWorlds(worldTickTimes);
 
       this.theProfiler.endStartSection("connection");
       this.getNetworkThread().networkTick();
@@ -1030,7 +1028,13 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
     */
    public WorldServer worldServerForDimension(int par1)
    {
-      return this.worldServers[getWorldIndexForDimensionId(par1)];
+      WorldServer ret = DimensionManager.getWorld(par1);
+      if (ret == null)
+      {
+         DimensionManager.initDimension(par1);
+         ret = DimensionManager.getWorld(par1);
+      }
+      return ret;
    }
 
    /**
@@ -1372,6 +1376,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
 
          if (var2 != null)
          {
+            MinecraftForge.EVENT_BUS.post(new WorldEvent.Unload(var2));
             var2.flush();
          }
       }

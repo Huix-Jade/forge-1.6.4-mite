@@ -3,7 +3,6 @@ package net.minecraft.client.renderer;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockAnvil;
 import net.minecraft.block.BlockBeacon;
-import net.minecraft.block.BlockBed;
 import net.minecraft.block.BlockBrewingStand;
 import net.minecraft.block.BlockCauldron;
 import net.minecraft.block.BlockCocoa;
@@ -1355,7 +1354,7 @@ public final class RenderBlocks {
       int var7 = var6 & 3;
       boolean var8 = (var6 & 4) == 4;
       boolean var9 = (var6 & 8) == 8;
-      boolean var10 = !this.blockAccess.isBlockTopFlatAndSolid(par2, par3 - 1, par4);
+      boolean var10 = !this.blockAccess.doesBlockHaveSolidTopSurface(par2, par3 - 1, par4);
       boolean var11 = this.overrideBlockTexture != null;
       if (!var11) {
          this.setOverrideBlockTexture(this.getBlockIcon(Block.planks));

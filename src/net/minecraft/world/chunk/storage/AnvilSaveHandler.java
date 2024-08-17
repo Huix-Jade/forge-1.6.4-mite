@@ -22,13 +22,8 @@ public class AnvilSaveHandler extends SaveHandler {
          var3 = new File(var2, "DIM-2");
          var3.mkdirs();
          return new AnvilChunkLoader(var3);
-      } else if (par1WorldProvider instanceof WorldProviderHell) {
-         var3 = new File(var2, "DIM-1");
-         var3.mkdirs();
-         return new AnvilChunkLoader(var3);
-      } else if (par1WorldProvider instanceof WorldProviderEnd) {
-         var3 = new File(var2, "DIM1");
-         var3.mkdirs();
+      } else if (par1WorldProvider.getSaveFolder() != null) {
+         var3 = new File(var2, par1WorldProvider.getSaveFolder());
          return new AnvilChunkLoader(var3);
       } else {
          return new AnvilChunkLoader(var2);

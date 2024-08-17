@@ -51,7 +51,7 @@ public final class BlockCarpet extends Block {
    }
 
    public boolean isLegalOn(int metadata, Block block_below, int block_below_metadata) {
-      return block_below != null && block_below.isTopFlatAndSolid(block_below_metadata);
+      return block_below != null && block_below.isBlockTopFacingSurfaceSolid(block_below_metadata);
    }
 
    public boolean shouldSideBeRendered(IBlockAccess par1IBlockAccess, int par2, int par3, int par4, int par5) {

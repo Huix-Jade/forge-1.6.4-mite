@@ -4,6 +4,8 @@ import java.util.Random;
 import net.minecraft.block.Block;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraft.block.BlockSapling;
+import net.minecraftforge.common.ForgeDirection;
 
 public class WorldGenBigTree extends WorldGenerator {
    static final byte[] otherCoordPairs = new byte[]{2, 0, 0, 1, 2, 1};
@@ -120,7 +122,11 @@ public class WorldGenBigTree extends WorldGenerator {
                } else {
                   var11[var9] = var10[var9] + var13;
                   int var14 = this.worldObj.getBlockId(var11[0], var11[1], var11[2]);
-                  if (var14 != 0 && var14 != Block.leaves.blockID) {
+                  Block block = Block.blocksList[var14];
+
+                  if (block != null &&
+                          !block.isAirBlock(worldObj, var11[0], var11[1], var11[2]) &&
+                          !block.isLeaves(worldObj, var11[0], var11[1], var11[2])) {
                      ++var13;
                   } else {
                      this.setBlockAndMetadata(this.worldObj, var11[0], var11[1], var11[2], par6, 0);
@@ -305,7 +311,11 @@ public class WorldGenBigTree extends WorldGenerator {
             var13[var6] = MathHelper.floor_double((double)par1ArrayOfInteger[var6] + (double)var14 * var9);
             var13[var7] = MathHelper.floor_double((double)par1ArrayOfInteger[var7] + (double)var14 * var11);
             int var16 = this.worldObj.getBlockId(var13[0], var13[1], var13[2]);
-            if (var16 != 0 && var16 != Block.leaves.blockID) {
+            Block block = Block.blocksList[var16];
+
+            if (block != null &&
+                    !block.isAirBlock(worldObj, var13[0], var13[1], var13[2]) &&
+                    !block.isLeaves(worldObj, var13[0], var13[1], var13[2])) {
                break;
             }
          }
@@ -318,7 +328,10 @@ public class WorldGenBigTree extends WorldGenerator {
       int[] var1 = new int[]{this.basePos[0], this.basePos[1], this.basePos[2]};
       int[] var2 = new int[]{this.basePos[0], this.basePos[1] + this.heightLimit - 1, this.basePos[2]};
       int var3 = this.worldObj.getBlockId(this.basePos[0], this.basePos[1] - 1, this.basePos[2]);
-      if (var3 != 2 && var3 != 3) {
+      Block soil = Block.blocksList[var3];
+      boolean isValidSoil = (soil != null && soil.canSustainPlant(worldObj, basePos[0], basePos[1] - 1, basePos[2],
+              ForgeDirection.UP, (BlockSapling)Block.sapling));
+      if (!isValidSoil) {
          return false;
       } else {
          int var4 = this.checkBlockLine(var1, var2);

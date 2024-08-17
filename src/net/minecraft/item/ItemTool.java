@@ -16,6 +16,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.mite.Skill;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EnumItemInUseAction;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.event.ForgeEventFactory;
 
 public abstract class ItemTool extends Item implements IDamageableItem {
@@ -256,5 +257,16 @@ public abstract class ItemTool extends Item implements IDamageableItem {
 
    public float getMeleeDamageBonus() {
       return this.getCombinedDamageVsEntity();
+   }
+
+   /** FORGE: Overridden to allow custom tool effectiveness */
+   @Override
+   public float getStrVsBlock(ItemStack stack, Block block, int meta)
+   {
+      if (ForgeHooks.isToolEffective(stack, block, meta))
+      {
+         return getMultipliedHarvestEfficiency(block);
+      }
+      return getStrVsBlock(block, meta);
    }
 }

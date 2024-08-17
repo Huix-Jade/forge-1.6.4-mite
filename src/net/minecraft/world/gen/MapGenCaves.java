@@ -126,7 +126,7 @@ public class MapGenCaves extends MapGenBase {
                      for(y = var38 + 1; !var58 && y >= var57 - 1; --y) {
                         var45 = xz_index + y;
                         if (y >= 0 && y < 128) {
-                           if (par5ArrayOfByte[var45] == water_moving_block_id || par5ArrayOfByte[var45] == water_still_block_id) {
+                           if (isOceanBlock(par5ArrayOfByte, var45, var42, y, var43, par3, par4)) {
                               var58 = true;
                            }
 
@@ -155,49 +155,11 @@ public class MapGenCaves extends MapGenBase {
                               double var51 = ((double)var50 + 0.5 - par8) / var31;
                               if (var51 > -0.7 && var59 * var59 + var51 * var51 + var46 * var46 < 1.0) {
                                  byte var53 = par5ArrayOfByte[var48];
-                                 if (var53 == grass_block_id) {
+                                 if (isTopBlock(par5ArrayOfByte, var48, var42, var50, var45, par3, par4)) {
                                     var49 = true;
                                  }
 
-                                 if (var53 == stone_block_id || var53 == dirt_block_id || var53 == grass_block_id || var53 == sand_block_id || var53 == sand_stone_block_id) {
-                                    if (var50 < 10) {
-                                       par5ArrayOfByte[var48] = lava_moving_block_id;
-                                    } else {
-                                       int index_of_block_above = var48 + 1;
-                                       int block_above_id = par5ArrayOfByte[index_of_block_above];
-                                       if (block_above_id == sand_block_id) {
-                                          boolean abort = false;
-
-                                          do {
-                                             ++index_of_block_above;
-                                             block_above_id = par5ArrayOfByte[index_of_block_above];
-                                             if (block_above_id == water_still_block_id) {
-                                                abort = true;
-                                                break;
-                                             }
-                                          } while(block_above_id == sand_block_id);
-
-                                          if (abort) {
-                                             var50 = 0;
-                                             --var48;
-                                             continue;
-                                          }
-                                       }
-
-                                       if (var53 != sand_block_id) {
-                                          par5ArrayOfByte[var48] = 0;
-                                       }
-
-                                       if (var49 && par5ArrayOfByte[var48 - 1] == dirt_block_id) {
-                                          par5ArrayOfByte[var48 - 1] = top_block_id;
-                                       } else if (par5ArrayOfByte[var48 + 1] == sand_block_id) {
-                                          int xzIndex = var42 + var45 * 16;
-                                          if (!this.pending_sand_falls.containsKey(xzIndex)) {
-                                             this.pending_sand_falls.put(xzIndex, var50 + 2);
-                                          }
-                                       }
-                                    }
-                                 }
+                                 digBlock(par5ArrayOfByte, var48, var42, var50, var45, par3, par4, var49);
                               }
 
                               --var48;
@@ -362,5 +324,66 @@ public class MapGenCaves extends MapGenBase {
       lava_moving_block_id = (byte)Block.lavaMoving.blockID;
       sand_block_id = (byte)Block.sand.blockID;
       sand_stone_block_id = (byte)Block.sandStone.blockID;
+   }
+
+   protected boolean isOceanBlock(byte[] data, int index, int x, int y, int z, int chunkX, int chunkZ)
+   {
+      return data[index] == Block.waterMoving.blockID || data[index] == Block.waterStill.blockID;
+   }
+
+   //Exception biomes to make sure we generate like vanilla
+   private boolean isExceptionBiome(BiomeGenBase biome)
+   {
+      if (biome == BiomeGenBase.beach) return true;
+      if (biome == BiomeGenBase.desert) return true;
+      return false;
+   }
+
+   //Determine if the block at the specified location is the top block for the biome, we take into account
+   //Vanilla bugs to make sure that we generate the map the same way vanilla does.
+   private boolean isTopBlock(byte[] data, int index, int x, int y, int z, int chunkX, int chunkZ)
+   {
+      BiomeGenBase biome = worldObj.getBiomeGenForCoords(x + chunkX * 16, z + chunkZ * 16);
+      return (isExceptionBiome(biome) ? data[index] == Block.grass.blockID : data[index] == biome.topBlock);
+   }
+
+   /**
+    * Digs out the current block, default implementation removes stone, filler, and top block
+    * Sets the block to lava if y is less then 10, and air other wise.
+    * If setting to air, it also checks to see if we've broken the surface and if so
+    * tries to make the floor the biome's top block
+    *
+    * @param data Block data array
+    * @param index Pre-calculated index into block data
+    * @param x local X position
+    * @param y local Y position
+    * @param z local Z position
+    * @param chunkX Chunk X position
+    * @param chunkZ Chunk Y position
+    * @param foundTop True if we've encountered the biome's top block. Ideally if we've broken the surface.
+    */
+   protected void digBlock(byte[] data, int index, int x, int y, int z, int chunkX, int chunkZ, boolean foundTop)
+   {
+      BiomeGenBase biome = worldObj.getBiomeGenForCoords(x + chunkX * 16, z + chunkZ * 16);
+      int top    = (isExceptionBiome(biome) ? Block.grass.blockID : biome.topBlock);
+      int filler = (isExceptionBiome(biome) ? Block.dirt.blockID  : biome.fillerBlock);
+      int block  = data[index];
+
+      if (block == Block.stone.blockID || block == filler || block == top)
+      {
+         if (y < 10)
+         {
+            data[index] = (byte)Block.lavaMoving.blockID;
+         }
+         else
+         {
+            data[index] = 0;
+
+            if (foundTop && data[index - 1] == filler)
+            {
+               data[index - 1] = (byte)top;
+            }
+         }
+      }
    }
 }

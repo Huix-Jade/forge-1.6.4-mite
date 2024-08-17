@@ -396,7 +396,7 @@ public class BlockChest extends BlockDirectionalWithTileEntity {
    }
 
    public boolean canBePlacedOnBlock(int metadata, Block block_below, int block_below_metadata, double block_below_bounds_max_y) {
-      return block_below.isTopFlatAndSolid(block_below_metadata) && super.canBePlacedOnBlock(metadata, block_below, block_below_metadata, block_below_bounds_max_y);
+      return block_below.isBlockTopFacingSurfaceSolid(block_below_metadata) && super.canBePlacedOnBlock(metadata, block_below, block_below_metadata, block_below_bounds_max_y);
    }
 
    public boolean isStandardFormCube(boolean[] is_standard_form_cube, int metadata) {

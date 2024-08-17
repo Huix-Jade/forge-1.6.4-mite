@@ -1,6 +1,8 @@
 package net.minecraft.world.gen.layer;
 
 import net.minecraft.world.WorldType;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.terraingen.WorldTypeEvent;
 
 public abstract class GenLayer {
    protected long worldGenSeed;
@@ -24,6 +26,7 @@ public abstract class GenLayer {
       if (par2WorldType == WorldType.LARGE_BIOMES) {
          var4 = 6;
       }
+      var4 = getModdedBiomeSize(par2WorldType, var4);
 
       GenLayer var5 = GenLayerZoom.magnify(1000L, var16, 0);
       GenLayerRiverInit var13 = new GenLayerRiverInit(100L, var5);
@@ -56,6 +59,13 @@ public abstract class GenLayer {
       var20.initWorldGenSeed(par0);
       var8.initWorldGenSeed(par0);
       return new GenLayer[]{var20, var8, var20};
+   }
+
+   public static byte getModdedBiomeSize(WorldType worldType, byte original)
+   {
+      WorldTypeEvent.BiomeSize event = new WorldTypeEvent.BiomeSize(worldType, original);
+      MinecraftForge.TERRAIN_GEN_BUS.post(event);
+      return event.newSize;
    }
 
    public GenLayer(long par1) {

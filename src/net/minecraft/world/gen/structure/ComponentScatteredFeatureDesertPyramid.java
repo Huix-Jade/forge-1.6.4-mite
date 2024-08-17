@@ -8,6 +8,9 @@ import net.minecraft.util.Direction;
 import net.minecraft.util.EnumDirection;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ChestGenHooks;
+
+import static net.minecraftforge.common.ChestGenHooks.PYRAMID_DESERT_CHEST;
 
 public class ComponentScatteredFeatureDesertPyramid extends ComponentScatteredFeature {
    private boolean[] field_74940_h = new boolean[4];
@@ -219,6 +222,9 @@ public class ComponentScatteredFeatureDesertPyramid extends ComponentScatteredFe
       this.placeBlockAtCurrentPosition(par1World, 0, 0, 10, -10, 12, par3StructureBoundingBox);
       this.placeBlockAtCurrentPosition(par1World, Block.sandStone.blockID, 1, 10, -10, 13, par3StructureBoundingBox);
       this.placeBlockAtCurrentPosition(par1World, Block.sandStone.blockID, 2, 10, -11, 13, par3StructureBoundingBox);
+
+      ChestGenHooks info = ChestGenHooks.getInfo(PYRAMID_DESERT_CHEST);
+
       this.placeBlockRelativeWithAdjustedMetadata(par1World, Block.torchWood, 8, -10, 10, 1, par3StructureBoundingBox);
       this.placeBlockRelativeWithAdjustedMetadata(par1World, Block.torchWood, 12, -10, 10, 2, par3StructureBoundingBox);
       this.placeBlockRelativeWithAdjustedMetadata(par1World, Block.torchWood, 10, -10, 8, 4, par3StructureBoundingBox);
@@ -230,7 +236,7 @@ public class ComponentScatteredFeatureDesertPyramid extends ComponentScatteredFe
             int var11 = Direction.offsetX[var10] * 2;
             int var12 = Direction.offsetZ[var10] * 2;
             EnumDirection direction_facing = var10 == 0 ? EnumDirection.SOUTH : (var10 == 1 ? EnumDirection.EAST : (var10 == 2 ? EnumDirection.NORTH : EnumDirection.WEST));
-            this.field_74940_h[var10] = this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 10 + var11, -11, 10 + var12, Block.chest.blockID, WeightedRandomChestContent.func_92080_a(itemsToGenerateInTemple, Item.enchantedBook.func_92114_b(par2Random)), 2 + par2Random.nextInt(5), chances_of_artifact, direction_facing);
+            this.field_74940_h[var10] = this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 10 + var11, -11, 10 + var12, Block.chest.blockID, info.getItems(par2Random), info.getCount(par2Random), chances_of_artifact, direction_facing);
          }
       }
 

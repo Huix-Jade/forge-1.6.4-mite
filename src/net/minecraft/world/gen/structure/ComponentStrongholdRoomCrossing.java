@@ -8,6 +8,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumDirection;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
+import net.minecraftforge.common.ChestGenHooks;
+
+import static net.minecraftforge.common.ChestGenHooks.STRONGHOLD_CROSSING;
 
 public class ComponentStrongholdRoomCrossing extends ComponentStronghold {
    private static final WeightedRandomChestContent[] strongholdRoomCrossingChestContents;
@@ -131,7 +134,7 @@ public class ComponentStrongholdRoomCrossing extends ComponentStronghold {
                this.placeBlockAtCurrentPosition(par1World, Block.ladder.blockID, this.getMetadataWithOffset(Block.ladder.blockID, 4), 9, 1, 3, par3StructureBoundingBox);
                this.placeBlockAtCurrentPosition(par1World, Block.ladder.blockID, this.getMetadataWithOffset(Block.ladder.blockID, 4), 9, 2, 3, par3StructureBoundingBox);
                this.placeBlockAtCurrentPosition(par1World, Block.ladder.blockID, this.getMetadataWithOffset(Block.ladder.blockID, 4), 9, 3, 3, par3StructureBoundingBox);
-               this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 3, 4, 8, Block.chest.blockID, WeightedRandomChestContent.func_92080_a(strongholdRoomCrossingChestContents, Item.enchantedBook.func_92114_b(par2Random)), 1 + par2Random.nextInt(4), (float[])null, EnumDirection.SOUTH);
+               this.generateStructureChestContents(par1World, par3StructureBoundingBox, par2Random, 3, 4, 8, Block.chest.blockID, ChestGenHooks.getItems(STRONGHOLD_CROSSING, par2Random), ChestGenHooks.getCount(STRONGHOLD_CROSSING, par2Random), (float[])null, EnumDirection.SOUTH);
          }
 
          return true;

@@ -14,6 +14,7 @@ public class ComponentVillageStartPiece extends ComponentVillageWell {
    public List structureVillageWeightedPieceList;
    public List field_74932_i = new ArrayList();
    public List field_74930_j = new ArrayList();
+   public BiomeGenBase biome;
 
    public ComponentVillageStartPiece() {
    }
@@ -25,6 +26,7 @@ public class ComponentVillageStartPiece extends ComponentVillageWell {
       this.terrainType = var7;
       BiomeGenBase var8 = var1.getBiomeGenAt(var4, var5);
       this.inDesert = var8 == BiomeGenBase.desert || var8 == BiomeGenBase.desertHills;
+      this.biome = var8;
    }
 
    public WorldChunkManager getWorldChunkManager() {

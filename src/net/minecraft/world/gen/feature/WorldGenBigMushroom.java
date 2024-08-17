@@ -44,7 +44,8 @@ public class WorldGenBigMushroom extends WorldGenerator {
                   if (!extreme_x || !extreme_z || var10 <= 0) {
                      if (var9 >= 0 && var9 < 256) {
                         var13 = par1World.getBlockId(var11, var9, var12);
-                        if (var13 != 0 && var13 != Block.leaves.blockID) {
+                        Block block = Block.blocksList[var13];
+                        if (block != null && !block.isAirBlock(par1World, var11, var9, var12) && !block.isLeaves(par1World, var11, var9, var12)) {
                            var8 = false;
                         }
                      } else {
@@ -138,7 +139,9 @@ public class WorldGenBigMushroom extends WorldGenerator {
                            var15 = 0;
                         }
 
-                        if ((var15 != 0 || par4 >= par4 + var7 - 1) && !Block.opaqueCubeLookup[par1World.getBlockId(var13, var11, var14)]) {
+                        Block block = Block.blocksList[par1World.getBlockId(var13, var11, var14)];
+
+                        if ((var15 != 0 || par4 >= par4 + var7 - 1) && (block == null || block.canBeReplacedByLeaves(par1World, var13, var11, var14))) {
                            this.setBlockAndMetadata(par1World, var13, var11, var14, Block.mushroomCapBrown.blockID + var6, var15);
                         }
                      }
@@ -147,7 +150,8 @@ public class WorldGenBigMushroom extends WorldGenerator {
 
                for(var11 = 0; var11 < var7; ++var11) {
                   var12 = par1World.getBlockId(par3, par4 + var11, par5);
-                  if (!Block.opaqueCubeLookup[var12]) {
+                  Block block = Block.blocksList[var12];
+                  if (block == null || block.canBeReplacedByLeaves(par1World, par3, par4 + var11, par5)) {
                      this.setBlockAndMetadata(par1World, par3, par4 + var11, par5, Block.mushroomCapBrown.blockID + var6, 10);
                   }
                }

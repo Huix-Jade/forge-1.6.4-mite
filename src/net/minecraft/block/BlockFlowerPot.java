@@ -110,7 +110,7 @@ public class BlockFlowerPot extends Block {
    }
 
    public boolean isLegalOn(int metadata, Block block_below, int block_below_metadata) {
-      return block_below != null && block_below != leaves && block_below.isTopFlatAndSolid(block_below_metadata);
+      return block_below != null && block_below != leaves && block_below.isBlockTopFacingSurfaceSolid(block_below_metadata);
    }
 
    public boolean canBeCarried() {

@@ -103,18 +103,18 @@ public class StatList {
    }
 
    private static StatBase[] initMinableStats(String par0Str, int par1) {
-      StatBase[] var2 = new StatBase[256];
+      StatBase[] astatbase = new StatBase[Block.blocksList.length];
 
-      for(int var3 = 0; var3 < 256; ++var3) {
+      for (int var3 = 0; var3 < Block.blocksList.length; ++var3) {
          if (Block.blocksList[var3] != null && Block.blocksList[var3].getEnableStats()) {
             String var4 = StatCollector.translateToLocalFormatted(par0Str, Block.blocksList[var3].getLocalizedName());
-            var2[var3] = (new StatCrafting(par1 + var3, var4, var3)).registerStat();
-            objectMineStats.add((StatCrafting)var2[var3]);
+            astatbase[var3] = (new StatCrafting(par1 + var3, var4, var3)).registerStat();
+            objectMineStats.add((StatCrafting)astatbase[var3]);
          }
       }
 
-      replaceAllSimilarBlocks(var2);
-      return var2;
+      replaceAllSimilarBlocks(astatbase);
+      return astatbase;
    }
 
    private static StatBase[] initUsableStats(StatBase[] par0ArrayOfStatBase, String par1Str, int par2, int par3, int par4) {

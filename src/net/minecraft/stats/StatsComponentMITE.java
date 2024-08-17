@@ -8,6 +8,8 @@ import javax.swing.JComponent;
 import javax.swing.Timer;
 import net.minecraft.network.TcpConnection;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.DimensionManager;
 
 public class StatsComponentMITE extends JComponent {
    private static final DecimalFormat field_120040_a = new DecimalFormat("########0.000");
@@ -26,6 +28,7 @@ public class StatsComponentMITE extends JComponent {
    }
 
    private void func_120034_a() {
+      this.field_120036_d = new String[5 + DimensionManager.getIDs().length];
       long var1 = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
       System.gc();
       this.field_120036_d[0] = "Memory use: " + var1 / 1024L / 1024L + " mb (" + Runtime.getRuntime().freeMemory() * 100L / Runtime.getRuntime().maxMemory() + "% free)";
@@ -34,12 +37,17 @@ public class StatsComponentMITE extends JComponent {
       this.field_120036_d[3] = "Avg sent: " + (int)this.func_120035_a(this.field_120037_e.sentPacketCountArray) + ", Avg size: " + (int)this.func_120035_a(this.field_120037_e.sentPacketSizeArray);
       this.field_120036_d[4] = "Avg rec: " + (int)this.func_120035_a(this.field_120037_e.receivedPacketCountArray) + ", Avg size: " + (int)this.func_120035_a(this.field_120037_e.receivedPacketSizeArray);
       if (this.field_120037_e.worldServers != null) {
-         for(int var3 = 0; var3 < this.field_120037_e.worldServers.length; ++var3) {
-            this.field_120036_d[5 + var3] = "Lvl " + var3 + " tick: " + field_120040_a.format(this.func_120035_a(this.field_120037_e.timeOfLastDimensionTick[var3]) * 1.0E-6) + " ms";
-            if (this.field_120037_e.worldServers[var3] != null && this.field_120037_e.worldServers[var3].theChunkProviderServer != null) {
-               this.field_120036_d[5 + var3] = this.field_120036_d[5 + var3] + ", " + this.field_120037_e.worldServers[var3].theChunkProviderServer.makeString();
-               this.field_120036_d[5 + var3] = this.field_120036_d[5 + var3] + ", Vec3: " + this.field_120037_e.worldServers[var3].getWorldVec3Pool().func_82590_d() + " / " + this.field_120037_e.worldServers[var3].getWorldVec3Pool().getPoolSize();
+         int j = 0;
+         for (Integer id : DimensionManager.getIDs())
+         {
+            this.field_120036_d[5 + j] = "Lvl " + id + " tick: " + field_120040_a.format(this.func_120035_a(this.field_120037_e.worldTickTimes.get(id)) * 1.0E-6D) + " ms";
+            WorldServer world = DimensionManager.getWorld(id);
+            if (world != null && world.theChunkProviderServer != null)
+            {
+               this.field_120036_d[5 + j] = this.field_120036_d[5 + j] + ", " + world.theChunkProviderServer.makeString();
+               this.field_120036_d[5 + j] = this.field_120036_d[5 + j] + ", Vec3: " + world.getWorldVec3Pool().func_82590_d() + " / " + world.getWorldVec3Pool().getPoolSize();
             }
+            j++;
          }
       }
 

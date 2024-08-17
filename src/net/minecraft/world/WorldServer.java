@@ -1,5 +1,6 @@
 package net.minecraft.world;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -102,12 +103,20 @@ import net.minecraft.world.biome.SpawnListEntry;
 import net.minecraft.world.biome.WorldChunkManager;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraft.world.chunk.storage.AnvilChunkLoader;
 import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraft.world.chunk.storage.IChunkLoader;
 import net.minecraft.world.gen.ChunkProviderGenerate;
 import net.minecraft.world.gen.ChunkProviderServer;
 import net.minecraft.world.gen.feature.WorldGeneratorBonusChest;
 import net.minecraft.world.storage.ISaveHandler;
+import net.minecraftforge.common.ChestGenHooks;
+import net.minecraftforge.common.DimensionManager;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.event.world.WorldEvent;
+
+import static net.minecraftforge.common.ChestGenHooks.BONUS_CHEST;
 
 public class WorldServer extends World
 {
@@ -158,6 +167,10 @@ public class WorldServer extends World
    public int last_mob_spawn_limit_under_60;
    public int last_mob_spawn_limit_at_60_or_higher;
 
+   /** Stores the recently processed (lighting) chunks */
+   protected Set<ChunkCoordIntPair> doneChunks = new HashSet<ChunkCoordIntPair>();
+   public List<Teleporter> customTeleporters = new ArrayList<Teleporter>();
+
    public WorldServer(MinecraftServer par1MinecraftServer, ISaveHandler par2ISaveHandler, String par3Str, int par4, WorldSettings par5WorldSettings, Profiler par6Profiler, ILogAgent par7ILogAgent)
    {
       super(par2ISaveHandler, par3Str, par5WorldSettings, WorldProvider.getProviderForDimension(par4), par6Profiler, par7ILogAgent);
@@ -190,8 +203,12 @@ public class WorldServer extends World
          this.mapStorage.setData("scoreboard", var8);
       }
 
-      var8.func_96499_a(this.worldScoreboard);
+      if (!(this instanceof WorldServerMulti)) //Forge: We fix the global mapStorage, which causes us to share scoreboards early. So don't associate the save data with the temporary scoreboard
+      {
+         var8.func_96499_a(this.worldScoreboard);
+      }
       ((ServerScoreboard)this.worldScoreboard).func_96547_a(var8);
+      DimensionManager.setWorld(par4, this);
    }
 
    public void sendPacketToAllPlayersInThisDimension(Packet packet)
@@ -392,6 +409,10 @@ public class WorldServer extends World
       this.villageSiegeObj.tick();
       this.theProfiler.endStartSection("portalForcer");
       this.worldTeleporter.removeStalePortalLocations(this.getTotalWorldTime());
+      for (Teleporter tele : customTeleporters)
+      {
+         tele.removeStalePortalLocations(getTotalWorldTime());
+      }
       this.theProfiler.endSection();
       this.sendAndApplyBlockEvents();
    }
@@ -846,7 +867,7 @@ public class WorldServer extends World
       for (int attempt = 0; attempt < 16; ++attempt)
       {
          List possible_creatures = this.getChunkProvider().getPossibleCreatures(creature_type, x, y, z);
-
+         possible_creatures = ForgeEventFactory.getPotentialSpawns(this, creature_type, x, y, z, possible_creatures);
          if (possible_creatures == null || possible_creatures.isEmpty())
          {
             return null;
@@ -1371,6 +1392,15 @@ public class WorldServer extends World
       int var1 = 0;
       int var2 = 0;
       Iterator var3 = this.activeChunkSet.iterator();
+
+      doneChunks.retainAll(activeChunkSet);
+      if (doneChunks.size() == activeChunkSet.size())
+      {
+         doneChunks.clear();
+      }
+
+      final long startTime = System.nanoTime();
+
       boolean var4 = this.shouldRandomBlockTicksBePerformed();
       boolean var5 = this.isBloodMoon24HourPeriod();
 
@@ -1383,7 +1413,13 @@ public class WorldServer extends World
          Chunk var10 = this.getChunkFromChunkCoords(var7.chunkXPos, var7.chunkZPos);
          this.moodSoundAndLightCheck(var8, var9, var10);
          this.theProfiler.endStartSection("tickChunk");
-         var10.updateSkylight(false);
+//         var10.updateSkylight(false);
+         //Limits and evenly distributes the lighting update time
+         if (System.nanoTime() - startTime <= 4000000 && doneChunks.add(var7))
+         {
+            var10.updateSkylight(false);
+         }
+
          var10.performPendingSandFallsIfPossible();
          this.theProfiler.endStartSection("thunder");
          int var11;
@@ -1391,7 +1427,7 @@ public class WorldServer extends World
          int var13;
          int var14;
 
-         if (this.rand.nextInt(var6) == 0 && this.isPrecipitating(true) && this.isThundering(true))
+         if (provider.canDoLightning(var10) && this.rand.nextInt(var6) == 0 && this.isPrecipitating(true) && this.isThundering(true))
          {
             this.updateLCG = this.updateLCG * 3 + 1013904223;
             var11 = this.updateLCG >> 2;
@@ -1408,7 +1444,7 @@ public class WorldServer extends World
          this.theProfiler.endStartSection("iceandsnow");
          int var15;
 
-         if (this.rand.nextInt(16) == 0)
+         if (provider.canDoRainSnowIce(var10) && this.rand.nextInt(16) == 0)
          {
             this.updateLCG = this.updateLCG * 3 + 1013904223;
             var11 = this.updateLCG >> 2;
@@ -1574,7 +1610,7 @@ public class WorldServer extends World
     */
    public void updateEntities()
    {
-      if (this.playerEntities.isEmpty())
+      if (this.playerEntities.isEmpty() && getPersistentChunks().isEmpty())
       {
          if (this.updateEntityTick++ >= 1200)
          {
@@ -1788,13 +1824,26 @@ public class WorldServer extends World
    {
       ArrayList var7 = new ArrayList();
 
-      for (int var8 = 0; var8 < this.loadedTileEntityList.size(); ++var8)
+      for(int x = (par1 >> 4); x <= (par4 >> 4); x++)
       {
-         TileEntity var9 = (TileEntity)this.loadedTileEntityList.get(var8);
-
-         if (var9.xCoord >= par1 && var9.yCoord >= par2 && var9.zCoord >= par3 && var9.xCoord < par4 && var9.yCoord < par5 && var9.zCoord < par6)
+         for(int z = (par3 >> 4); z <= (par6 >> 4); z++)
          {
-            var7.add(var9);
+            Chunk chunk = getChunkFromChunkCoords(x, z);
+            if (chunk != null)
+            {
+               for(Object obj : chunk.chunkTileEntityMap.values())
+               {
+                  TileEntity entity = (TileEntity)obj;
+                  if (!entity.isInvalid())
+                  {
+                     if (entity.xCoord >= par1 && entity.yCoord >= par2 && entity.zCoord >= par3 &&
+                             entity.xCoord <= par4 && entity.yCoord <= par5 && entity.zCoord <= par6)
+                     {
+                        var7.add(entity);
+                     }
+                  }
+               }
+            }
          }
       }
 
@@ -1805,6 +1854,11 @@ public class WorldServer extends World
     * Called when checking if a certain block can be mined or not. The 'spawn safe zone' check is located here.
     */
    public boolean canMineBlock(EntityPlayer par1EntityPlayer, int par2, int par3, int par4)
+   {
+      return super.canMineBlock(par1EntityPlayer, par2, par3, par4);
+   }
+
+   public boolean canMineBlockBody(EntityPlayer par1EntityPlayer, int par2, int par3, int par4)
    {
       return !this.mcServer.isBlockProtected(this, par2, par3, par4, par1EntityPlayer);
    }
@@ -1926,7 +1980,7 @@ public class WorldServer extends World
     */
    protected void createBonusChest()
    {
-      WorldGeneratorBonusChest var1 = new WorldGeneratorBonusChest(bonusChestContent, 10);
+      WorldGeneratorBonusChest var1 = new WorldGeneratorBonusChest(ChestGenHooks.getItems(BONUS_CHEST, rand), ChestGenHooks.getCount(BONUS_CHEST, rand));
 
       for (int var2 = 0; var2 < 10; ++var2)
       {
@@ -1974,6 +2028,7 @@ public class WorldServer extends World
             }
 
             this.chunkProvider.saveChunks(par1, par2IProgressUpdate);
+            MinecraftForge.EVENT_BUS.post(new WorldEvent.Save(this));
          }
       }
    }
@@ -1997,6 +2052,7 @@ public class WorldServer extends World
       this.checkSessionLock();
       this.saveHandler.saveWorldInfoWithPlayer(this.worldInfo, this.mcServer.getConfigurationManager().getHostPlayerData());
       this.mapStorage.saveAllData();
+      this.perWorldStorage.saveAllData();
    }
 
    protected void onEntityAdded(Entity par1Entity)
@@ -2632,5 +2688,10 @@ public class WorldServer extends World
       {
          Minecraft.setErrorMessage("instantiateScheduledBlockChangesList: not null!");
       }
+   }
+
+   public File getChunkSaveLocation()
+   {
+      return ((AnvilChunkLoader)theChunkProviderServer.currentChunkLoader).chunkSaveLocation;
    }
 }
