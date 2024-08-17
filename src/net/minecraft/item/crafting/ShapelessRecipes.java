@@ -12,10 +12,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 public class ShapelessRecipes implements IRecipe {
-   private final ItemStack recipeOutput;
-   private final List recipeItems;
-   private float difficulty;
-   private boolean include_in_lowest_crafting_difficulty_determination;
+   public final ItemStack recipeOutput;
+   public final List recipeItems;
+   public float difficulty;
+   public boolean include_in_lowest_crafting_difficulty_determination;
    private int[] skillsets;
    private boolean propagate_tag_compound;
    private Material material_to_check_tool_bench_hardness_against;

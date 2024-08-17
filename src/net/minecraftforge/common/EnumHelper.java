@@ -14,8 +14,6 @@ import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.EnumEntitySize;
 import net.minecraft.entity.player.EnumStatus;
 import net.minecraft.item.EnumAction;
-import net.minecraft.item.EnumArmorMaterial;
-import net.minecraft.item.EnumToolMaterial;
 import net.minecraft.util.EnumArt;
 import net.minecraft.util.EnumMovingObjectType;
 import net.minecraft.world.EnumSkyBlock;
@@ -35,7 +33,6 @@ public class EnumHelper
     private static Class[][] commonTypes =
     {
         {EnumAction.class},
-        {EnumArmorMaterial.class, int.class, int[].class, int.class},
         {EnumArt.class, String.class, int.class, int.class, int.class, int.class},
         {EnumCreatureAttribute.class},
         {EnumCreatureType.class, Class.class, int.class, Material.class, boolean.class},
@@ -46,16 +43,11 @@ public class EnumHelper
         {EnumMovingObjectType.class},
         {EnumSkyBlock.class, int.class},
         {EnumStatus.class},
-        {EnumToolMaterial.class, int.class, int.class, float.class, float.class, int.class}
     }; 
 
     public static EnumAction addAction(String name)
     {
         return addEnum(EnumAction.class, name);
-    }
-    public static EnumArmorMaterial addArmorMaterial(String name, int durability, int[] reductionAmounts, int enchantability)
-    {
-        return addEnum(EnumArmorMaterial.class, name, durability, reductionAmounts, enchantability);
     }
     public static EnumArt addArt(String name, String tile, int sizeX, int sizeY, int offsetX, int offsetY)
     {
@@ -101,10 +93,6 @@ public class EnumHelper
     public static EnumStatus addStatus(String name)
     {
         return addEnum(EnumStatus.class, name);
-    }
-    public static EnumToolMaterial addToolMaterial(String name, int harvestLevel, int maxUses, float efficiency, float damage, int enchantability)
-    {
-        return addEnum(EnumToolMaterial.class, name, harvestLevel, maxUses, efficiency, damage, enchantability);
     }
 
     private static void setup()

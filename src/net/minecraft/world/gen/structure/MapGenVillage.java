@@ -11,7 +11,7 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.storage.WorldInfo;
 
 public class MapGenVillage extends MapGenStructure {
-   public static final List villageSpawnBiomes;
+   public static List villageSpawnBiomes;
    private int terrainType;
    private int field_82665_g;
    private int field_82666_h;

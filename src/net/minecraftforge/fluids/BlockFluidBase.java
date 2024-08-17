@@ -125,7 +125,7 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         }
 
         Material material = Block.blocksList[bId].blockMaterial;
-        if (material.blocksMovement() || material == Material.portal)
+        if (material.isLiquid() || material == Material.portal)
         {
             return false;
         }
@@ -173,7 +173,7 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
         }
 
         Material material = Block.blocksList[bId].blockMaterial;
-        if (material.blocksMovement() || material == Material.portal)
+        if (material.isLiquid() || material == Material.portal)
         {
             return false;
         }
@@ -324,7 +324,7 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
     {
         if (world.getBlockId(x, y, z) != blockID)
         {
-            return !world. (x, y, z);
+            return !world.isBlockStandardFormOpaqueCube(x, y, z);
         }
         Material mat = world.getBlockMaterial(x, y, z);
         return mat == this.blockMaterial ? false : super.shouldSideBeRendered(world, x, y, z, side);
@@ -409,7 +409,7 @@ public abstract class BlockFluidBase extends Block implements IFluidBlock
             int otherDecay = quantaPerBlock - getQuantaValue(world, x2, y, z2);
             if (otherDecay >= quantaPerBlock)
             {
-                if (!world.getBlockMaterial(x2, y, z2).blocksMovement())
+                if (!world.getBlockMaterial(x2, y, z2).isLiquid())
                 {
                     otherDecay = quantaPerBlock - getQuantaValue(world, x2, y - 1, z2);
                     if (otherDecay >= 0)

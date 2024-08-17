@@ -53,7 +53,7 @@ public class BlockFluidFinite extends BlockFluidBase
     }
 
     @Override
-    public void updateTick(World world, int x, int y, int z, Random rand)
+    public boolean updateTick(World world, int x, int y, int z, Random rand)
     {
         boolean changed = false;
         int quantaRemaining = world.getBlockMetadata(x, y, z) + 1;
@@ -64,7 +64,7 @@ public class BlockFluidFinite extends BlockFluidBase
 
         if (quantaRemaining < 1)
         {
-            return;
+            return changed;
         }
         else if (quantaRemaining != prevRemaining)
         {
@@ -72,12 +72,12 @@ public class BlockFluidFinite extends BlockFluidBase
             if (quantaRemaining == 1)
             {
                 world.setBlockMetadataWithNotify(x, y, z, quantaRemaining - 1, 2);
-                return;
+                return changed;
             }
         }
         else if (quantaRemaining == 1)
         {
-            return;
+            return changed;
         }
 
         // Flow out if possible
@@ -123,7 +123,7 @@ public class BlockFluidFinite extends BlockFluidBase
             {
                 world.setBlockMetadataWithNotify(x, y, z, quantaRemaining - 1, 2);
             }
-            return;
+            return changed;
         }
 
         int each = total / count;
@@ -228,6 +228,7 @@ public class BlockFluidFinite extends BlockFluidBase
             ++each;
         }
         world.setBlockMetadataWithNotify(x, y, z, each - 1, 2);
+        return changed;
     }
 
     public int tryToFlowVerticallyInto(World world, int x, int y, int z, int amtToInput)

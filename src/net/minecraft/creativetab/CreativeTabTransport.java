@@ -8,6 +8,6 @@ final class CreativeTabTransport extends CreativeTabs {
    }
 
    public int getTabIconItemIndex() {
-      return Item.bucketIronLava.itemID;
+      return Item.bucketLava.itemID;
    }
 }

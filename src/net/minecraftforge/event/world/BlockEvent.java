@@ -72,17 +72,17 @@ public class BlockEvent extends Event {
             super(x, y, z, world, block, blockMetadata);
             this.player = player;
 
-            if (block == null || !player.canHarvestBlock(block) || // Handle empty block or player unable to break block scenario
-                block.canSilkHarvest(world, player, x, y, z, blockMetadata) && EnchantmentHelper.getSilkTouchModifier(player)) // If the block is being silk harvested, the exp dropped is 0
-            {
-                this.exp = 0;
-            }
-            else
-            {
-                int meta = block.getDamageValue(world, x, y, z);
-                int bonusLevel = EnchantmentHelper.getFortuneModifier(player);
-                this.exp = block.getExpDrop(world, meta, bonusLevel);
-            }
+//            if (block == null || !player.canHarvestBlock(block) || // Handle empty block or player unable to break block scenario
+//                block.canSilkHarvest(world, player, x, y, z, blockMetadata) && EnchantmentHelper.getSilkTouchModifier(player)) // If the block is being silk harvested, the exp dropped is 0
+//            {
+//                this.exp = 0;
+//            }
+//            else
+//            {
+//                int meta = block.getDamageValue(world, x, y, z);
+//                int bonusLevel = EnchantmentHelper.getFortuneModifier(player);
+//                this.exp = block.getExpDrop(world, meta, bonusLevel);
+//            }
         }
 
         public EntityPlayer getPlayer()

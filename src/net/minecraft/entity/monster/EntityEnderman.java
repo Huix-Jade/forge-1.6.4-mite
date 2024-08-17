@@ -32,7 +32,7 @@ import net.minecraftforge.event.entity.living.EnderTeleportEvent;
 public class EntityEnderman extends EntityMob {
    private static final UUID attackingSpeedBoostModifierUUID = UUID.fromString("020E0DFB-87AE-4653-9556-831010E291A0");
    private static final AttributeModifier attackingSpeedBoostModifier;
-   private static boolean[] carriableBlocks;
+   public static boolean[] carriableBlocks;
    private int teleportDelay;
    private int stareTimer;
    private Entity lastEntityToAttack;

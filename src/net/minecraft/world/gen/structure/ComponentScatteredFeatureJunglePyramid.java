@@ -18,8 +18,8 @@ public class ComponentScatteredFeatureJunglePyramid extends ComponentScatteredFe
    private boolean field_74948_i;
    private boolean field_74945_j;
    private boolean field_74946_k;
-   private static final WeightedRandomChestContent[] junglePyramidsChestContents;
-   private static final WeightedRandomChestContent[] junglePyramidsDispenserContents;
+   public static final WeightedRandomChestContent[] junglePyramidsChestContents;
+   public static final WeightedRandomChestContent[] junglePyramidsDispenserContents;
    private static StructureScatteredFeatureStones junglePyramidsRandomScatteredStones;
 
    public ComponentScatteredFeatureJunglePyramid() {

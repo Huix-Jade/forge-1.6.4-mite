@@ -638,7 +638,7 @@ public final class SpawnerAnimals {
             } else {
                block.setBlockBoundsBasedOnStateAndNeighbors(world, x, y, z);
                resulting_y_pos[0] = (double)y + block.maxY[Minecraft.getThreadIndex()] + 0.005;
-               return block == Block.snow ? canCreatureTypeSpawnOn(world, creature_type, world.getBlock(x, y - 1, z), x, y - 1, z, world.getBlockMetadata(x, y - 1, z), initial_spawn) : canCreatureTypeSpawnOn(creature_type, block, world.getBlockMetadata(x, y, z), initial_spawn);
+               return block == Block.snow ? canCreatureTypeSpawnOn(world, creature_type, world.getBlock(x, y - 1, z), x, y - 1, z, world.getBlockMetadata(x, y - 1, z), initial_spawn) : canCreatureTypeSpawnOn(world, creature_type, block, x, y, z, world.getBlockMetadata(x, y, z), initial_spawn);
             }
          }
       }

@@ -9,6 +9,7 @@ import net.minecraft.stats.AchievementList;
 import net.minecraft.util.Debug;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.feature.WorldGenBigMushroom;
+import net.minecraftforge.common.EnumPlantType;
 
 public class BlockMushroom extends BlockPlant {
    protected BlockMushroom(int id) {
@@ -255,5 +256,20 @@ public class BlockMushroom extends BlockPlant {
       } else {
          return false;
       }
+   }
+
+   @Override
+   public EnumPlantType getPlantType(World world, int x, int y, int z) {
+      return EnumPlantType.Unknown;
+   }
+
+   @Override
+   public int getPlantID(World world, int x, int y, int z) {
+      return 0;
+   }
+
+   @Override
+   public int getPlantMetadata(World world, int x, int y, int z) {
+      return 0;
    }
 }

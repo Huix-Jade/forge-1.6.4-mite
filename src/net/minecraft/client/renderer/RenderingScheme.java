@@ -26,7 +26,7 @@ public final class RenderingScheme {
       }
 
       current = scheme_index;
-      Tessellator.instance = (Tessellator)(current == 0 ? new Tessellator() : new TessellatorMITE());
+      Tessellator.instance = current == 0 ? new Tessellator() : new TessellatorMITE();
    }
 
    static {

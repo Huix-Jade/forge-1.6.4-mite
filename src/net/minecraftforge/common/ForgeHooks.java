@@ -18,7 +18,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemAxe;
 import net.minecraft.item.ItemPickaxe;
-import net.minecraft.item.ItemSpade;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraft.network.NetServerHandler;
@@ -51,7 +50,6 @@ import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingSetAttackTargetEvent;
 import net.minecraftforge.event.entity.player.PlayerOpenContainerEvent;
 import net.minecraftforge.event.world.BlockEvent;
-import net.minecraftforge.transformers.ForgeAccessTransformer;
 
 public class ForgeHooks
 {
@@ -82,7 +80,7 @@ public class ForgeHooks
     public static void plantGrass(World world, int x, int y, int z)
     {
         GrassEntry grass = (GrassEntry)WeightedRandom.getRandomItem(world.rand, grassList);
-        if (grass == null || grass.block == null || !grass.block.canBlockStay(world, x, y, z))
+        if (grass == null || grass.block == null)
         {
             return;
         }
@@ -106,38 +104,39 @@ public class ForgeHooks
 
     public static boolean canHarvestBlock(Block block, EntityPlayer player, int metadata)
     {
-        if (block.blockMaterial.isToolNotRequired())
-        {
-            return true;
-        }
-
-        ItemStack stack = player.inventory.getCurrentItem();
-        if (stack == null)
-        {
-            return player.canHarvestBlock(block);
-        }
-
-        List info = toolClasses.get(stack.getItem());
-        if (info == null)
-        {
-            return player.canHarvestBlock(block);
-        }
-
-        Object[] tmp = info.toArray();
-        String toolClass = (String)tmp[0];
-        int harvestLevel = (Integer)tmp[1];
-
-        Integer blockHarvestLevel = toolHarvestLevels.get(Arrays.asList(block, metadata, toolClass));
-        if (blockHarvestLevel == null)
-        {
-            return player.canHarvestBlock(block);
-        }
-
-        if (blockHarvestLevel > harvestLevel)
-        {
-            return false;
-        }
         return true;
+//        if (block.blockMaterial.isToolNotRequired())
+//        {
+//            return true;
+//        }
+//
+//        ItemStack stack = player.inventory.getCurrentItem();
+//        if (stack == null)
+//        {
+//            return player.canHarvestBlock(block);
+//        }
+//
+//        List info = toolClasses.get(stack.getItem());
+//        if (info == null)
+//        {
+//            return player.canHarvestBlock(block);
+//        }
+//
+//        Object[] tmp = info.toArray();
+//        String toolClass = (String)tmp[0];
+//        int harvestLevel = (Integer)tmp[1];
+//
+//        Integer blockHarvestLevel = toolHarvestLevels.get(Arrays.asList(block, metadata, toolClass));
+//        if (blockHarvestLevel == null)
+//        {
+//            return player.canHarvestBlock(block);
+//        }
+//
+//        if (blockHarvestLevel > harvestLevel)
+//        {
+//            return false;
+//        }
+//        return true;
     }
 
     public static boolean canToolHarvestBlock(Block block, int metadata, ItemStack stack)
@@ -157,7 +156,7 @@ public class ForgeHooks
     public static float blockStrength(Block block, EntityPlayer player, World world, int x, int y, int z)
     {
         int metadata = world.getBlockMetadata(x, y, z);
-        float hardness = block.getBlockHardness(world, x, y, z);
+        float hardness = block.getBlockHardness(metadata);
         if (hardness < 0.0F)
         {
             return 0.0F;
@@ -170,7 +169,7 @@ public class ForgeHooks
         }
         else
         {
-             return player.getCurrentPlayerStrVsBlock(block, false, metadata) / hardness / 30F;
+             return player.getCurrentPlayerStrVsBlock(x, y, z, false) / hardness / 30F;
         }
     }
 
@@ -188,38 +187,38 @@ public class ForgeHooks
         }
         toolInit = true;
 
-        MinecraftForge.setToolClass(Item.pickaxeWood,    "pickaxe", 0);
-        MinecraftForge.setToolClass(Item.pickaxeStone,   "pickaxe", 1);
-        MinecraftForge.setToolClass(Item.pickaxeIron,   "pickaxe", 2);
-        MinecraftForge.setToolClass(Item.pickaxeGold,    "pickaxe", 0);
-        MinecraftForge.setToolClass(Item.pickaxeDiamond, "pickaxe", 3);
-
-        MinecraftForge.setToolClass(Item.axeWood,    "axe", 0);
-        MinecraftForge.setToolClass(Item.axeStone,   "axe", 1);
-        MinecraftForge.setToolClass(Item.axeIron,   "axe", 2);
-        MinecraftForge.setToolClass(Item.axeGold,    "axe", 0);
-        MinecraftForge.setToolClass(Item.axeDiamond, "axe", 3);
-
-        MinecraftForge.setToolClass(Item.shovelWood,    "shovel", 0);
-        MinecraftForge.setToolClass(Item.shovelStone,   "shovel", 1);
-        MinecraftForge.setToolClass(Item.shovelIron,   "shovel", 2);
-        MinecraftForge.setToolClass(Item.shovelGold,    "shovel", 0);
-        MinecraftForge.setToolClass(Item.shovelDiamond, "shovel", 3);
-
-        for (Block block : ItemPickaxe.blocksEffectiveAgainst)
-        {
-            MinecraftForge.setBlockHarvestLevel(block, "pickaxe", 0);
-        }
-
-        for (Block block : ItemSpade.blocksEffectiveAgainst)
-        {
-            MinecraftForge.setBlockHarvestLevel(block, "shovel", 0);
-        }
-
-        for (Block block : ItemAxe.blocksEffectiveAgainst)
-        {
-            MinecraftForge.setBlockHarvestLevel(block, "axe", 0);
-        }
+//        MinecraftForge.setToolClass(Item.pickaxeWood,    "pickaxe", 0);
+//        MinecraftForge.setToolClass(Item.pickaxeStone,   "pickaxe", 1);
+//        MinecraftForge.setToolClass(Item.pickaxeIron,   "pickaxe", 2);
+//        MinecraftForge.setToolClass(Item.pickaxeGold,    "pickaxe", 0);
+//        MinecraftForge.setToolClass(Item.pickaxeDiamond, "pickaxe", 3);
+//
+//        MinecraftForge.setToolClass(Item.axeWood,    "axe", 0);
+//        MinecraftForge.setToolClass(Item.axeStone,   "axe", 1);
+//        MinecraftForge.setToolClass(Item.axeIron,   "axe", 2);
+//        MinecraftForge.setToolClass(Item.axeGold,    "axe", 0);
+//        MinecraftForge.setToolClass(Item.axeDiamond, "axe", 3);
+//
+//        MinecraftForge.setToolClass(Item.shovelWood,    "shovel", 0);
+//        MinecraftForge.setToolClass(Item.shovelStone,   "shovel", 1);
+//        MinecraftForge.setToolClass(Item.shovelIron,   "shovel", 2);
+//        MinecraftForge.setToolClass(Item.shovelGold,    "shovel", 0);
+//        MinecraftForge.setToolClass(Item.shovelDiamond, "shovel", 3);
+//
+//        for (Block block : ItemPickaxe.blocksEffectiveAgainst)
+//        {
+//            MinecraftForge.setBlockHarvestLevel(block, "pickaxe", 0);
+//        }
+//
+//        for (Block block : ItemSpade.blocksEffectiveAgainst)
+//        {
+//            MinecraftForge.setBlockHarvestLevel(block, "shovel", 0);
+//        }
+//
+//        for (Block block : ItemAxe.blocksEffectiveAgainst)
+//        {
+//            MinecraftForge.setBlockHarvestLevel(block, "axe", 0);
+//        }
 
         MinecraftForge.setBlockHarvestLevel(Block.obsidian,     "pickaxe", 3);
         MinecraftForge.setBlockHarvestLevel(Block.oreEmerald,   "pickaxe", 2);
@@ -250,7 +249,7 @@ public class ForgeHooks
             }
             else if (stack != null && stack.getItem() instanceof ItemArmor)
             {
-                ret += ((ItemArmor)stack.getItem()).damageReduceAmount;
+                ret += ((ItemArmor)stack.getItem()).getMaterialProtection();
             }
         }
         return ret;
@@ -293,7 +292,7 @@ public class ForgeHooks
                 return false;
             }
 
-            result = target.getEntityHit().getPickedResult(target);
+            result = target.getEntityHit().getPickedResult((MovingObjectPosition) target);
         }
 
         if (result == null)
@@ -461,7 +460,7 @@ public class ForgeHooks
         {
             preCancelEvent = true;
         }
-        else if (gameType.isCreative() && entityPlayer.getHeldItem() != null && entityPlayer.getHeldItem().getItem() instanceof ItemSword)
+        else if (gameType.isCreative() && entityPlayer.getHeldItem() != null && entityPlayer.getHeldItem() instanceof ItemSword)
         {
             preCancelEvent = true;
         }

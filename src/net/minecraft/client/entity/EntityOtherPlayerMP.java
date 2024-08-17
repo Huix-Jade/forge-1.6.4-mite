@@ -122,7 +122,7 @@ public class EntityOtherPlayerMP extends AbstractClientPlayer {
 
    }
 
-   @Override
+
    public float getDefaultEyeHeight()
    {
       return 1.82F;

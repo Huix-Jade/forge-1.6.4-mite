@@ -98,7 +98,7 @@ public class PlayerControllerMP {
 
    private boolean onPlayerDestroyBlock(int par1, int par2, int par3, EnumFace face) {
 
-      ItemStack stack = mc.thePlayer.getCurrentEquippedItem();
+      ItemStack stack = mc.thePlayer.itemInUse;
       if (stack != null && stack.getItem() != null && stack.getItem().onBlockStartBreak(stack, par1, par2, par3, mc.thePlayer))
       {
          return false;

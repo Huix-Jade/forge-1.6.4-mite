@@ -120,7 +120,7 @@ public abstract class World implements IBlockAccess {
    public WorldInfo worldInfo;
    public boolean findingSpawnPoint;
    public MapStorage mapStorage;
-   public final VillageCollection villageCollectionObj;
+   public VillageCollection villageCollectionObj;
    protected final VillageSiege villageSiegeObj = new VillageSiege(this);
    public final Profiler theProfiler;
    private final Vec3Pool vecPool = new Vec3Pool(300, 2000);
@@ -258,7 +258,7 @@ public abstract class World implements IBlockAccess {
       this.provider.dimensionId = providerDim;
       this.chunkProvider = this.createChunkProvider();
       this.calculateInitialSkylight();
-      this.calculateInitialWeather();
+      this._calculateInitialWeather();
       RNG.init(this);
       this.mycelium_posts = this.createMyceliumPostField();
       this.underworld_y_offset = this.is_underworld ? 120 : 0;
@@ -2350,7 +2350,7 @@ public abstract class World implements IBlockAccess {
          var8 = this.biome_temperature_transition_for_sky_color;
       }
 
-      int multiplier = ForgeHooksClient.getSkyBlendColour(this, i, j);
+      int multiplier = ForgeHooksClient.getSkyBlendColour(this, var5, var6);
 
       float var10 = (float)(multiplier >> 16 & 255) / 255.0F;
       float var11 = (float)(multiplier >> 8 & 255) / 255.0F;
@@ -2803,7 +2803,7 @@ public abstract class World implements IBlockAccess {
          }
       }
 
-      this.scanningTileEntities = false;
+
       if (!this.entityRemoval.isEmpty()) {
          for (Object tile : entityRemoval)
          {
@@ -2813,6 +2813,7 @@ public abstract class World implements IBlockAccess {
          this.entityRemoval.clear();
       }
 
+      this.scanningTileEntities = false;
       this.theProfiler.endStartSection("pendingTileEntities");
       if (!this.addedTileEntityList.isEmpty()) {
          for(int var10 = 0; var10 < this.addedTileEntityList.size(); ++var10) {
@@ -2825,7 +2826,7 @@ public abstract class World implements IBlockAccess {
                if (this.chunkExists(var12.xCoord >> 4, var12.zCoord >> 4)) {
                   Chunk var15 = this.getChunkFromChunkCoords(var12.xCoord >> 4, var12.zCoord >> 4);
                   if (var15 != null) {
-                     var15.cleanChunkBlockTileEntity(var12.xCoord & 15, var12.yCoord, var12.zCoord & 15, var12);
+                     var15.cleanChunkBlockTileEntity(var12.xCoord & 15, var12.yCoord, var12.zCoord & 15);
                   }
                }
 
@@ -3826,7 +3827,7 @@ public abstract class World implements IBlockAccess {
                ++var7;
             }
 
-            Block block = Block.blocksList[l];
+            Block block = Block.blocksList[var5];
             int blockLight = (block == null ? 0 : block.getLightValue(this, par1, par2, par3));
             int i1 = par4EnumSkyBlock == EnumSkyBlock.Sky ? 0 : blockLight;
             int j1 = (block == null ? 0 : block.getLightOpacity(this, par1, par2, par3));

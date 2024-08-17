@@ -5,6 +5,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import cpw.mods.fml.common.network.FMLNetworkHandler;
+import cpw.mods.fml.common.network.Player;
 import net.minecraft.block.BitHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBed;
@@ -121,12 +124,14 @@ import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
 import net.minecraftforge.event.entity.player.PlayerDropsEvent;
 import net.minecraftforge.event.entity.player.PlayerFlyableFallEvent;
 import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
+import net.xiaoyu233.fml.util.ReflectHelper;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-public abstract class EntityPlayer extends EntityLivingBase implements ICommandSender {
+public abstract class EntityPlayer extends EntityLivingBase implements ICommandSender, Player {
 
    public static final String PERSISTED_NBT_TAG = "PlayerPersisted";
    private HashMap<Integer, ChunkCoordinates> spawnChunkMap = new HashMap<Integer, ChunkCoordinates>();
@@ -223,6 +228,10 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
    protected void applyEntityAttributes() {
       super.applyEntityAttributes();
       this.setEntityAttribute(SharedMonsterAttributes.attackDamage, 1.0);
+   }
+
+   public void openGui(Object mod, int modGuiId, World world, int x, int y, int z) {
+      FMLNetworkHandler.openGui(ReflectHelper.dyCast(this), mod, modGuiId, world, x, y, z);
    }
 
    protected void entityInit() {
@@ -1011,7 +1020,7 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
       }
    }
 
-   protected void joinEntityItemWithWorld(EntityItem par1EntityItem) {
+   public void joinEntityItemWithWorld(EntityItem par1EntityItem) {
       if (captureDrops)
       {
          capturedDrops.add(par1EntityItem);
@@ -2538,7 +2547,7 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
       super.dismountEntity(par1Entity);
    }
 
-   public final boolean isEntityInvulnerable() {
+   public boolean isEntityInvulnerable() {
       return !this.isGhost() && !this.isZevimrgvInTournament() ? super.isEntityInvulnerable() : true;
    }
 

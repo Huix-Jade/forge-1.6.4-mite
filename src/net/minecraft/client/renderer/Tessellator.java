@@ -5,6 +5,8 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
+import java.util.Arrays;
+
 import net.minecraft.client.Minecraft;
 import org.lwjgl.opengl.ARBVertexBufferObject;
 import org.lwjgl.opengl.GL11;
@@ -21,10 +23,10 @@ public class Tessellator {
 
    private static boolean convertQuadsToTriangles;
    private static boolean tryVBO;
-   private static ByteBuffer byteBuffer = GLAllocation.createDirectByteBuffer(nativeBufferSize * 4);
-   private static IntBuffer intBuffer = byteBuffer.asIntBuffer();
-   private static FloatBuffer floatBuffer = byteBuffer.asFloatBuffer();
-   private static ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
+   public static ByteBuffer byteBuffer = GLAllocation.createDirectByteBuffer(nativeBufferSize * 4);
+   public static IntBuffer intBuffer = byteBuffer.asIntBuffer();
+   public static FloatBuffer floatBuffer = byteBuffer.asFloatBuffer();
+   public static ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
    public int[] rawBuffer;
    public int vertexCount;
    public double textureU;

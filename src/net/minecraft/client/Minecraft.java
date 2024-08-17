@@ -2282,7 +2282,7 @@ public final class Minecraft implements IPlayerUsage {
 	}
 
 	public boolean handleClientCommand(String par1Str) {
-		return ClientCommandHandler.instance.executeCommand(thePlayer, par1Str) == 1;
+		return ClientCommandHandler.instance.executeCommand(thePlayer, par1Str, true) == 1;
 	}
 
 	private void clickMiddleMouseButton() {

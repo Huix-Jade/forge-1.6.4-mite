@@ -8,6 +8,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
+import net.minecraftforge.common.EnumPlantType;
 
 public final class BlockNetherStalk extends BlockPlant {
    private Icon[] iconArray;
@@ -121,5 +122,20 @@ public final class BlockNetherStalk extends BlockPlant {
       }
 
       return ret;
+   }
+
+   @Override
+   public EnumPlantType getPlantType(World world, int x, int y, int z) {
+      return EnumPlantType.Unknown;
+   }
+
+   @Override
+   public int getPlantID(World world, int x, int y, int z) {
+      return 0;
+   }
+
+   @Override
+   public int getPlantMetadata(World world, int x, int y, int z) {
+      return 0;
    }
 }

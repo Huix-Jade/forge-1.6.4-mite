@@ -69,14 +69,14 @@ public abstract class Enchantment {
    }
 
    /**
-    * This applies specifically to applying at the enchanting table. The other method {@link #canApply(ItemStack)}
+    * This applies specifically to applying at the enchanting table. The other method { #canApply(ItemStack)}
     * applies for <i>all possible</i> enchantments.
     * @param stack
     * @return
     */
    public boolean canApplyAtEnchantingTable(ItemStack stack)
    {
-      return canApply(stack);
+      return false;
    }
 
    /**

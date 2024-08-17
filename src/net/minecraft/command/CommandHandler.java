@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import cpw.mods.fml.common.network.Player;
 import net.minecraft.block.BitHelper;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;

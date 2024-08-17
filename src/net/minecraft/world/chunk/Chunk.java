@@ -76,7 +76,7 @@ public class Chunk
 	/**
 	 * Array of Lists containing the entities in this Chunk. Each List represents a 16 block subchunk.
 	 */
-	private List[] entityLists;
+    public List[] entityLists;
 
 	/** Boolean value indicating if the terrain is populated. */
 	public boolean isTerrainPopulated;

@@ -18,6 +18,9 @@ import net.minecraft.world.WorldInfoShared;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.WorldSettings;
 import net.minecraft.world.WorldType;
+import net.xiaoyu233.fml.util.ReflectHelper;
+
+import static net.minecraft.world.WorldType.FLAT;
 
 public final class WorldInfo {
    public static final int village_condition_wheat = 1;
@@ -37,6 +40,8 @@ public final class WorldInfo {
       this.shared = new WorldInfoShared(par1NBTTagCompound);
       NBTBase.loading_world_info = false;
    }
+
+
 
    public WorldInfo(WorldSettings par1WorldSettings, String par2Str) {
       this.shared = new WorldInfoShared(par1WorldSettings, par2Str);

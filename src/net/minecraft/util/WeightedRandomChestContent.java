@@ -20,7 +20,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.ChestGenHooks;
 
 public class WeightedRandomChestContent extends WeightedRandomItem {
-   private final ItemStack theItemId;
+   public final ItemStack theItemId;
    public int min_quantity;
    public int max_quantity;
 

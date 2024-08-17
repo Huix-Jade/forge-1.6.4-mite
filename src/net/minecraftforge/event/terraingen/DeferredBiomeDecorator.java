@@ -33,7 +33,6 @@ public class DeferredBiomeDecorator extends BiomeDecorator {
         wrapped.flowersPerChunk = flowersPerChunk;
         wrapped.generateLakes = generateLakes;
         wrapped.grassPerChunk = grassPerChunk;
-        wrapped.mushroomsPerChunk = mushroomsPerChunk;
         wrapped.reedsPerChunk = reedsPerChunk;
         wrapped.sandPerChunk = sandPerChunk;
         wrapped.sandPerChunk2 = sandPerChunk2;

@@ -315,7 +315,7 @@ public class ItemBucket extends ItemVessel {
          } else if (vessel_material == Material.gold) {
             return Item.bucketGoldEmpty;
          } else if (vessel_material == Material.iron) {
-            return Item.bucketIronEmpty;
+            return Item.bucketEmpty;
          } else if (vessel_material == Material.mithril) {
             return Item.bucketMithrilEmpty;
          } else if (vessel_material == Material.adamantium) {
@@ -331,7 +331,7 @@ public class ItemBucket extends ItemVessel {
          } else if (vessel_material == Material.gold) {
             return Item.bucketGoldWater;
          } else if (vessel_material == Material.iron) {
-            return Item.bucketIronWater;
+            return Item.bucketWater;
          } else if (vessel_material == Material.mithril) {
             return Item.bucketMithrilWater;
          } else if (vessel_material == Material.adamantium) {
@@ -347,7 +347,7 @@ public class ItemBucket extends ItemVessel {
          } else if (vessel_material == Material.gold) {
             return Item.bucketGoldLava;
          } else if (vessel_material == Material.iron) {
-            return Item.bucketIronLava;
+            return Item.bucketLava;
          } else if (vessel_material == Material.mithril) {
             return Item.bucketMithrilLava;
          } else if (vessel_material == Material.adamantium) {

@@ -13,7 +13,7 @@ import net.minecraftforge.common.ChestGenHooks;
 import static net.minecraftforge.common.ChestGenHooks.VILLAGE_BLACKSMITH;
 
 public class ComponentVillageHouse2 extends ComponentVillage {
-   private static final WeightedRandomChestContent[] villageBlacksmithChestContents;
+   public static final WeightedRandomChestContent[] villageBlacksmithChestContents;
    private boolean hasMadeChest;
 
    public ComponentVillageHouse2() {

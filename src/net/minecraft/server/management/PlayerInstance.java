@@ -20,7 +20,7 @@ import net.minecraftforge.common.ForgeDummyContainer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.ChunkWatchEvent;
 
-class PlayerInstance {
+public class PlayerInstance {
    private final List playersInChunk;
    private final ChunkCoordIntPair chunkLocation;
    private short[] locationOfBlockChange;

@@ -571,13 +571,13 @@ public abstract class WorldProvider {
       return worldObj.worldInfo.getTerrainType().getHorizon(worldObj);
    }
 
-   public void resetRainAndThunder()
-   {
-      worldObj.worldInfo.setRainTime(0);
-      worldObj.worldInfo.setRaining(false);
-      worldObj.worldInfo.setThunderTime(0);
-      worldObj.worldInfo.setThundering(false);
-   }
+//   public void resetRainAndThunder()
+//   {
+//      worldObj.worldInfo.setRainTime(0);
+//      worldObj.worldInfo.setRaining(false);
+//      worldObj.worldInfo.setThunderTime(0);
+//      worldObj.worldInfo.setThundering(false);
+//   }
 
    public boolean canDoLightning(Chunk chunk)
    {

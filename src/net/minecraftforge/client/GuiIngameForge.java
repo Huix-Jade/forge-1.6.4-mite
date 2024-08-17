@@ -9,11 +9,7 @@ import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiIngame;
-import net.minecraft.client.gui.GuiPlayerInfo;
-import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.gui.*;
 import net.minecraft.client.multiplayer.NetClientHandler;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.texture.TextureMap;
@@ -417,8 +413,8 @@ public class GuiIngameForge extends GuiIngame
         boolean unused = false;// Unused flag in vanilla, seems to be part of a 'fade out' mechanic
 
         FoodStats stats = mc.thePlayer.getFoodStats();
-        int level = stats.getFoodLevel();
-        int levelLast = stats.getPrevFoodLevel();
+        int level = stats.getNutrition();
+        int levelLast = stats.getNutritionLimit();
 
         for (int i = 0; i < 10; ++i)
         {
@@ -435,7 +431,7 @@ public class GuiIngameForge extends GuiIngame
             }
             if (unused) backgound = 1; //Probably should be a += 1 but vanilla never uses this
 
-            if (mc.thePlayer.getFoodStats().getSaturationLevel() <= 0.0F && updateCounter % (level * 3 + 1) == 0)
+            if (mc.thePlayer.getFoodStats().getNutritionLimit() <= 0.0F && updateCounter % (level * 3 + 1) == 0)
             {
                 y = top + (rand.nextInt(3) - 1);
             }
@@ -461,12 +457,12 @@ public class GuiIngameForge extends GuiIngame
 
     protected void renderSleepFade(int width, int height)
     {
-        if (mc.thePlayer.getSleepTimer() > 0)
+        if (mc.thePlayer.falling_asleep_counter > 0)
         {
             mc.mcProfiler.startSection("sleep");
             GL11.glDisable(GL11.GL_DEPTH_TEST);
             GL11.glDisable(GL11.GL_ALPHA_TEST);
-            int sleepTime = mc.thePlayer.getSleepTimer();
+            int sleepTime = mc.thePlayer.falling_asleep_counter;
             float opacity = (float)sleepTime / 100.0F;
 
             if (opacity > 1.0F)
@@ -487,35 +483,49 @@ public class GuiIngameForge extends GuiIngame
         bind(icons);
         if (pre(EXPERIENCE)) return;
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-
+        FontRenderer fontRenderer = this.mc.fontRenderer;
         if (mc.playerController.func_78763_f())
         {
             mc.mcProfiler.startSection("expBar");
-            int cap = this.mc.thePlayer.xpBarCap();
+            int var37 = 182;
+            int var14 = (int)(this.mc.thePlayer.getLevelProgress() * (float)(var37 + 1));
+            int var15 = height - 32 + 3;
             int left = width / 2 - 91;
+            this.drawTexturedModalRect(left, var15, 0, 64, var37, 5);
+            if (var14 > 0) {
+                this.drawTexturedModalRect(left, var15, 0, 69, var14, 5);
+            }
 
-            if (cap > 0)
-            {
-                short barWidth = 182;
-                int filled = (int)(mc.thePlayer.experience * (float)(barWidth + 1));
-                int top = height - 32 + 3;
-                drawTexturedModalRect(left, top, 0, 64, barWidth, 5);
-
-                if (filled > 0)
-                {
-                    drawTexturedModalRect(left, top, 0, 69, filled, 5);
+            this.mc.mcProfiler.endSection();
+            if (this.mc.thePlayer.getExperienceLevel() != 0 && !(this.mc.currentScreen instanceof GuiScreenBook)) {
+                this.mc.mcProfiler.startSection("expLevel");
+                boolean var35 = false;
+                var14 = var35 ? 16777215 : 8453920;
+                if (this.mc.thePlayer.getExperienceLevel() < 0) {
+                    var14 = 16716563;
                 }
+
+                String var42 = "" + this.mc.thePlayer.getExperienceLevel();
+                int var16 = (width - fontRenderer.getStringWidth(var42)) / 2;
+                int var17 = height - 31 - 4;
+                boolean var18 = false;
+                fontRenderer.drawString(var42, var16 + 1, var17, 0);
+                fontRenderer.drawString(var42, var16 - 1, var17, 0);
+                fontRenderer.drawString(var42, var16, var17 + 1, 0);
+                fontRenderer.drawString(var42, var16, var17 - 1, 0);
+                fontRenderer.drawString(var42, var16, var17, var14);
+                this.mc.mcProfiler.endSection();
             }
 
             this.mc.mcProfiler.endSection();
 
 
-            if (mc.playerController.func_78763_f() && mc.thePlayer.experienceLevel > 0)
+            if (mc.playerController.func_78763_f() && mc.thePlayer.getExperienceLevel() > 0)
             {
                 mc.mcProfiler.startSection("expLevel");
                 boolean flag1 = false;
                 int color = flag1 ? 16777215 : 8453920;
-                String text = "" + mc.thePlayer.experienceLevel;
+                String text = "" + mc.thePlayer.getExperienceLevel();
                 int x = (width - fontrenderer.getStringWidth(text)) / 2;
                 int y = height - 31 - 4;
                 fontrenderer.drawString(text, x + 1, y, 0);

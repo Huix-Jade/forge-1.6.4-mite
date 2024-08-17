@@ -13,7 +13,7 @@ import net.minecraftforge.common.ChestGenHooks;
 import static net.minecraftforge.common.ChestGenHooks.STRONGHOLD_CROSSING;
 
 public class ComponentStrongholdRoomCrossing extends ComponentStronghold {
-   private static final WeightedRandomChestContent[] strongholdRoomCrossingChestContents;
+   public static final WeightedRandomChestContent[] strongholdRoomCrossingChestContents;
    protected int roomType;
 
    public ComponentStrongholdRoomCrossing() {

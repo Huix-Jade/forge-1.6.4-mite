@@ -92,9 +92,9 @@ public class Item {
    public static Item appleGold;
    public static Item sign;
    public static Item doorWood;
-   public static ItemBucket bucketIronEmpty;
-   public static ItemBucket bucketIronWater;
-   public static ItemBucket bucketIronLava;
+   public static ItemBucket bucketEmpty;
+   public static ItemBucket bucketWater;
+   public static ItemBucket bucketLava;
    public static Item minecartEmpty;
    public static Item saddle;
    public static Item doorIron;
@@ -532,6 +532,18 @@ public class Item {
       this.recipes = new IRecipe[65];
       this.crafting_products_this_is_component_of = new ArrayList();
       this.itemID = 0;
+      this.num_subtypes = 0;
+      this.has_subtypes = false;
+   }
+
+   protected Item(int id) {
+      this.maxStackSize = 16;
+      this.materials = new ArrayList();
+      this.crafting_difficulty_as_component = -1.0F;
+      this.lowest_crafting_difficulty_to_produce_override = Float.MAX_VALUE;
+      this.recipes = new IRecipe[65];
+      this.crafting_products_this_is_component_of = new ArrayList();
+      this.itemID = id;
       this.num_subtypes = 0;
       this.has_subtypes = false;
    }
@@ -1815,9 +1827,9 @@ public class Item {
       appleGold = (new ItemAppleGold(66, 2, 1, "VANILLA")).setAlwaysEdible().setPotionEffect(Potion.regeneration.id, 60, 0, 1.0F).setUnlocalizedName("appleGold").useVanillaTexture("apple_golden");
       sign = (new ItemSign(67)).setUnlocalizedName("sign");
       doorWood = (new ItemDoor(68, Material.wood)).setUnlocalizedName("doorWood").useVanillaTexture("door_wood");
-      bucketIronEmpty = (ItemBucket)(new ItemBucket(69, Material.iron, (Material)null)).setUnlocalizedName("bucket");
-      bucketIronWater = (ItemBucket)(new ItemBucket(70, Material.iron, Material.water)).setUnlocalizedName("bucketWater").setContainerItem(bucketIronEmpty);
-      bucketIronLava = (ItemBucket)(new ItemBucket(71, Material.iron, Material.lava)).setUnlocalizedName("bucketLava").setContainerItem(bucketIronEmpty);
+      bucketEmpty = (ItemBucket)(new ItemBucket(69, Material.iron, (Material)null)).setUnlocalizedName("bucket");
+      bucketWater = (ItemBucket)(new ItemBucket(70, Material.iron, Material.water)).setUnlocalizedName("bucketWater").setContainerItem(bucketEmpty);
+      bucketLava = (ItemBucket)(new ItemBucket(71, Material.iron, Material.lava)).setUnlocalizedName("bucketLava").setContainerItem(bucketEmpty);
       minecartEmpty = (new ItemMinecart(72, 0, "minecart_normal")).setUnlocalizedName("minecart");
       saddle = (new ItemSaddle(73)).setUnlocalizedName("saddle");
       doorIron = (new ItemDoor(74, Material.iron)).setUnlocalizedName("doorIron").useVanillaTexture("door_iron");
@@ -1825,7 +1837,7 @@ public class Item {
       snowball = (new ItemSnowball(76)).setUnlocalizedName("snowball");
       boat = (new ItemBoat(77)).setUnlocalizedName("boat");
       leather = (new Item(78, Material.leather, "leather")).setCraftingDifficultyAsComponent(100.0F).setUnlocalizedName("leather").setCreativeTab(CreativeTabs.tabMaterials);
-      bucketIronMilk = (ItemBucketMilk)(new ItemBucketMilk(79, Material.iron)).setUnlocalizedName("milk").setContainerItem(bucketIronEmpty);
+      bucketIronMilk = (ItemBucketMilk)(new ItemBucketMilk(79, Material.iron)).setUnlocalizedName("milk").setContainerItem(bucketEmpty);
       brick = (new ItemBrick(80, Material.clay, "brick")).setUnlocalizedName("brick");
       clay = (new Item(81, Material.clay, "clay_ball")).setUnlocalizedName("clay").setCraftingDifficultyAsComponent(25.0F).setMaxStackSize(16).setCreativeTab(CreativeTabs.tabMaterials);
       reed = (new ItemReed(82, Block.reed, "reeds")).setMaxStackSize(16).setCraftingDifficultyAsComponent(100.0F).setUnlocalizedName("reeds").setCreativeTab(CreativeTabs.tabMaterials);
@@ -2184,7 +2196,7 @@ public class Item {
       bucketCopperStone = (ItemBucket)(new ItemBucket(975, Material.copper, Material.stone)).setUnlocalizedName("bucketCopperStone").setContainerItem(bucketCopperEmpty);
       bucketSilverStone = (ItemBucket)(new ItemBucket(976, Material.silver, Material.stone)).setUnlocalizedName("bucketSilverStone").setContainerItem(bucketSilverEmpty);
       bucketGoldStone = (ItemBucket)(new ItemBucket(977, Material.gold, Material.stone)).setUnlocalizedName("bucketGoldStone").setContainerItem(bucketGoldEmpty);
-      bucketIronStone = (ItemBucket)(new ItemBucket(978, Material.iron, Material.stone)).setUnlocalizedName("bucketIronStone").setContainerItem(bucketIronEmpty);
+      bucketIronStone = (ItemBucket)(new ItemBucket(978, Material.iron, Material.stone)).setUnlocalizedName("bucketIronStone").setContainerItem(bucketEmpty);
       bucketMithrilStone = (ItemBucket)(new ItemBucket(979, Material.mithril, Material.stone)).setUnlocalizedName("bucketMithrilStone").setContainerItem(bucketMithrilEmpty);
       bucketAdamantiumStone = (ItemBucket)(new ItemBucket(980, Material.adamantium, Material.stone)).setUnlocalizedName("bucketAdamantiumStone").setContainerItem(bucketAdamantiumEmpty);
       bucketAncientMetalStone = (ItemBucket)(new ItemBucket(981, Material.ancient_metal, Material.stone)).setUnlocalizedName("bucketAncientMetalStone").setContainerItem(bucketAncientMetalEmpty);
@@ -2691,7 +2703,7 @@ public class Item {
     */
    public int getDamage(ItemStack stack)
    {
-      return stack.getItemDamage();
+      return 0;
    }
 
    /**

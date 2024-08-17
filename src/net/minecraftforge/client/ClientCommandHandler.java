@@ -34,7 +34,7 @@ public class ClientCommandHandler extends CommandHandler
      *         it was canceled.
      */
     @Override
-    public int executeCommand(ICommandSender sender, String message)
+    public int executeCommand(ICommandSender sender, String message, boolean permission_override)
     {
         message = message.trim();
 

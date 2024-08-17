@@ -20,7 +20,8 @@ public class FakePlayer extends EntityPlayerMP
         super(FMLCommonHandler.instance().getMinecraftServerInstance(), world, name, new ItemInWorldManager(world));
     }
 
-    public void sendChatToPlayer(String s){}
+    public void sendChatToPlayer(String s){
+    }
     public boolean canCommandSenderUseCommand(int i, String s){ return false; }
     public ChunkCoordinates getPlayerCoordinates()
     {

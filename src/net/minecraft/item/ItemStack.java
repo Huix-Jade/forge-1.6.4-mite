@@ -261,10 +261,11 @@ public final class ItemStack {
    }
 
    public int getItemDamage() {
-      if (getItem() != null)
+      if (getItem() != null && getItem().getDamage(this) != 0)
       {
          return getItem().getDamage(this);
       }
+
       return this.damage;
    }
 
@@ -308,6 +309,11 @@ public final class ItemStack {
 
    public int getMaxDamage() {
       return this.getItem().getMaxDamage(this);
+   }
+
+   public int damageItem(int itemDamage, EntityLivingBase entityLiving) {
+      this.tryDamageItem(DamageSource.generic, itemDamage, entityLiving);
+      return itemDamage;
    }
 
    public ItemDamageResult tryDamageItem(World world, int damage, boolean prevent_destruction) {
@@ -500,6 +506,10 @@ public final class ItemStack {
       } else {
          return par0ItemStack != null && par1ItemStack != null ? par0ItemStack.isItemStackEqual(par1ItemStack, ignore_stack_size, ignore_quality, ignore_damage_but_not_subtype, ignore_tag_compound) : false;
       }
+   }
+
+   public boolean isItemEqual(ItemStack par1ItemStack) {
+      return this.isItemStackEqual(par1ItemStack, true, true, true, true);
    }
 
    public boolean isItemStackEqual(ItemStack par1ItemStack, boolean ignore_stack_size, boolean ignore_quality, boolean ignore_damage_but_not_subtype, boolean ignore_tag_compound) {

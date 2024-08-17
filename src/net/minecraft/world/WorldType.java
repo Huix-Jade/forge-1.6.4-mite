@@ -28,6 +28,12 @@ public class WorldType {
       worldTypes[var1] = this;
    }
 
+
+   public double getHorizon(World world)
+   {
+      return this == FLAT ? 0.0D : 63.0D;
+   }
+
    public String getWorldTypeName() {
       return this.worldType;
    }

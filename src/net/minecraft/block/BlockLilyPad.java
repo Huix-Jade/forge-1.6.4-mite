@@ -5,6 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityBoat;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.EnumPlantType;
 
 public class BlockLilyPad extends BlockPlant {
    protected BlockLilyPad(int par1) {
@@ -61,5 +62,20 @@ public class BlockLilyPad extends BlockPlant {
 
    public boolean blocksFluids(boolean[] blocks_fluids, int metadata) {
       return true;
+   }
+
+   @Override
+   public EnumPlantType getPlantType(World world, int x, int y, int z) {
+      return EnumPlantType.Unknown;
+   }
+
+   @Override
+   public int getPlantID(World world, int x, int y, int z) {
+      return 0;
+   }
+
+   @Override
+   public int getPlantMetadata(World world, int x, int y, int z) {
+      return 0;
    }
 }

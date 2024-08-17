@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
+import net.minecraft.item.crafting.CraftingResult;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.Item;
@@ -152,13 +154,68 @@ public class ShapedOreRecipe implements IRecipe
     }
 
     @Override
-    public ItemStack getCraftingResult(InventoryCrafting var1){ return output.copy(); }
+    public CraftingResult getCraftingResult(InventoryCrafting var1){ return new CraftingResult(output.copy(), 0, null, this); }
 
     @Override
     public int getRecipeSize(){ return input.length; }
 
     @Override
     public ItemStack getRecipeOutput(){ return output; }
+
+    @Override
+    public ItemStack[] getComponents() {
+        return new ItemStack[0];
+    }
+
+    @Override
+    public IRecipe setDifficulty(float var1) {
+        return null;
+    }
+
+    @Override
+    public IRecipe scaleDifficulty(float var1) {
+        return null;
+    }
+
+    @Override
+    public float getUnmodifiedDifficulty() {
+        return 0;
+    }
+
+    @Override
+    public void setIncludeInLowestCraftingDifficultyDetermination() {
+
+    }
+
+    @Override
+    public boolean getIncludeInLowestCraftingDifficultyDetermination() {
+        return false;
+    }
+
+    @Override
+    public void setSkillsets(int[] var1) {
+
+    }
+
+    @Override
+    public void setSkillset(int var1) {
+
+    }
+
+    @Override
+    public int[] getSkillsets() {
+        return new int[0];
+    }
+
+    @Override
+    public void setMaterialToCheckToolBenchHardnessAgainst(Material var1) {
+
+    }
+
+    @Override
+    public Material getMaterialToCheckToolBenchHardnessAgainst() {
+        return null;
+    }
 
     @Override
     public boolean matches(InventoryCrafting inv, World world)

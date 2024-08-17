@@ -56,7 +56,7 @@ public class BiomeDictionary
      * Registers a biome with a specific biome type
      * 
      * @param biome the biome to be registered
-     * @param type the type to register the biome as
+     *  type the type to register the biome as
      * @return returns true if the biome was registered successfully
      */
     public static boolean registerBiomeType(BiomeGenBase biome, Type ... types)
@@ -312,8 +312,6 @@ public class BiomeDictionary
         registerBiomeType(forestHills,         FOREST         );
         registerBiomeType(sky,                 END            );
         registerBiomeType(hell,                NETHER         );
-        registerBiomeType(mushroomIsland,      MUSHROOM       );
         registerBiomeType(extremeHillsEdge,    MOUNTAIN       );
-        registerBiomeType(mushroomIslandShore, MUSHROOM, BEACH);
     }
 }

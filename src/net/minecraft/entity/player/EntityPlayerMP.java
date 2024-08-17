@@ -149,7 +149,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerDropsEvent;
 import net.minecraftforge.event.world.ChunkWatchEvent;
 
-public final class EntityPlayerMP extends EntityPlayer implements ICrafting {
+public class EntityPlayerMP extends EntityPlayer implements ICrafting {
    private String translator = "en_US";
    public NetServerHandler playerNetServerHandler;
    public MinecraftServer mcServer;

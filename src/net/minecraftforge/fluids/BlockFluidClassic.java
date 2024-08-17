@@ -296,7 +296,7 @@ public class BlockFluidClassic extends BlockFluidBase
         }
 
         Material material = Block.blocksList[bId].blockMaterial;
-        if (material.blocksMovement()  ||
+        if (material.isLiquid()  ||
             material == Material.water ||
             material == Material.lava  ||
             material == Material.portal)

@@ -230,7 +230,7 @@ public final class EntityClientPlayerMP extends EntityPlayerSP {
       return null;
    }
 
-   protected void joinEntityItemWithWorld(EntityItem par1EntityItem) {
+   public void joinEntityItemWithWorld(EntityItem par1EntityItem) {
    }
 
    public void sendChatMessage(String par1Str) {

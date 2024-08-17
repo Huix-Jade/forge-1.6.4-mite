@@ -54,16 +54,16 @@ public class GuiIngame extends Gui {
    private static final ResourceLocation widgetsTexPath = new ResourceLocation("textures/gui/widgets.png");
    private static final ResourceLocation pumpkinBlurTexPath = new ResourceLocation("textures/misc/pumpkinblur.png");
    private static final RenderItem itemRenderer = new RenderItem();
-   private final Random rand = new Random();
-   private final Minecraft mc;
-   private final GuiNewChat persistantChatGUI;
-   private int updateCounter;
-   private String recordPlaying = "";
-   private int recordPlayingUpFor;
-   private boolean recordIsPlaying;
+   protected final Random rand = new Random();
+   protected final Minecraft mc;
+   protected final GuiNewChat persistantChatGUI;
+   protected int updateCounter;
+   protected String recordPlaying = "";
+   protected int recordPlayingUpFor;
+   protected boolean recordIsPlaying;
    public float prevVignetteBrightness = 1.0F;
-   private int remainingHighlightTicks;
-   private ItemStack highlightingItemStack;
+   protected int remainingHighlightTicks;
+   protected ItemStack highlightingItemStack;
    public static final ResourceLocation MITE_icons = new ResourceLocation("textures/gui/MITE_icons.png");
    public static long display_overburdened_cpu_icon_until_ms;
    public int curse_notification_counter;
@@ -116,7 +116,7 @@ public class GuiIngame extends Gui {
             }
             else
             {
-               itemstack.getItem().renderHelmetOverlay(itemstack, mc.thePlayer, scaledresolution, par1, par2, par3, par4);
+               itemstack.getItem().renderHelmetOverlay(itemstack, mc.thePlayer, var5, par1, par2, par3, par4);
             }
          }
 
@@ -621,7 +621,7 @@ public class GuiIngame extends Gui {
       }
    }
 
-   private void func_96136_a(ScoreObjective par1ScoreObjective, int par2, int par3, FontRenderer par4FontRenderer) {
+   protected void func_96136_a(ScoreObjective par1ScoreObjective, int par2, int par3, FontRenderer par4FontRenderer) {
       Scoreboard var5 = par1ScoreObjective.getScoreboard();
       Collection var6 = var5.func_96534_i(par1ScoreObjective);
       if (var6.size() <= 15) {
@@ -864,7 +864,7 @@ public class GuiIngame extends Gui {
       this.mc.mcProfiler.endSection();
    }
 
-   private void renderBossHealth() {
+   protected void renderBossHealth() {
       if (BossStatus.bossName != null && BossStatus.statusBarLength > 0) {
          --BossStatus.statusBarLength;
          FontRenderer var1 = this.mc.fontRenderer;
@@ -888,7 +888,7 @@ public class GuiIngame extends Gui {
 
    }
 
-   private void renderPumpkinBlur(int par1, int par2) {
+   protected void renderPumpkinBlur(int par1, int par2) {
       GL11.glDisable(2929);
       GL11.glDepthMask(false);
       GL11.glBlendFunc(770, 771);
@@ -975,7 +975,7 @@ public class GuiIngame extends Gui {
       GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
    }
 
-   private void renderVignette(float par1, int par2, int par3) {
+   protected void renderVignette(float par1, int par2, int par3) {
       par1 = 1.0F - par1;
       if (par1 < 0.0F) {
          par1 = 0.0F;
@@ -1009,7 +1009,7 @@ public class GuiIngame extends Gui {
       GL11.glBlendFunc(770, 771);
    }
 
-   private void func_130015_b(float par1, int par2, int par3) {
+   protected void func_130015_b(float par1, int par2, int par3) {
       if (par1 < 1.0F) {
          par1 *= par1;
          par1 *= par1;
@@ -1040,7 +1040,7 @@ public class GuiIngame extends Gui {
       GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
    }
 
-   private void renderInventorySlot(int par1, int par2, int par3, float par4) {
+   protected void renderInventorySlot(int par1, int par2, int par3, float par4) {
       ItemStack var5 = this.mc.thePlayer.inventory.mainInventory[par1];
       if (var5 != null) {
          float var6 = (float)var5.animationsToGo - par4;

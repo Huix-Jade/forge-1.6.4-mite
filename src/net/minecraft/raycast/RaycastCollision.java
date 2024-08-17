@@ -12,7 +12,7 @@ import net.minecraft.util.EnumFace;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
-public final class RaycastCollision {
+public class RaycastCollision {
    public final Raycast raycast;
    public final World world;
    private final Object object_hit;

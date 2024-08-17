@@ -854,8 +854,8 @@ public class ForgeChunkManager
                 }
                 if (tick.ticketType == Type.ENTITY && tick.entity != null && tick.entity.writeToNBTOptional(new NBTTagCompound()))
                 {
-                    ticket.setInteger("chunkX", MathHelper.floor_double(tick.entity.chunkCoordX));
-                    ticket.setInteger("chunkZ", MathHelper.floor_double(tick.entity.chunkCoordZ));
+                    ticket.setInteger("chunkX", MathHelper.floor_double(tick.entity.getChunkPosX()));
+                    ticket.setInteger("chunkZ", MathHelper.floor_double(tick.entity.getChunkPosZ()));
                     ticket.setLong("PersistentIDMSB", tick.entity.getPersistentID().getMostSignificantBits());
                     ticket.setLong("PersistentIDLSB", tick.entity.getPersistentID().getLeastSignificantBits());
                     tickets.appendTag(ticket);

@@ -177,7 +177,8 @@ public class ChestGenHooks
         while(itr.hasNext())
         {
             WeightedRandomChestContent cont = itr.next();
-            if (item.isItemEqual(cont.theItemId) || (item.getItemDamage() == OreDictionary.WILDCARD_VALUE && item.itemID == cont.theItemId.itemID))
+            if (item.isItemStackEqual(cont.theItemId, true, true, true, true)
+                    || (item.getItemDamage() == OreDictionary.WILDCARD_VALUE && item.itemID == cont.theItemId.itemID))
             {
                 itr.remove();
             }
@@ -232,7 +233,7 @@ public class ChestGenHooks
     {
         WeightedRandomChestContent[] items = getItems(rand);
         WeightedRandomChestContent item = (WeightedRandomChestContent)WeightedRandom.getRandomItem(rand, items);
-        ItemStack[] stacks = ChestGenHooks.generateStacks(rand, item.theItemId, item.theMinimumChanceToGenerateItem, item.theMaximumChanceToGenerateItem);
+        ItemStack[] stacks = ChestGenHooks.generateStacks(rand, item.theItemId, item.min_quantity, item.max_quantity);
         return (stacks.length > 0 ? stacks[0] : null);
     }
 

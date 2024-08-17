@@ -11,6 +11,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.EnumPlantType;
 import net.minecraftforge.common.ForgeDirection;
 
 public final class BlockStem extends BlockGrowingPlant {
@@ -361,5 +362,20 @@ public final class BlockStem extends BlockGrowingPlant {
          world.playSoundAtBlock(x, y, z, step_sound.getPlaceSound(), 0.2F, step_sound.getPitch() * 0.8F);
       }
 
+   }
+
+   @Override
+   public EnumPlantType getPlantType(World world, int x, int y, int z) {
+      return EnumPlantType.Unknown;
+   }
+
+   @Override
+   public int getPlantID(World world, int x, int y, int z) {
+      return 0;
+   }
+
+   @Override
+   public int getPlantMetadata(World world, int x, int y, int z) {
+      return 0;
    }
 }

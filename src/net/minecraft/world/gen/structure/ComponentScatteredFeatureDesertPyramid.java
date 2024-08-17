@@ -14,7 +14,7 @@ import static net.minecraftforge.common.ChestGenHooks.PYRAMID_DESERT_CHEST;
 
 public class ComponentScatteredFeatureDesertPyramid extends ComponentScatteredFeature {
    private boolean[] field_74940_h = new boolean[4];
-   private static final WeightedRandomChestContent[] itemsToGenerateInTemple;
+   public static final WeightedRandomChestContent[] itemsToGenerateInTemple;
 
    public ComponentScatteredFeatureDesertPyramid() {
    }

@@ -59,7 +59,7 @@ public class SaveHandler implements ISaveHandler, IPlayerFileData {
       }
    }
 
-   protected File getWorldDirectory() {
+   public File getWorldDirectory() {
       return this.worldDirectory;
    }
 

@@ -11,6 +11,7 @@ import net.minecraft.util.Icon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.EnumPlantType;
 
 public final class BlockBush extends BlockGrowingPlant {
    public static final int BLUEBERRY = 0;
@@ -199,5 +200,20 @@ public final class BlockBush extends BlockGrowingPlant {
 
    public float getHumidityGrowthRateModifier(boolean high_humidity) {
       return 1.0F;
+   }
+
+   @Override
+   public EnumPlantType getPlantType(World world, int x, int y, int z) {
+      return EnumPlantType.Unknown;
+   }
+
+   @Override
+   public int getPlantID(World world, int x, int y, int z) {
+      return 0;
+   }
+
+   @Override
+   public int getPlantMetadata(World world, int x, int y, int z) {
+      return 0;
    }
 }

@@ -49,7 +49,7 @@ public abstract class InventoryEffectRenderer extends GuiContainer {
          Translator.addToList(EnumChatFormatting.GRAY, "effect.malnourished.general", list);
          list.add(EnumChatFormatting.GRAY + "");
          Translator.addToList(EnumChatFormatting.GRAY, "effect.malnourished." + (this.mc.thePlayer.is_malnourished_in_protein ? "protein" : "phytonutrients"), list);
-         this.func_102021_a(list, mouse_x, mouse_y, false);
+         this.func_102021_a(list, mouse_x, mouse_y);
       }
 
    }
@@ -68,7 +68,7 @@ public abstract class InventoryEffectRenderer extends GuiContainer {
          List list = new ArrayList();
          EnumInsulinResistanceLevel insulin_resistance_level = this.mc.thePlayer.getInsulinResistanceLevel();
          Translator.addToList(EnumChatFormatting.GRAY, "effect.insulinResistance." + insulin_resistance_level.getUnlocalizedName(), list);
-         this.func_102021_a(list, mouse_x, mouse_y, false);
+         this.func_102021_a(list, mouse_x, mouse_y);
       }
 
    }
@@ -93,7 +93,7 @@ public abstract class InventoryEffectRenderer extends GuiContainer {
          if (this.mc.thePlayer.curse_effect_known) {
             List list = new ArrayList();
             ItemStack.addTooltipsToList(EnumChatFormatting.GRAY, curse.getTooltip(), list);
-            this.func_102021_a(list, mouse_x, mouse_y, false);
+            this.func_102021_a(list, mouse_x, mouse_y);
          }
       }
 

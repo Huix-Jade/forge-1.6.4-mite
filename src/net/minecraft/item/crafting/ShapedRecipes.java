@@ -8,10 +8,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 public class ShapedRecipes implements IRecipe {
-   private int recipeWidth;
-   private int recipeHeight;
-   private ItemStack[] recipeItems;
-   private ItemStack recipeOutput;
+   public int recipeWidth;
+   public int recipeHeight;
+   public ItemStack[] recipeItems;
+   public ItemStack recipeOutput;
    public final int recipeOutputItemID;
    private boolean field_92101_f;
    protected float difficulty;

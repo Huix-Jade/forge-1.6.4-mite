@@ -3,6 +3,7 @@ package net.minecraft.entity.passive;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityAgeable;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumParticle;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IShearable;
 
@@ -41,7 +42,7 @@ public class EntityMooshroom extends EntityCow implements IShearable {
       entitycow.setHealth(this.getHealth());
       entitycow.renderYawOffset = renderYawOffset;
       worldObj.spawnEntityInWorld(entitycow);
-      worldObj.spawnParticle("largeexplode", posX, posY + (double)(height / 2.0F), posZ, 0.0D, 0.0D, 0.0D);
+      worldObj.spawnParticle(EnumParticle.largeexplode,  posX, posY + (double)(height / 2.0F), posZ, 0.0D, 0.0D, 0.0D);
 
       ArrayList<ItemStack> ret = new ArrayList<ItemStack>();
       for (int x = 0; x < 5; x++)

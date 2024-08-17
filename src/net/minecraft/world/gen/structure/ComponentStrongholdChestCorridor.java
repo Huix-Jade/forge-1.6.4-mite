@@ -13,7 +13,7 @@ import net.minecraftforge.common.ChestGenHooks;
 import static net.minecraftforge.common.ChestGenHooks.STRONGHOLD_CORRIDOR;
 
 public class ComponentStrongholdChestCorridor extends ComponentStronghold {
-   private static final WeightedRandomChestContent[] strongholdChestContents;
+   public static final WeightedRandomChestContent[] strongholdChestContents;
    private boolean hasMadeChest;
 
    public ComponentStrongholdChestCorridor() {

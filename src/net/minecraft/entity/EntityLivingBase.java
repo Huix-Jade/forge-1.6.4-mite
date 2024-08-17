@@ -1424,15 +1424,14 @@ public abstract class EntityLivingBase extends Entity {
    }
 
    public void swingArm() {
-      ItemStack stack = this.getHeldItemStack();
-
-      if (stack != null && stack.getItem() != null)
-      {
-         if (stack.onEntitySwing(this, stack))
-         {
-            return;
-         }
-      }
+//      ItemStack stack = this.getHeldItemStack();
+//      if (stack != null && stack.getItem() != null)
+//      {
+//         if (stack.onEntitySwing(this, stack))
+//         {
+//            return;
+//         }
+//      }
 
       if (!this.isSwingInProgress || this.swingProgressInt >= this.getArmSwingAnimationEnd() / 2 || this.swingProgressInt < 0) {
          this.swingProgressInt = -1;

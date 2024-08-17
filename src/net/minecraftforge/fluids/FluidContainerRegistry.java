@@ -202,13 +202,13 @@ public abstract class FluidContainerRegistry
             return false;
         }
 
-        if (container.isItemEqual(EMPTY_BUCKET))
+        if (container.isItemStackEqual(EMPTY_BUCKET, true, true, true ,true))
         {
             return true;
         }
 
         FluidContainerData data = containerFluidMap.get(Arrays.asList(container.itemID, container.getItemDamage()));
-        return data != null && data.emptyContainer.isItemEqual(EMPTY_BUCKET);
+        return data != null && data.emptyContainer.isItemStackEqual(EMPTY_BUCKET, true, true, true ,true);
     }
 
     public static boolean isContainer(ItemStack container)

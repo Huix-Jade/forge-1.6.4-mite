@@ -13,7 +13,7 @@ import net.minecraftforge.common.ChestGenHooks;
 import static net.minecraftforge.common.ChestGenHooks.STRONGHOLD_LIBRARY;
 
 public class ComponentStrongholdLibrary extends ComponentStronghold {
-   private static final WeightedRandomChestContent[] strongholdLibraryChestContents;
+   public static final WeightedRandomChestContent[] strongholdLibraryChestContents;
    private boolean isLargeRoom;
 
    public ComponentStrongholdLibrary() {
