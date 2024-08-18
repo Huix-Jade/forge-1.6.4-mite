@@ -18,11 +18,7 @@ public class AnvilSaveHandler extends SaveHandler {
    public IChunkLoader getChunkLoader(WorldProvider par1WorldProvider) {
       File var2 = this.getWorldDirectory();
       File var3;
-      if (par1WorldProvider instanceof WorldProviderUnderworld) {
-         var3 = new File(var2, "DIM-2");
-         var3.mkdirs();
-         return new AnvilChunkLoader(var3);
-      } else if (par1WorldProvider.getSaveFolder() != null) {
+      if (par1WorldProvider.getSaveFolder() != null) {
          var3 = new File(var2, par1WorldProvider.getSaveFolder());
          return new AnvilChunkLoader(var3);
       } else {

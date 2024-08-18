@@ -29,17 +29,7 @@ import cpw.mods.fml.common.FMLLog;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.ChunkCoordIntPair;
-import net.minecraft.world.MinecraftException;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldManager;
-import net.minecraft.world.WorldProvider;
-import net.minecraft.world.WorldProviderEnd;
-import net.minecraft.world.WorldProviderHell;
-import net.minecraft.world.WorldProviderSurface;
-import net.minecraft.world.WorldServer;
-import net.minecraft.world.WorldServerMulti;
-import net.minecraft.world.WorldSettings;
+import net.minecraft.world.*;
 import net.minecraft.world.storage.ISaveHandler;
 import net.minecraft.world.storage.SaveHandler;
 import net.minecraftforge.event.world.WorldEvent;
@@ -111,9 +101,12 @@ public class DimensionManager
         registerProviderType( 0, WorldProviderSurface.class, true);
         registerProviderType(-1, WorldProviderHell.class,    true);
         registerProviderType( 1, WorldProviderEnd.class,     false);
+        registerProviderType(-2, WorldProviderUnderworld.class,    true);
+
         registerDimension( 0,  0);
         registerDimension(-1, -1);
         registerDimension( 1,  1);
+        registerDimension(-2,  -2);
     }
 
     public static void registerDimension(int id, int providerType)
@@ -218,11 +211,13 @@ public class DimensionManager
             tmp.add(worlds.get(-1));
         if (worlds.get( 1) != null)
             tmp.add(worlds.get( 1));
+        if (worlds.get( -2) != null)
+            tmp.add(worlds.get( 2));
 
         for (Entry<Integer, WorldServer> entry : worlds.entrySet())
         {
             int dim = entry.getKey();
-            if (dim >= -1 && dim <= 1)
+            if (dim >= -2 && dim <= 1)
             {
                 continue;
             }
@@ -289,7 +284,7 @@ public class DimensionManager
      */
     public static Integer[] getStaticDimensionIDs()
     {
-        return dimensions.keySet().toArray(new Integer[dimensions.keySet().size()]);
+        return dimensions.keySet().toArray(new Integer[0]);
     }
     public static WorldProvider createProviderFor(int dim)
     {
@@ -385,6 +380,10 @@ public class DimensionManager
         }
         dimMap.setIntArray("DimensionArray", data);
         return dimMap;
+    }
+
+    public static int getWorldServers() {
+        return worlds.size();
     }
 
     public static void loadDimensionDataMap(NBTTagCompound compoundTag)

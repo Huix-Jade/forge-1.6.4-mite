@@ -10,7 +10,13 @@ public class GenLayerBiome extends GenLayer {
    public GenLayerBiome(long par1, GenLayer par3GenLayer, WorldType par4WorldType) {
       super(par1);
       this.parent = par3GenLayer;
-      this.allowedBiomes = par4WorldType.getBiomesForWorldType();
+
+      this.allowedBiomes = new BiomeGenBase[] {BiomeGenBase.desert, BiomeGenBase.forest, BiomeGenBase.extremeHills,
+              BiomeGenBase.swampland, BiomeGenBase.plains, BiomeGenBase.taiga, BiomeGenBase.jungle};
+      if (par4WorldType == WorldType.DEFAULT_1_1) {
+         this.allowedBiomes = new BiomeGenBase[] {BiomeGenBase.desert, BiomeGenBase.forest, BiomeGenBase.extremeHills,
+                 BiomeGenBase.swampland, BiomeGenBase.plains, BiomeGenBase.taiga};
+      }
 
    }
 

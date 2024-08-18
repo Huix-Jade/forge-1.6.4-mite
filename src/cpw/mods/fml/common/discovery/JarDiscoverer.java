@@ -36,15 +36,27 @@ public class JarDiscoverer implements ITypeDiscoverer
         List<ModContainer> foundMods = Lists.newArrayList();
         FMLLog.fine("Examining file %s for potential mods", candidate.getModContainer().getName());
         JarFile jar = null;
+        String[] ingoredNames = new String[]{"access-bridge-64.jar", "cldrdata.jar", "dnsns.jar", "jaccess.jar", "localedata.jar", "nashorn.jar", "sunec.jar",
+                                "sunjce_provider.jar", "sunmscapi.jar", "sunpkcs11.jar", "zipfs.jar", "jce.jar", "jfr.jar", "jsse.jar", "management-agent.jar",
+                                "resources.jar", "rt.jar", "codecwav-20101023.jar", "soundsystem-20120107.jar", "commons-lang3-3.1.jar", "cprov-jdk15on-1.47.jar",
+                                "fastutil-8.5.12.jar", "jopt-simple-4.5.jar", "jinput-platform-2.0.5-natives-windows.jar", "lwjgl-2.9.0.jar", "lwjgl-platform-2.9.0-natives-windows.jar",
+                                "lwjgl_util-2.9.0.jar", "argo-2.25_fixed.jar", "codecjorbis-20101023.jar", "jinput-2.0.5.jar", "commons-io-2.4.jar", "jutils-1.0.0.jar",
+                                "gson-2.2.2.jar", "librarylwjglopenal-20100824.jar", "libraryjavasound-20101123.jar", "launchwrapper-1.12.jar", "lzma-0.0.1.jar",
+                                "guava-14.0.jar", "asm-all-5.2.jar", "idea_rt.jar", "bcprov-jdk15on-1.47.jar", "charsets.jar"};
+        for (String name : ingoredNames) {
+            if (candidate.getModContainer().getName().equals(name)) {
+                return foundMods;
+            }
+        }
+
         try
         {
-            jar = new JarFile(candidate.getModContainer());
-
             if (jar.getManifest()!=null && (jar.getManifest().getMainAttributes().get("FMLCorePlugin") != null || jar.getManifest().getMainAttributes().get("TweakClass") != null))
             {
                 FMLLog.finest("Ignoring coremod or tweak system %s", candidate.getModContainer());
                 return foundMods;
             }
+
             ZipEntry modInfo = jar.getEntry("mcmod.info");
             MetadataCollection mc = null;
             if (modInfo != null)

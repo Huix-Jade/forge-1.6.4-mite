@@ -34,12 +34,10 @@ public class GuiControls extends GuiScreen {
       return this.height / 6 + 24 * (index / 2) + 6;
    }
 
+   @Override
    public void initGui() {
-
-      this.setKeybindButtonVisibilities();
-      this.buttonList.add(new GuiButton(201, this.width / 2 - 100, this.height / 6 + 168 - 24, I18n.getString("gui.nextPage")));
       scrollPane = new GuiControlsScrollPanel(this, options, mc);
-      this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height / 6 + 168, I18n.getString("gui.done")));
+      this.buttonList.add(new GuiButton(200, this.width / 2 - 100, this.height - 28, I18n.getString("gui.done")));
       scrollPane.registerScrollButtons(7, 8);
       this.screenTitle = I18n.getString("controls.title");
    }
@@ -55,18 +53,14 @@ public class GuiControls extends GuiScreen {
 
    }
 
+   @Override
    protected void actionPerformed(GuiButton par1GuiButton) {
       if (par1GuiButton.id == 200) {
          this.mc.displayGuiScreen(this.parentScreen);
-      } else if (par1GuiButton.id == 201) {
-         if (++this.page_index > (this.options.keyBindings.length - 1) / 10) {
-            this.page_index = 0;
-         }
-
-         this.setKeybindButtonVisibilities();
       }
-
    }
+
+
 
 //   protected void mouseClicked(int par1, int par2, int par3) {
 //      if (this.buttonId >= 0) {
@@ -124,6 +118,7 @@ public class GuiControls extends GuiScreen {
       */
       scrollPane.drawScreen(par1, par2, par3);
       drawCenteredString(fontRenderer, screenTitle, width / 2, 4, 0xffffff);
+      //Forge End
       super.drawScreen(par1, par2, par3);
 
    }
