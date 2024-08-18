@@ -19,29 +19,42 @@ public class StringTranslate {
    private Map languageList = Maps.newHashMap();
 
    public StringTranslate() {
-      try {
-         for(int i = 0; i < 2; ++i) {
-            InputStream var1 = StringTranslate.class.getResourceAsStream("/assets/minecraft/lang/" + (i == 0 ? "MITE.lang" : "en_US.lang"));
-            if (i != 0 || var1 != null) {
-               Iterator var2 = IOUtils.readLines(var1, Charsets.UTF_8).iterator();
+      for (int i = 0; i < 2; ++i) {
+         InputStream var1 = StringTranslate.class.getResourceAsStream("/assets/minecraft/lang/" + (i == 0 ? "MITE.lang" : "en_US.lang"));
+         if (i != 0 || var1 != null) {
+            this.localInject(var1);
+         }
+      }
 
-               while(var2.hasNext()) {
-                  String var3 = (String)var2.next();
-                  if (!var3.isEmpty() && var3.charAt(0) != '#') {
-                     String[] var4 = (String[])((String[])Iterables.toArray(field_135065_b.split(var3), String.class));
-                     if (var4 != null && var4.length == 2) {
-                        String var5 = var4[0];
-                        String var6 = field_111053_a.matcher(var4[1]).replaceAll("%$1s");
-                        this.languageList.put(var5, var6);
-                     }
+   }
+
+   public static void inject(InputStream inputstream)
+   {
+      instance.localInject(inputstream);
+   }
+
+   private void localInject(InputStream inputstream){
+      try {
+         if (inputstream != null) {
+            for (String var3 : IOUtils.readLines(inputstream, Charsets.UTF_8)) {
+               if (!var3.isEmpty() && var3.charAt(0) != '#') {
+                  String[] var4 = Iterables.toArray(field_135065_b.split(var3), String.class);
+                  if (var4 != null && var4.length == 2) {
+                     String var5 = var4[0];
+                     String var6 = field_111053_a.matcher(var4[1]).replaceAll("%$1s");
+                     this.languageList.put(var5, var6);
                   }
                }
             }
          }
-      } catch (IOException var8) {
-      }
+      } catch(Exception e) {
 
+      }
    }
+
+
+
+
 
    static StringTranslate getInstance() {
       return instance;

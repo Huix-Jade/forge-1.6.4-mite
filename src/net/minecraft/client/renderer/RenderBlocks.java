@@ -38,6 +38,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.modlib.FMLRenderAccessLibrary;
 import org.lwjgl.opengl.GL11;
 import static net.minecraftforge.common.ForgeDirection.*;
 
@@ -255,6 +256,15 @@ public final class RenderBlocks {
          } else {
             par1Block.setBlockBoundsBasedOnStateAndNeighbors(this.blockAccess, par2, par3, par4);
             this.setRenderBoundsForNonStandardFormBlock(par1Block);
+         }
+         int[] ints = new int[]{0, 4, 31, 1, 2, 20 ,11, 39, 5, 13, 9, 19, 23, 6, 3, 8, 7, 10, 27, 12, 30, 15, 37, 17, 21, 44, 25, 28, 38,
+                 32, 29, 14, 36, 16, 18, 24, 35, 26, 34};
+
+         for (int anInt : ints) {
+            int renderType = par1Block.getRenderType();
+            if (renderType != anInt) {
+               return FMLRenderAccessLibrary.renderWorldBlock(this, blockAccess, par2, par3, par4, par1Block, renderType);
+            }
          }
 
          return var5 == 0 ? this.renderStandardBlock(par1Block, par2, par3, par4) : (var5 == 4 ? this.renderBlockFluids(par1Block, par2, par3, par4) : (var5 == 31 ? this.renderBlockLog(par1Block, par2, par3, par4) : (var5 == 1 ? this.renderCrossedSquares(par1Block, par2, par3, par4) : (var5 == 2 ? this.renderBlockTorch(par1Block, par2, par3, par4) : (var5 == 20 ? this.renderBlockVine(par1Block, par2, par3, par4) : (var5 == 11 ? this.renderBlockFence((BlockFence)par1Block, par2, par3, par4) : (var5 == 39 ? this.renderBlockQuartz(par1Block, par2, par3, par4) : (var5 == 5 ? this.renderBlockRedstoneWire(par1Block, par2, par3, par4) : (var5 == 13 ? this.renderBlockCactus(par1Block, par2, par3, par4) : (var5 == 9 ? this.renderBlockMinecartTrack((BlockRailBase)par1Block, par2, par3, par4) : (var5 == 19 ? this.renderBlockStem(par1Block, par2, par3, par4) : (var5 == 23 ? this.renderBlockLilyPad(par1Block, par2, par3, par4) : (var5 == 6 ? this.renderBlockCrops(par1Block, par2, par3, par4) : (var5 == 3 ? this.renderBlockFire((BlockFire)par1Block, par2, par3, par4) : (var5 == 8 ? this.renderBlockLadder(par1Block, par2, par3, par4) : (var5 == 7 ? this.renderBlockDoor(par1Block, par2, par3, par4) : (var5 == 10 ? this.renderBlockStairs((BlockStairs)par1Block, par2, par3, par4) : (var5 == 27 ? this.renderBlockDragonEgg((BlockDragonEgg)par1Block, par2, par3, par4) : (var5 == 32 ? this.renderBlockWall((BlockWall)par1Block, par2, par3, par4) : (var5 == 12 ? this.renderBlockLever(par1Block, par2, par3, par4) : (var5 == 29 ? this.renderBlockTripWireSource(par1Block, par2, par3, par4) : (var5 == 30 ? this.renderBlockTripWire(par1Block, par2, par3, par4) : (var5 == 14 ? this.renderBlockBed(par1Block, par2, par3, par4) : (var5 == 15 ? this.renderBlockRepeater((BlockRedstoneRepeater)par1Block, par2, par3, par4) : (var5 == 36 ? this.renderBlockRedstoneLogic((BlockRedstoneLogic)par1Block, par2, par3, par4) : (var5 == 37 ? this.renderBlockComparator((BlockComparator)par1Block, par2, par3, par4) : (var5 == 16 ? this.renderPistonBase(par1Block, par2, par3, par4, false) : (var5 == 17 ? this.renderPistonExtension(par1Block, par2, par3, par4, true) : (var5 == 18 ? this.renderBlockPane((BlockPane)par1Block, par2, par3, par4) : (var5 == 21 ? this.renderBlockFenceGate((BlockFenceGate)par1Block, par2, par3, par4) : (var5 == 24 ? this.renderBlockCauldron((BlockCauldron)par1Block, par2, par3, par4) : (var5 == 33 ? this.renderBlockFlowerpot((BlockFlowerPot)par1Block, par2, par3, par4) : (var5 == 35 ? this.renderBlockAnvil((BlockAnvil)par1Block, par2, par3, par4) : (var5 == 25 ? this.renderBlockBrewingStand((BlockBrewingStand)par1Block, par2, par3, par4) : (var5 == 26 ? this.renderBlockEndPortalFrame((BlockEndPortalFrame)par1Block, par2, par3, par4) : (var5 == 28 ? this.renderBlockCocoa((BlockCocoa)par1Block, par2, par3, par4) : (var5 == 34 ? this.renderBlockBeacon((BlockBeacon)par1Block, par2, par3, par4) : (var5 == 38 ? this.renderBlockHopper((BlockHopper)par1Block, par2, par3, par4) : false))))))))))))))))))))))))))))))))))))));
@@ -7225,6 +7235,9 @@ public final class RenderBlocks {
             GL11.glTranslatef(-0.5F, -0.5F, -0.5F);
             this.renderBlockHopperMetadata((BlockHopper)par1Block, 0, 0, 0, 0, true);
             GL11.glTranslatef(0.5F, 0.5F, 0.5F);
+         } else
+         {
+            FMLRenderAccessLibrary.renderInventoryBlock(this, par1Block, par2, var6);
          }
       } else {
          if (var6 == 16) {
@@ -7282,7 +7295,24 @@ public final class RenderBlocks {
    }
 
    public static boolean renderItemIn3d(int par0) {
-      return par0 == 0 ? true : (par0 == 31 ? true : (par0 == 39 ? true : (par0 == 13 ? true : (par0 == 10 ? true : (par0 == 11 ? true : (par0 == 27 ? true : (par0 == 22 ? true : (par0 == 21 ? true : (par0 == 16 ? true : (par0 == 26 ? true : (par0 == 32 ? true : (par0 == 34 ? true : par0 == 35))))))))))));
+      switch (par0)
+      {
+         case 0: return true;
+         case 31: return true ;
+         case 39: return true ;
+         case 13: return true ;
+         case 10: return true ;
+         case 11: return true ;
+         case 27: return true ;
+         case 22: return true ;
+         case 21: return true ;
+         case 16: return true ;
+         case 26: return true ;
+         case 32: return true ;
+         case 34: return true ;
+         case 35: return true ;
+         default: return FMLRenderAccessLibrary.renderItemAsFull3DBlock(par0);
+      }
    }
 
    public Icon getBlockIcon(Block par1Block, IBlockAccess par2IBlockAccess, int par3, int par4, int par5, int par6) {

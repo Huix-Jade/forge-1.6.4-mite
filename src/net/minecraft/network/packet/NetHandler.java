@@ -1,9 +1,14 @@
 package net.minecraft.network.packet;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.network.INetworkManager;
 
 public abstract class NetHandler {
    public abstract boolean isServerHandler();
+
+   public abstract void handleVanilla250Packet(Packet250CustomPayload payload);
+
+   public abstract EntityPlayer getPlayer();
 
    public void handleMapChunk(Packet51MapChunk par1Packet51MapChunk) {
    }

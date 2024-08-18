@@ -22,6 +22,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+
+import cpw.mods.fml.common.asm.ReobfuscationMarker;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherKeyGenerator;
 import org.bouncycastle.crypto.KeyGenerationParameters;
@@ -33,6 +35,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+@ReobfuscationMarker
 public class CryptManager {
    public static SecretKey createNewSharedKey() {
       CipherKeyGenerator var0 = new CipherKeyGenerator();

@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Random;
+import java.util.*;
+
+import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
+import cpw.mods.fml.client.GuiModList;
+import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.main.Main;
 import net.minecraft.client.mco.ExceptionMcoService;
@@ -82,6 +84,8 @@ public class GuiMainMenu extends GuiScreen {
    private float[] bullet_hole_rotation = new float[16];
    private long[] bullet_hole_created_ms = new long[16];
    private int minimum_firing_loops;
+
+   private GuiButton fmlModButton = null;
 
    public GuiMainMenu() {
       BufferedReader var1 = null;
@@ -220,6 +224,8 @@ public class GuiMainMenu extends GuiScreen {
          this.minecraftRealmsButton.drawButton = false;
       }
 
+      fmlModButton.xPosition = 98;
+      fmlModButton.yPosition = this.width / 2 + 2;
    }
 
    private void addSingleplayerMultiplayerButtons(int par1, int par2) {
@@ -241,7 +247,13 @@ public class GuiMainMenu extends GuiScreen {
 
       this.buttonList.add(button_singleplayer);
       this.buttonList.add(button_multiplayer);
-      this.buttonList.add(this.minecraftRealmsButton = new GuiButton(14, this.width / 2 - 100, par1 + par2 * 2, I18n.getString("menu.online")));
+      fmlModButton = new GuiButton(6, this.width / 2 - 100, par1 + par2 * 2, "Mods");
+      this.buttonList.add(fmlModButton);
+
+      minecraftRealmsButton = new GuiButton(14, this.width / 2 - 100, par1 + par2 * 2, I18n.getString("menu.online"));
+      minecraftRealmsButton.xPosition = 98;
+      minecraftRealmsButton.yPosition = this.width / 2 - 100;
+      this.buttonList.add(minecraftRealmsButton);
       this.minecraftRealmsButton.drawButton = false;
    }
 
@@ -282,13 +294,14 @@ public class GuiMainMenu extends GuiScreen {
       }
 
       if (par1GuiButton.id == 6) {
-         try {
-            Class var3 = Class.forName("java.awt.Desktop");
-            Object var4 = var3.getMethod("getDesktop").invoke((Object)null);
-            var3.getMethod("browse", URI.class).invoke(var4, new URI("http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1294284-minecraft-is-too-easy-mite-mod"));
-         } catch (Throwable var5) {
-            var5.printStackTrace();
-         }
+         this.mc.displayGuiScreen(new GuiModList(this));
+//         try {
+//            Class var3 = Class.forName("java.awt.Desktop");
+//            Object var4 = var3.getMethod("getDesktop").invoke((Object)null);
+//            var3.getMethod("browse", URI.class).invoke(var4, new URI("http://www.minecraftforum.net/forums/mapping-and-modding/minecraft-mods/1294284-minecraft-is-too-easy-mite-mod"));
+//         } catch (Throwable var5) {
+//            var5.printStackTrace();
+//         }
       }
 
       if (par1GuiButton.id == 11) {
@@ -746,8 +759,17 @@ public class GuiMainMenu extends GuiScreen {
          GL11.glPopMatrix();
       }
 
-      this.drawString(this.fontRenderer, "Minecraft " + Minecraft.getVersionDescriptor(true), 2, this.height - 10, 16777215);
+      //this.drawString(this.fontRenderer, "Minecraft " + Minecraft.getVersionDescriptor(true), 2, this.height - 10, 16777215);
       String var10 = "Copyright Mojang AB. Do not distribute!";
+      List<String> brandings = Lists.reverse(FMLCommonHandler.instance().getBrandings());
+      for (int i = 0; i < brandings.size(); i++)
+      {
+         String brd = brandings.get(i);
+         if (!Strings.isNullOrEmpty(brd)) {
+            this.drawString(this.fontRenderer, brd, 2, this.height - ( 10 + i * (this.fontRenderer.FONT_HEIGHT + 1)), 16777215);
+         }
+      }
+
       this.drawString(this.fontRenderer, var10, this.width - this.fontRenderer.getStringWidth(var10) - 2, this.height - 10, 16777215);
       if (this.field_92025_p != null && this.field_92025_p.length() > 0) {
          drawRect(this.field_92022_t - 2, this.field_92021_u - 2, this.field_92020_v + 2, this.field_92019_w - 1, 1428160512);

@@ -236,8 +236,9 @@ public final class EntityRenderer {
 
    public void getMouseOver(float partial_tick) {
       if (this.mc.renderViewEntity != null && this.mc.theWorld != null) {
-         if (this.mc.renderViewEntity instanceof EntityPlayer player && this.mc.theWorld != null) {
-             RaycastCollision rc = player.getSelectedObject(partial_tick, false);
+         if (this.mc.renderViewEntity instanceof EntityPlayer && this.mc.theWorld != null) {
+            EntityPlayer player = (EntityPlayer) this.mc.renderViewEntity;
+            RaycastCollision rc = player.getSelectedObject(partial_tick, false);
             this.mc.objectMouseOver = rc;
             this.pointedEntity = null;
             this.mc.pointedEntityLiving = null;
@@ -329,8 +330,10 @@ public final class EntityRenderer {
    }
 
    private void setupViewBobbing(float par1) {
-      if (this.mc.renderViewEntity instanceof EntityPlayer var2) {
-          float var3 = var2.distanceWalkedModified - var2.prevDistanceWalkedModified;
+      if (this.mc.renderViewEntity instanceof EntityPlayer) {
+         EntityPlayer var2 = (EntityPlayer) this.mc.renderViewEntity;
+
+         float var3 = var2.distanceWalkedModified - var2.prevDistanceWalkedModified;
          float var4 = -(var2.distanceWalkedModified + var3 * par1);
          float var5 = var2.prevCameraYaw + (var2.cameraYaw - var2.prevCameraYaw) * par1;
          float var6 = var2.prevCameraPitch + (var2.cameraPitch - var2.prevCameraPitch) * par1;

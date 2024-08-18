@@ -312,7 +312,8 @@ public abstract class ItemArmor extends Item implements IDamageableItem {
                ItemStack item_stack = armors[i];
                if (item_stack != null) {
                   Item item = item_stack.getItem();
-                  if (item instanceof ItemHorseArmor barding) {
+                  if (item instanceof ItemHorseArmor) {
+                     ItemHorseArmor barding = (ItemHorseArmor) item;
                       total_defense += (float)barding.getProtection();
                   } else if (item.isArmor()) {
                      ItemArmor armor = (ItemArmor)item_stack.getItem();

@@ -3,6 +3,9 @@ package net.minecraft.network;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+
+import cpw.mods.fml.common.FMLLog;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.server.MinecraftServer;
@@ -32,15 +35,16 @@ public abstract class NetworkListenThread {
 
          try {
             var2.networkTick();
-         } catch (Exception var6) {
+         } catch (Exception exception) {
             if (var2.netManager instanceof MemoryConnection) {
-               CrashReport var4 = CrashReport.makeCrashReport(var6, "Ticking memory connection");
+               CrashReport var4 = CrashReport.makeCrashReport(exception, "Ticking memory connection");
                CrashReportCategory var5 = var4.makeCategory("Ticking connection");
                var5.addCrashSectionCallable("Connection", new CallableConnectionName(this, var2));
                throw new ReportedException(var4);
             }
 
-            this.mcServer.getLogAgent().logWarningException("Failed to handle packet for " + var2.playerEntity.getEntityName() + "/" + var2.playerEntity.getPlayerIP() + ": " + var6, var6);
+            this.mcServer.getLogAgent().logWarningException("Failed to handle packet for " + var2.playerEntity.getEntityName() + "/" + var2.playerEntity.getPlayerIP() + ": " + exception, exception);
+            FMLLog.log(Level.SEVERE, exception, "A critical server error occured handling a packet, kicking %s", var2.playerEntity.getEntityName());
             var2.kickPlayerFromServer("Internal server error");
          }
 

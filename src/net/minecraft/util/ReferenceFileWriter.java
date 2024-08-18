@@ -902,7 +902,8 @@ public class ReferenceFileWriter {
 			Item item = Item.getItem(i);
 			if (item != null) {
 				String name = item.getNameForReferenceFile();
-				if (item instanceof ItemTool reach_bonus) {
+				if (item instanceof ItemTool) {
+                   ItemTool reach_bonus = (ItemTool) item;
                     if (reach_bonus.getToolMaterial() != Material.iron && !(reach_bonus instanceof ItemCudgel))
 						continue;
 					name = (reach_bonus.getToolMaterial()).name;

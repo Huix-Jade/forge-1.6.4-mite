@@ -1,8 +1,21 @@
 package net.minecraft.world;
 
+import com.google.common.collect.ObjectArrays;
+import com.google.common.collect.Sets;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiCreateFlatWorld;
 import net.minecraft.client.gui.GuiCreateWorld;
+import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraft.world.biome.WorldChunkManager;
+import net.minecraft.world.biome.WorldChunkManagerHell;
+import net.minecraft.world.chunk.IChunkProvider;
+import net.minecraft.world.gen.ChunkProviderFlat;
+import net.minecraft.world.gen.ChunkProviderGenerate;
+import net.minecraft.world.gen.FlatGeneratorInfo;
+
+import java.util.Arrays;
+import java.util.Random;
+import java.util.Set;
 
 public class WorldType {
    public static final WorldType[] worldTypes = new WorldType[16];
@@ -16,6 +29,14 @@ public class WorldType {
    private boolean canBeCreated;
    private boolean isWorldTypeVersioned;
 
+   protected BiomeGenBase[] biomesForWorldType;
+
+   public static final BiomeGenBase[] base11Biomes =
+           new BiomeGenBase[] {BiomeGenBase.ocean, BiomeGenBase.desert, BiomeGenBase.forest, BiomeGenBase.swampland,
+                   BiomeGenBase.plains, BiomeGenBase.taiga};
+   public static final BiomeGenBase[] base12Biomes =
+           ObjectArrays.concat(base11Biomes, BiomeGenBase.jungle);
+
    private WorldType(int var1, String var2) {
       this(var1, var2, 0);
    }
@@ -26,6 +47,12 @@ public class WorldType {
       this.canBeCreated = true;
       this.worldTypeId = var1;
       worldTypes[var1] = this;
+
+       if (var1 == 8) {
+           biomesForWorldType = base11Biomes;
+       } else {
+           biomesForWorldType = base12Biomes;
+       }
    }
 
 
@@ -123,4 +150,68 @@ public class WorldType {
    {
       return 128.0F;
    }
+
+
+   public WorldChunkManager getChunkManager(World world)
+   {
+      if (this == FLAT)
+      {
+         FlatGeneratorInfo flatgeneratorinfo = FlatGeneratorInfo.createFlatGeneratorFromString(world.getWorldInfo().getGeneratorOptions());
+         return new WorldChunkManagerHell(BiomeGenBase.biomeList[flatgeneratorinfo.getBiome()], 0.5F, 0.5F);
+      }
+      else
+      {
+         return new WorldChunkManager(world);
+      }
+   }
+
+   public IChunkProvider getChunkGenerator(World world, String generatorOptions)
+   {
+      return this == WorldType.FLAT ?
+              new ChunkProviderFlat(world, world.getSeed(), world.getWorldInfo().isMapFeaturesEnabled(), generatorOptions) :
+              new ChunkProviderGenerate(world, world.getSeed(), world.getWorldInfo().isMapFeaturesEnabled());
+   }
+
+   public int getMinimumSpawnHeight(World world)
+   {
+      return this == FLAT ? 4 : 64;
+   }
+
+   public boolean hasVoidParticles(boolean flag)
+   {
+      return this != FLAT && !flag;
+   }
+
+   public double voidFadeMagnitude()
+   {
+      return this == FLAT ? 1.0D : 0.03125D;
+   }
+
+   public BiomeGenBase[] getBiomesForWorldType() {
+      return biomesForWorldType;
+   }
+
+   public void addNewBiome(BiomeGenBase biome)
+   {
+      Set<BiomeGenBase> newBiomesForWorld = Sets.newLinkedHashSet(Arrays.asList(biomesForWorldType));
+      newBiomesForWorld.add(biome);
+      biomesForWorldType = newBiomesForWorld.toArray(new BiomeGenBase[0]);
+   }
+
+   public void removeBiome(BiomeGenBase biome)
+   {
+      Set<BiomeGenBase> newBiomesForWorld = Sets.newLinkedHashSet(Arrays.asList(biomesForWorldType));
+      newBiomesForWorld.remove(biome);
+      biomesForWorldType = newBiomesForWorld.toArray(new BiomeGenBase[0]);
+   }
+
+   public boolean handleSlimeSpawnReduction(Random random, World world)
+   {
+      return this == FLAT ? random.nextInt(4) != 1 : false;
+   }
+
+   /**
+    * Called when 'Create New World' button is pressed before starting game
+    */
+   public void onGUICreateWorldPress() { }
 }

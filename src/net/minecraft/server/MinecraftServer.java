@@ -9,6 +9,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.command.CommandBase;
@@ -522,8 +524,11 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
       {
          if (this.startServer())
          {
+            FMLCommonHandler.instance().handleServerStarted();
+
             long var1 = getSystemTimeMillis();
 
+            FMLCommonHandler.instance().onWorldLoadTick(worldServers);
             for (long var50 = 0L; this.serverRunning; this.serverIsRunning = true)
             {
                long var5 = getSystemTimeMillis();
@@ -561,6 +566,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
 
                Thread.sleep(1L);
             }
+            FMLCommonHandler.instance().handleServerStopping();
          }
          else
          {
@@ -569,6 +575,9 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
       }
       catch (Throwable var48)
       {
+         if (FMLCommonHandler.instance().shouldServerBeKilledQuietly()) {
+            return;
+         }
          var48.printStackTrace();
          this.getLogAgent().logSevereException("Encountered an unexpected exception " + var48.getClass().getSimpleName(), var48);
          CrashReport var2 = null;
@@ -600,6 +609,9 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
          try
          {
             this.save_world_maps_on_shutdown = this.isServerSideMappingEnabled();
+            if (FMLCommonHandler.instance().shouldServerBeKilledQuietly()) {
+               return;
+            }
             this.stopServer();
             this.serverStopped = true;
          }
@@ -609,6 +621,8 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
          }
          finally
          {
+            FMLCommonHandler.instance().handleServerStopped();
+            this.serverStopped = true;
             this.systemExitNow();
          }
       }
@@ -634,6 +648,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
     */
    public void tick()
    {
+      FMLCommonHandler.instance().onPreServerTick();
       if (treachery_detected)
       {
          if (treachery_shutdown_counter == 200)
@@ -668,6 +683,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
       Minecraft.server_pools_string = var3.toString();
       long var8 = System.nanoTime();
       AxisAlignedBB.getAABBPool().cleanPool();
+      FMLCommonHandler.instance().onPreServerTick();
       ++this.tickCounter;
 
       if (this.startProfiling)
@@ -744,6 +760,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
       {
          DebugAttack.flush();
       }
+      FMLCommonHandler.instance().onPostServerTick();
    }
 
    public int getAverageTickTime()
@@ -806,6 +823,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
             this.theProfiler.startSection("timeSync");
             this.theProfiler.endSection();
             this.theProfiler.startSection("tick");
+            FMLCommonHandler.instance().onPreWorldTick(var4);
             CrashReport var5;
 
             try
@@ -830,6 +848,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
                throw new ReportedException(var5);
             }
 
+            FMLCommonHandler.instance().onPostWorldTick(var4);
             this.theProfiler.endSection();
             this.theProfiler.startSection("tracker");
             var4.getEntityTracker().updateTrackedEntities();
@@ -1137,7 +1156,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
 
    public String getServerModName()
    {
-      return "vanilla";
+      return FMLCommonHandler.instance().getModName();
    }
 
    /**

@@ -19,6 +19,11 @@ public class GuiConnecting extends GuiScreen {
       this.spawnNewServerThread(var4.getIP(), var4.getPort());
    }
 
+   public static void forceTermination(GuiConnecting gui) {
+      gui.cancelled = true;
+      gui.clientHandler = null;
+   }
+
    public GuiConnecting(GuiScreen par1GuiScreen, Minecraft par2Minecraft, String par3Str, int par4) {
       this.mc = par2Minecraft;
       this.field_98098_c = par1GuiScreen;

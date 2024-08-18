@@ -4,6 +4,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+
+import cpw.mods.fml.common.FMLLog;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.resources.I18n;
@@ -29,7 +32,7 @@ public abstract class TileEntity {
    private Block blockType;
    private String custom_inv_name;
 
-   private static void addMapping(Class par0Class, String par1Str) {
+   public static void addMapping(Class par0Class, String par1Str) {
       if (nameToClassMap.containsKey(par1Str)) {
          throw new IllegalArgumentException("Duplicate id: " + par1Str);
       } else {
@@ -85,7 +88,19 @@ public abstract class TileEntity {
       try {
          Class var2 = (Class)nameToClassMap.get(par0NBTTagCompound.getString("id"));
          if (var2 != null) {
-            var1 = (TileEntity)var2.newInstance();
+
+            try
+            {
+               var1 = (TileEntity)var2.newInstance();
+            }
+            catch (Exception e)
+            {
+               FMLLog.log(Level.SEVERE, e,
+                       "A TileEntity %s(%s) has thrown an exception during loading, its state cannot be restored. Report this to the mod author",
+                       par0NBTTagCompound.getString("id"), var2.getName());
+               var1 = null;
+            }
+
          }
       } catch (Exception var3) {
          var3.printStackTrace();

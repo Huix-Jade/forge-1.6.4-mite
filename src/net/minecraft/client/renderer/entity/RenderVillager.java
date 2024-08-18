@@ -1,5 +1,6 @@
 package net.minecraft.client.renderer.entity;
 
+import cpw.mods.fml.common.registry.VillagerRegistry;
 import net.minecraft.client.model.ModelVillager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;

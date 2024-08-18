@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import cpw.mods.fml.common.network.FMLNetworkHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.ai.attributes.ServersideAttributeMap;
 import net.minecraft.entity.boss.EntityDragon;
@@ -321,6 +323,15 @@ public class EntityTrackerEntry {
                   this.motionZ = this.myEntity.motionZ;
                }
 
+               int posX = MathHelper.floor_double(this.myEntity.posX * 32.0D);
+               int posY = MathHelper.floor_double(this.myEntity.posY * 32.0D);
+               int posZ = MathHelper.floor_double(this.myEntity.posZ * 32.0D);
+               if (posX != this.lastScaledXPosition || posY != this.lastScaledYPosition || posZ != this.lastScaledZPosition)
+               {
+                  FMLNetworkHandler.makeEntitySpawnAdjustment(this.myEntity.entityId, par1EntityPlayerMP, this.lastScaledXPosition, this.lastScaledYPosition,
+                          this.lastScaledZPosition);
+               }
+
                if (!this.myEntity.getDataWatcher().getIsBlank()) {
                   par1EntityPlayerMP.playerNetServerHandler.sendPacketToPlayer(new Packet40EntityMetadata(this.myEntity.entityId, this.myEntity.getDataWatcher(), true));
                }
@@ -392,6 +403,12 @@ public class EntityTrackerEntry {
    private Packet getPacketForThisEntity() {
       if (this.myEntity.isDead) {
          this.myEntity.worldObj.getWorldLogAgent().logWarning("Fetching addPacket for removed entity");
+      }
+
+      Packet pkt = FMLNetworkHandler.getEntitySpawningPacket(this.myEntity);
+
+      if (pkt != null) {
+         return pkt;
       }
 
       if (this.myEntity instanceof EntityItem) {

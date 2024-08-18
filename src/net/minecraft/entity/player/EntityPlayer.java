@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.FMLNetworkHandler;
 import cpw.mods.fml.common.network.Player;
 import net.minecraft.block.BitHelper;
@@ -124,14 +125,13 @@ import net.minecraftforge.event.entity.player.PlayerDestroyItemEvent;
 import net.minecraftforge.event.entity.player.PlayerDropsEvent;
 import net.minecraftforge.event.entity.player.PlayerFlyableFallEvent;
 import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
-import net.xiaoyu233.fml.util.ReflectHelper;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-public abstract class EntityPlayer extends EntityLivingBase implements ICommandSender, Player {
+public abstract class EntityPlayer extends EntityLivingBase implements ICommandSender {
 
    public static final String PERSISTED_NBT_TAG = "PlayerPersisted";
    private HashMap<Integer, ChunkCoordinates> spawnChunkMap = new HashMap<Integer, ChunkCoordinates>();
@@ -231,7 +231,7 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
    }
 
    public void openGui(Object mod, int modGuiId, World world, int x, int y, int z) {
-      FMLNetworkHandler.openGui(ReflectHelper.dyCast(this), mod, modGuiId, world, x, y, z);
+      FMLNetworkHandler.openGui(this, mod, modGuiId, world, x, y, z);
    }
 
    protected void entityInit() {
@@ -785,6 +785,7 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
    }
 
    public void onLivingUpdate() {
+      FMLCommonHandler.instance().onPlayerPreTick(this);
       if (this.worldObj.isRemote) {
          if (this.vision_dimming < 0.01F) {
             this.vision_dimming = 0.0F;
@@ -858,6 +859,7 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
          }
       }
 
+      FMLCommonHandler.instance().onPlayerPostTick(this);
    }
 
    private void collideWithPlayer(Entity par1Entity) {
@@ -2051,7 +2053,8 @@ public abstract class EntityPlayer extends EntityLivingBase implements ICommandS
             return par1ItemStack.getItem().getIcon(par1ItemStack, par2);
          }
 
-         if (this.itemInUse != null && par1ItemStack.getItem() instanceof ItemBow item_bow) {
+         if (this.itemInUse != null && par1ItemStack.getItem() instanceof ItemBow) {
+            ItemBow item_bow = (ItemBow) par1ItemStack.getItem();
             float fraction_pulled = ItemBow.getFractionPulled(par1ItemStack, this.itemInUseCount);
              if (fraction_pulled >= 0.9F) {
                return item_bow.getItemIconForUseDuration(2, this);

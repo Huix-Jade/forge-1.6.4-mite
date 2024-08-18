@@ -6,6 +6,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.entity.EnumCreatureType;
@@ -259,14 +261,11 @@ public final class ChunkProviderServer implements IChunkProvider
 	public void populate(IChunkProvider par1IChunkProvider, int par2, int par3)
 	{
 		Chunk var4 = this.provideChunk(par2, par3);
-
-		if (!var4.isTerrainPopulated)
-		{
+		if (!var4.isTerrainPopulated) {
 			var4.isTerrainPopulated = true;
-
-			if (this.currentChunkProvider != null)
-			{
+			if (this.currentChunkProvider != null) {
 				this.currentChunkProvider.populate(par1IChunkProvider, par2, par3);
+				GameRegistry.generateWorld(par2, par3, worldObj, currentChunkProvider, par1IChunkProvider);
 				var4.setChunkModified();
 			}
 		}

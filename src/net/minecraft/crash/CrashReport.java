@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+
+import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.logging.ILogAgent;
 import net.minecraft.util.ReportedException;
 
@@ -38,6 +40,7 @@ public class CrashReport {
       this.field_85061_c.addCrashSectionCallable("AABB Pool Size", new CallableCrashMemoryReport(this));
       this.field_85061_c.addCrashSectionCallable("Suspicious classes", new CallableSuspiciousClasses(this));
       this.field_85061_c.addCrashSectionCallable("IntCache", new CallableIntCache(this));
+      FMLCommonHandler.instance().enhanceCrashReport(this, this.field_85061_c);
    }
 
    public String getDescription() {

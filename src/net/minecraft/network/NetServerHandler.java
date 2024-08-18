@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+
+import cpw.mods.fml.common.network.FMLNetworkHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockTNT;
 import net.minecraft.client.Minecraft;
@@ -38,43 +40,7 @@ import net.minecraft.item.ItemEditableBook;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemWritableBook;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.network.packet.NetHandler;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.Packet0KeepAlive;
-import net.minecraft.network.packet.Packet101CloseWindow;
-import net.minecraft.network.packet.Packet102WindowClick;
-import net.minecraft.network.packet.Packet103SetSlot;
-import net.minecraft.network.packet.Packet106Transaction;
-import net.minecraft.network.packet.Packet107CreativeSetSlot;
-import net.minecraft.network.packet.Packet108EnchantItem;
-import net.minecraft.network.packet.Packet10Flying;
-import net.minecraft.network.packet.Packet11PlayerPosition;
-import net.minecraft.network.packet.Packet130UpdateSign;
-import net.minecraft.network.packet.Packet13PlayerLookMove;
-import net.minecraft.network.packet.Packet15Place;
-import net.minecraft.network.packet.Packet16BlockItemSwitch;
-import net.minecraft.network.packet.Packet18Animation;
-import net.minecraft.network.packet.Packet19EntityAction;
-import net.minecraft.network.packet.Packet202PlayerAbilities;
-import net.minecraft.network.packet.Packet203AutoComplete;
-import net.minecraft.network.packet.Packet204ClientInfo;
-import net.minecraft.network.packet.Packet205ClientCommand;
-import net.minecraft.network.packet.Packet250CustomPayload;
-import net.minecraft.network.packet.Packet255KickDisconnect;
-import net.minecraft.network.packet.Packet27PlayerInput;
-import net.minecraft.network.packet.Packet34EntityTeleport;
-import net.minecraft.network.packet.Packet3Chat;
-import net.minecraft.network.packet.Packet51MapChunk;
-import net.minecraft.network.packet.Packet53BlockChange;
-import net.minecraft.network.packet.Packet55BlockDestroy;
-import net.minecraft.network.packet.Packet5PlayerInventory;
-import net.minecraft.network.packet.Packet81RightClick;
-import net.minecraft.network.packet.Packet82AddHunger;
-import net.minecraft.network.packet.Packet85SimpleSignal;
-import net.minecraft.network.packet.Packet87SetDespawnCounters;
-import net.minecraft.network.packet.Packet89PlaySoundOnServerAtEntity;
-import net.minecraft.network.packet.Packet90BroadcastToAssociatedPlayers;
-import net.minecraft.network.packet.Packet9Respawn;
+import net.minecraft.network.packet.*;
 import net.minecraft.raycast.RaycastCollision;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
@@ -555,6 +521,13 @@ public class NetServerHandler extends NetHandler {
    }
 
    public void handleChat(Packet3Chat par1Packet3Chat) {
+      par1Packet3Chat = FMLNetworkHandler.handleChatMessage(this, par1Packet3Chat);
+
+      if (par1Packet3Chat == null || par1Packet3Chat.message == null)
+      {
+         return;
+      }
+
       if (this.playerEntity.getChatVisibility() == 2) {
          this.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromTranslationKey("chat.cannotSend").setColor(EnumChatFormatting.RED)));
       } else {
@@ -839,7 +812,12 @@ public class NetServerHandler extends NetHandler {
       this.playerEntity.updateClientInfo(par1Packet204ClientInfo);
    }
 
-   public void handleCustomPayload(Packet250CustomPayload par1Packet250CustomPayload) {
+   public void handleCustomPayload(Packet250CustomPayload p_72501_1_)
+   {
+      FMLNetworkHandler.handlePacket250Packet(p_72501_1_, this.getNetManager(), this);
+   }
+
+   public void handleVanilla250Packet(Packet250CustomPayload par1Packet250CustomPayload) {
       DataInputStream var2;
       ItemStack var3;
       ItemStack var4;
@@ -1348,5 +1326,16 @@ public class NetServerHandler extends NetHandler {
 
    public INetworkManager getNetManager() {
       return this.netManager;
+   }
+
+   @Override
+   public void handleMapData(Packet131MapData par1Packet131MapData) {
+      FMLNetworkHandler.handlePacket131Packet(this, par1Packet131MapData);
+   }
+
+   @Override
+   public EntityPlayerMP getPlayer()
+   {
+      return this.playerEntity;
    }
 }

@@ -6,6 +6,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+
+import cpw.mods.fml.common.FMLLog;
 import net.minecraft.entity.ai.EntityMinecartMobSpawner;
 import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.boss.EntityWither;
@@ -64,15 +67,15 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 public class EntityList {
-   private static Map stringToClassMapping = new HashMap();
-   private static Map classToStringMapping = new HashMap();
+   public static Map stringToClassMapping = new HashMap();
+   public static Map classToStringMapping = new HashMap();
    private static Map IDtoClassMapping = new HashMap();
    private static Map classToIDMapping = new HashMap();
    private static Map stringToIDMapping = new HashMap();
    public static HashMap entityEggs = new LinkedHashMap();
    public static List entries = new ArrayList();
 
-   private static void addMapping(Class par0Class, String par1Str, int par2) {
+   public static void addMapping(Class par0Class, String par1Str, int par2) {
       stringToClassMapping.put(par1Str, par0Class);
       classToStringMapping.put(par0Class, par1Str);
       IDtoClassMapping.put(par2, par0Class);
@@ -81,7 +84,7 @@ public class EntityList {
       entries.add(new EntityListEntry(par0Class, par1Str, par2));
    }
 
-   private static void addMapping(Class par0Class, String par1Str, int par2, int par3, int par4) {
+   public static void addMapping(Class par0Class, String par1Str, int par2, int par3, int par4) {
       addMapping(par0Class, par1Str, par2);
       entityEggs.put(par2, new EntityEggInfo(par2, par3, par4));
    }
@@ -151,7 +154,17 @@ public class EntityList {
       try {
          Class var3 = (Class)stringToClassMapping.get(par0NBTTagCompound.getString("id"));
          if (var3 != null) {
-            var2 = (Entity)var3.getConstructor(World.class).newInstance(par1World);
+            try
+            {
+               var2 = (Entity)var3.getConstructor(World.class).newInstance(par1World);
+            }
+            catch (Exception e)
+            {
+               FMLLog.log(Level.SEVERE, e,
+                       "An Entity %s(%s) has thrown an exception during loading, its state cannot be restored. Report this to the mod author",
+                       par0NBTTagCompound.getString("id"), var3.getName());
+               var2 = null;
+            }
          }
       } catch (Exception var4) {
          var4.printStackTrace();

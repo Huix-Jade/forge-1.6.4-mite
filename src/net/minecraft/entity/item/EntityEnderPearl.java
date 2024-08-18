@@ -36,7 +36,8 @@ public class EntityEnderPearl extends EntityThrowable {
       }
 
       if (!this.worldObj.isRemote) {
-         if (this.getThrower() != null && this.getThrower() instanceof EntityPlayerMP var3) {
+         if (this.getThrower() != null && this.getThrower() instanceof EntityPlayerMP) {
+            EntityPlayerMP var3 = (EntityPlayerMP)this.getThrower();
              if (!var3.playerNetServerHandler.connectionClosed && var3.worldObj == this.worldObj) {
                EnderTeleportEvent event = new EnderTeleportEvent(var3, this.posX, this.posY, this.posZ, 5.0F);
                if (!MinecraftForge.EVENT_BUS.post(event)) {

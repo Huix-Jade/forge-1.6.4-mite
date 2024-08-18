@@ -37,20 +37,20 @@ public abstract class Packet {
    public boolean isChunkDataPacket;
    private boolean has_been_added_to_tcp_send_queue;
 
-   static void addIdClassMapping(int par0, boolean par1, boolean par2, Class par3Class) {
-      if (packetIdToClassMap.containsItem(par0)) {
-         throw new IllegalArgumentException("Duplicate packet id:" + par0);
+   static void addIdClassMapping(int id, boolean isClient, boolean isServer, Class par3Class) {
+      if (packetIdToClassMap.containsItem(id)) {
+         throw new IllegalArgumentException("Duplicate packet id:" + id);
       } else if (packetClassToIdMap.containsKey(par3Class)) {
          throw new IllegalArgumentException("Duplicate packet class:" + par3Class);
       } else {
-         packetIdToClassMap.addKey(par0, par3Class);
-         packetClassToIdMap.put(par3Class, par0);
-         if (par1) {
-            clientPacketIdList.add(par0);
+         packetIdToClassMap.addKey(id, par3Class);
+         packetClassToIdMap.put(par3Class, id);
+         if (isClient) {
+            clientPacketIdList.add(id);
          }
 
-         if (par2) {
-            serverPacketIdList.add(par0);
+         if (isServer) {
+            serverPacketIdList.add(id);
          }
 
       }
@@ -485,7 +485,7 @@ public abstract class Packet {
       addIdClassMapping(107, true, true, Packet107CreativeSetSlot.class);
       addIdClassMapping(108, false, true, Packet108EnchantItem.class);
       addIdClassMapping(130, true, true, Packet130UpdateSign.class);
-      addIdClassMapping(131, true, false, Packet131MapData.class);
+      addIdClassMapping(131, true, true, Packet131MapData.class);
       addIdClassMapping(132, true, false, Packet132TileEntityData.class);
       addIdClassMapping(133, true, false, Packet133TileEditorOpen.class);
       addIdClassMapping(200, true, false, Packet200Statistic.class);

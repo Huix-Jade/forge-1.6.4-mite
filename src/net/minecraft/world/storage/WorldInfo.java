@@ -2,6 +2,8 @@ package net.minecraft.world.storage;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.WorldClient;
 import net.minecraft.crash.CrashReportCategory;
@@ -18,7 +20,7 @@ import net.minecraft.world.WorldInfoShared;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.WorldSettings;
 import net.minecraft.world.WorldType;
-import net.xiaoyu233.fml.util.ReflectHelper;
+
 
 import static net.minecraft.world.WorldType.FLAT;
 
@@ -30,6 +32,7 @@ public final class WorldInfo {
    public static final int village_condition_iron_pickaxe_or_warhammer = 16;
    private WorldInfoShared shared;
    private int dimension_id;
+   private Map<String, NBTBase> additionalProperties;
 
    protected WorldInfo() {
       this.shared = new WorldInfoShared();
@@ -458,5 +461,26 @@ public final class WorldInfo {
          this.shared.earliest_allowable_MITE_release = earliest_allowable_MITE_release;
       }
 
+   }
+
+
+   /**
+    * Allow access to additional mod specific world based properties
+    * Used by FML to store mod list associated with a world, and maybe an id map
+    * Used by Forge to store the dimensions available to a world
+    * @param additionalProperties
+    */
+   public void setAdditionalProperties(Map<String,NBTBase> additionalProperties)
+   {
+      // one time set for this
+      if (this.additionalProperties == null)
+      {
+         this.additionalProperties = additionalProperties;
+      }
+   }
+
+   public NBTBase getAdditionalProperty(String additionalProperty)
+   {
+      return this.additionalProperties!=null? this.additionalProperties.get(additionalProperty) : null;
    }
 }

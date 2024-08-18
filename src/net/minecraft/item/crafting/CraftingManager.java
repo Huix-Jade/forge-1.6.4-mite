@@ -193,7 +193,7 @@ public class CraftingManager {
 
    }
 
-   ShapedRecipes addRecipe(ItemStack par1ItemStack, Object... par2ArrayOfObj) {
+   public ShapedRecipes addRecipe(ItemStack par1ItemStack, Object... par2ArrayOfObj) {
       return this.addRecipe(par1ItemStack, true, par2ArrayOfObj);
    }
 
@@ -253,7 +253,7 @@ public class CraftingManager {
       return var17;
    }
 
-   ShapelessRecipes addShapelessRecipe(ItemStack par1ItemStack, Object... par2ArrayOfObj) {
+   public ShapelessRecipes addShapelessRecipe(ItemStack par1ItemStack, Object... par2ArrayOfObj) {
       return this.addShapelessRecipe(par1ItemStack, true, par2ArrayOfObj);
    }
 

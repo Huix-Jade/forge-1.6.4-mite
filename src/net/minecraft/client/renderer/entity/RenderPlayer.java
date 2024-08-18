@@ -52,7 +52,8 @@ public class RenderPlayer extends RendererLivingEntity {
 		}
 		if (itemstack != null) {
 			Item var5 = itemstack.getItem();
-			if (var5 instanceof ItemArmor var6) {
+			if (var5 instanceof ItemArmor) {
+				ItemArmor var6 = (ItemArmor)var5;
 				this.bindTexture(RenderBiped.getArmorResource(par1AbstractClientPlayer, itemstack, par2, null));
 				ModelBiped var7 = par2 == 2 ? this.modelArmor : this.modelArmorChestplate;
 				var7.bipedHead.showModel = par2 == 0;

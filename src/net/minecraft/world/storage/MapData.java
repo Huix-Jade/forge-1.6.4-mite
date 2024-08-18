@@ -7,14 +7,17 @@ import java.util.List;
 import java.util.Map;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldSavedData;
 
 public class MapData extends WorldSavedData {
    public int xCenter;
    public int zCenter;
-   public byte dimension;
+   public int dimension;
    public byte scale;
    public byte[] colors = new byte[16384];
    public List playersArrayList = new ArrayList();
@@ -26,7 +29,18 @@ public class MapData extends WorldSavedData {
    }
 
    public void readFromNBT(NBTTagCompound par1NBTTagCompound) {
-      this.dimension = par1NBTTagCompound.getByte("dimension");
+      NBTBase dimension = par1NBTTagCompound.getCompoundTag("dimension");
+
+      if (dimension instanceof NBTTagByte)
+      {
+         this.dimension = ((NBTTagByte)dimension).data;
+      }
+      else
+      {
+         this.dimension = ((NBTTagInt)dimension).data;
+      }
+
+
       this.xCenter = par1NBTTagCompound.getInteger("xCenter");
       this.zCenter = par1NBTTagCompound.getInteger("zCenter");
       this.scale = par1NBTTagCompound.getByte("scale");
@@ -64,7 +78,7 @@ public class MapData extends WorldSavedData {
    }
 
    public void writeToNBT(NBTTagCompound par1NBTTagCompound) {
-      par1NBTTagCompound.setByte("dimension", this.dimension);
+      par1NBTTagCompound.setInteger("dimension", this.dimension);
       par1NBTTagCompound.setInteger("xCenter", this.xCenter);
       par1NBTTagCompound.setInteger("zCenter", this.zCenter);
       par1NBTTagCompound.setByte("scale", this.scale);

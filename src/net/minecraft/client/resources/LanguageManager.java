@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
+
+import cpw.mods.fml.common.registry.LanguageRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.data.LanguageMetadataSection;
 import net.minecraft.client.resources.data.MetadataSerializer;
@@ -55,13 +57,14 @@ public class LanguageManager implements ResourceManagerReloadListener {
    }
 
    public void onResourceManagerReload(ResourceManager par1ResourceManager) {
-      ArrayList var2 = Lists.newArrayList(new String[]{"en_US"});
+      ArrayList var2 = Lists.newArrayList("en_US");
       if (!"en_US".equals(this.currentLanguage)) {
          var2.add(this.currentLanguage);
       }
 
       var2.add("MITE");
       currentLocale.loadLocaleDataFiles(par1ResourceManager, var2);
+      LanguageRegistry.instance().loadLanguageTable(currentLocale.field_135032_a, this.currentLanguage);
       StringTranslate.func_135063_a(currentLocale.field_135032_a);
    }
 

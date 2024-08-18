@@ -38,13 +38,13 @@ public abstract class EntityCubic extends EntityLiving implements IMob {
       this.getNavigator().setAvoidsWater(true);
       int var2 = 1 << this.rand.nextInt(3);
       this.yOffset = 0.0F;
-      this.slimeJumpDelay = this.getJumpDelay((Entity)null);
+      this.slimeJumpDelay = this.getJumpDelay(null);
       this.setSize(var2);
    }
 
    protected void entityInit() {
       super.entityInit();
-      this.dataWatcher.addObject(16, new Byte((byte)1));
+      this.dataWatcher.addObject(16, (byte)1);
    }
 
    public void onSendToClient(Packet24MobSpawn packet) {
@@ -55,7 +55,7 @@ public abstract class EntityCubic extends EntityLiving implements IMob {
    }
 
    public void setSize(int par1) {
-      this.dataWatcher.updateObject(16, new Byte((byte)par1));
+      this.dataWatcher.updateObject(16, (byte)par1);
       this.updateSize();
       this.setPosition(this.posX, this.posY, this.posZ);
       this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setAttribute((double)(par1 * par1));
@@ -436,7 +436,7 @@ public abstract class EntityCubic extends EntityLiving implements IMob {
          }
       } else {
          Chunk var1 = this.worldObj.getChunkFromBlockCoords(MathHelper.floor_double(this.posX), MathHelper.floor_double(this.posZ));
-         if (this.worldObj.getWorldInfo().getTerrainType() == WorldType.FLAT && this.rand.nextInt(4) != 1) {
+         if (this.worldObj.getWorldInfo().getTerrainType().handleSlimeSpawnReduction(rand, worldObj)) {
             return false;
          } else {
             if (this.getSize() == 1 || this.worldObj.difficultySetting > 0) {

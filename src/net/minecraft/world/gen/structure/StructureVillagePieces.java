@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+
+import cpw.mods.fml.common.registry.VillagerRegistry;
 import net.minecraft.util.MathHelper;
 
 public class StructureVillagePieces {
@@ -34,13 +36,9 @@ public class StructureVillagePieces {
       var2.add(new StructureVillagePieceWeight(ComponentVillageField2.class, 3, MathHelper.getRandomIntegerInRange(var0, 2 + var1, 4 + var1 * 2)));
       var2.add(new StructureVillagePieceWeight(ComponentVillageHouse2.class, 15, MathHelper.getRandomIntegerInRange(var0, 0, 1 + var1)));
       var2.add(new StructureVillagePieceWeight(ComponentVillageHouse3.class, 8, MathHelper.getRandomIntegerInRange(var0, 0 + var1, 3 + var1 * 2)));
-      Iterator var3 = var2.iterator();
+      VillagerRegistry.addExtraVillageComponents(var2, var0, var1);
 
-      while(var3.hasNext()) {
-         if (((StructureVillagePieceWeight)var3.next()).villagePiecesLimit == 0) {
-            var3.remove();
-         }
-      }
+       var2.removeIf(o -> ((StructureVillagePieceWeight) o).villagePiecesLimit == 0);
 
       return var2;
    }
@@ -81,6 +79,7 @@ public class StructureVillagePieces {
          var10 = ComponentVillageHouse2.func_74915_a(var0, var2, var3, var4, var5, var6, var7, var8);
       } else if (var9 == ComponentVillageHouse3.class) {
          var10 = ComponentVillageHouse3.func_74921_a(var0, var2, var3, var4, var5, var6, var7, var8);
+      } else {var10 = VillagerRegistry.getVillageComponent(var1, var0, var2, var3, var4, var5, var6, var7, var8);
       }
 
       return (ComponentVillage)var10;

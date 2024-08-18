@@ -173,6 +173,7 @@ public class GuiCreateWorld extends GuiScreen {
             }
 
             EnumGameType var8 = EnumGameType.getByName(this.gameMode);
+            WorldType.worldTypes[this.worldTypeId].onGUICreateWorldPress();
             WorldSettings var6 = new WorldSettings(var2, var8, this.generateStructures, this.isHardcore, WorldType.worldTypes[this.worldTypeId], this.are_skills_enabled);
             var6.func_82750_a(this.generatorOptionsToUse);
             if (this.bonusItems && !this.isHardcore) {

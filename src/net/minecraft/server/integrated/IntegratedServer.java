@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ThreadLanServerPing;
 
@@ -95,6 +96,7 @@ public final class IntegratedServer extends MinecraftServer
       this.setAllowFlight(true);
       this.serverLogAgent.logInfo("Generating keypair");
       this.setKeyPair(CryptManager.createNewKeyPair());
+      if (!FMLCommonHandler.instance().handleServerAboutToStart(this)) { return false; }
       this.loadAllWorlds(this.getFolderName(), this.getWorldName(), this.theWorldSettings.getSeed(), this.theWorldSettings.getTerrainType(), this.theWorldSettings.func_82749_j());
 
       if (this.getServerOwner().equals("Dedicated_Server"))
@@ -106,7 +108,7 @@ public final class IntegratedServer extends MinecraftServer
          this.setMOTD(this.getServerOwner() + " - " + this.worldServers[0].getWorldInfo().getWorldName());
       }
 
-      return true;
+      return FMLCommonHandler.instance().handleServerStarting(this);
    }
 
    /**

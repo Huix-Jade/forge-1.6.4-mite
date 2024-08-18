@@ -5,6 +5,10 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Queue;
+
+import com.google.common.collect.Queues;
+import cpw.mods.fml.common.network.FMLNetworkHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.main.Main;
 import net.minecraft.client.multiplayer.NetClientHandler;
@@ -14,7 +18,7 @@ import net.minecraft.network.packet.Packet;
 
 public final class MemoryConnection implements INetworkManager {
    private static final SocketAddress mySocketAddress = new InetSocketAddress("127.0.0.1", 0);
-   private final List readPacketCache = Collections.synchronizedList(new ArrayList());
+   private final Queue<Packet> readPacketCache = Queues.newConcurrentLinkedQueue();
    private final ILogAgent field_98214_c;
    private MemoryConnection pairedConnection;
    private NetHandler myNetHandler;
@@ -56,7 +60,7 @@ public final class MemoryConnection implements INetworkManager {
       int var1 = 2500;
 
       while(var1-- >= 0 && !this.readPacketCache.isEmpty()) {
-         Packet var2 = (Packet)this.readPacketCache.remove(0);
+         Packet var2 = this.readPacketCache.poll();
          if (!is_MITE_DS_client_player || Main.isPacketThatMITEDSClientPlayerCanSendOrReceive(var2)) {
             long before = System.currentTimeMillis();
             var2.processPacket(this.myNetHandler);
@@ -73,6 +77,7 @@ public final class MemoryConnection implements INetworkManager {
 
       if (this.shuttingDown && this.readPacketCache.isEmpty()) {
          this.myNetHandler.handleErrorMessage(this.shutdownReason, this.field_74439_g);
+         FMLNetworkHandler.onConnectionClosed(this, this.myNetHandler.getPlayer());
       }
 
    }

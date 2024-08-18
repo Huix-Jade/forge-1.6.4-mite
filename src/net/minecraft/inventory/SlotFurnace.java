@@ -1,5 +1,6 @@
 package net.minecraft.inventory;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.client.gui.inventory.SlotCraftingBase;
 import net.minecraft.entity.item.EntityXPOrb;
 import net.minecraft.entity.player.EntityPlayer;
@@ -13,6 +14,7 @@ public class SlotFurnace extends SlotCraftingBase {
    }
 
    public void onPickupFromSlot(EntityPlayer player, ItemStack item_stack) {
+      GameRegistry.onItemSmelted(player, item_stack);
       this.onCrafting(item_stack);
       super.onPickupFromSlot(player, item_stack);
    }

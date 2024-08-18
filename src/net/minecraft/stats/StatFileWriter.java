@@ -10,10 +10,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+
+import cpw.mods.fml.common.asm.ReobfuscationMarker;
 import net.minecraft.client.stats.StatPlaceholder;
 import net.minecraft.util.MD5String;
 import net.minecraft.util.Session;
 
+@ReobfuscationMarker
 public class StatFileWriter {
    private Map field_77457_a = new HashMap();
    private Map field_77455_b = new HashMap();
@@ -27,18 +30,16 @@ public class StatFileWriter {
       }
 
       File[] var4 = par2File.listFiles();
-      int var5 = var4.length;
 
-      for(int var6 = 0; var6 < var5; ++var6) {
-         File var7 = var4[var6];
-         if (var7.getName().startsWith("stats_") && var7.getName().endsWith(".dat")) {
-            File var8 = new File(var3, var7.getName());
-            if (!var8.exists()) {
-               System.out.println("Relocating " + var7.getName());
-               var7.renameTo(var8);
-            }
-         }
-      }
+       for (File var7 : var4) {
+           if (var7.getName().startsWith("stats_") && var7.getName().endsWith(".dat")) {
+               File var8 = new File(var3, var7.getName());
+               if (!var8.exists()) {
+                   System.out.println("Relocating " + var7.getName());
+                   var7.renameTo(var8);
+               }
+           }
+       }
 
       this.statsSyncher = new StatsSyncher(par1Session, this, var3);
    }
@@ -62,27 +63,25 @@ public class StatFileWriter {
    public void writeStats(Map par1Map) {
       if (par1Map != null) {
          this.field_77456_c = true;
-         Iterator var2 = par1Map.keySet().iterator();
 
-         while(var2.hasNext()) {
-            StatBase var3 = (StatBase)var2.next();
-            this.writeStatToMap(this.field_77455_b, var3, (Integer)par1Map.get(var3));
-            this.writeStatToMap(this.field_77457_a, var3, (Integer)par1Map.get(var3));
-         }
+          for (Object o : par1Map.keySet()) {
+              StatBase var3 = (StatBase) o;
+              this.writeStatToMap(this.field_77455_b, var3, (Integer) par1Map.get(var3));
+              this.writeStatToMap(this.field_77457_a, var3, (Integer) par1Map.get(var3));
+          }
       }
 
    }
 
    public void func_77452_b(Map par1Map) {
       if (par1Map != null) {
-         Iterator var2 = par1Map.keySet().iterator();
 
-         while(var2.hasNext()) {
-            StatBase var3 = (StatBase)var2.next();
-            Integer var4 = (Integer)this.field_77455_b.get(var3);
-            int var5 = var4 == null ? 0 : var4;
-            this.field_77457_a.put(var3, (Integer)par1Map.get(var3) + var5);
-         }
+          for (Object o : par1Map.keySet()) {
+              StatBase var3 = (StatBase) o;
+              Integer var4 = (Integer) this.field_77455_b.get(var3);
+              int var5 = var4 == null ? 0 : var4;
+              this.field_77457_a.put(var3, (Integer) par1Map.get(var3) + var5);
+          }
       }
 
    }
@@ -90,12 +89,11 @@ public class StatFileWriter {
    public void func_77448_c(Map par1Map) {
       if (par1Map != null) {
          this.field_77456_c = true;
-         Iterator var2 = par1Map.keySet().iterator();
 
-         while(var2.hasNext()) {
-            StatBase var3 = (StatBase)var2.next();
-            this.writeStatToMap(this.field_77455_b, var3, (Integer)par1Map.get(var3));
-         }
+          for (Object o : par1Map.keySet()) {
+              StatBase var3 = (StatBase) o;
+              this.writeStatToMap(this.field_77455_b, var3, (Integer) par1Map.get(var3));
+          }
       }
 
    }
@@ -108,27 +106,26 @@ public class StatFileWriter {
          StringBuilder var3 = new StringBuilder();
          JsonRootNode var4 = (new JdomParser()).parse(par0Str);
          List var5 = var4.getArrayNode(new Object[]{"stats-change"});
-         Iterator var6 = var5.iterator();
 
-         while(var6.hasNext()) {
-            JsonNode var7 = (JsonNode)var6.next();
-            Map var8 = var7.getFields();
-            Map.Entry var9 = (Map.Entry)var8.entrySet().iterator().next();
-            int var10 = Integer.parseInt(((JsonStringNode)var9.getKey()).getText());
-            int var11 = Integer.parseInt(((JsonNode)var9.getValue()).getText());
-            boolean var12 = true;
-            StatBase var13 = StatList.getOneShotStat(var10);
-            if (var13 == null) {
-               var12 = false;
-               var13 = (new StatPlaceholder(var10)).registerStat();
-            }
+          for (Object o : var5) {
+              JsonNode var7 = (JsonNode) o;
+              Map var8 = var7.getFields();
+              Map.Entry var9 = (Map.Entry) var8.entrySet().iterator().next();
+              int var10 = Integer.parseInt(((JsonStringNode) var9.getKey()).getText());
+              int var11 = Integer.parseInt(((JsonNode) var9.getValue()).getText());
+              boolean var12 = true;
+              StatBase var13 = StatList.getOneShotStat(var10);
+              if (var13 == null) {
+                  var12 = false;
+                  var13 = (new StatPlaceholder(var10)).registerStat();
+              }
 
-            var3.append(StatList.getOneShotStat(var10).statGuid).append(",");
-            var3.append(var11).append(",");
-            if (var12) {
-               var1.put(var13, var11);
-            }
-         }
+              var3.append(StatList.getOneShotStat(var10).statGuid).append(",");
+              var3.append(var11).append(",");
+              if (var12) {
+                  var1.put(var13, var11);
+              }
+          }
 
          MD5String var15 = new MD5String(var2);
          String var16 = var15.getMD5String(var3.toString());
@@ -156,20 +153,19 @@ public class StatFileWriter {
       }
 
       var3.append("  \"stats-change\":[");
-      Iterator var6 = par2Map.keySet().iterator();
 
-      while(var6.hasNext()) {
-         StatBase var7 = (StatBase)var6.next();
-         if (var5) {
-            var5 = false;
-         } else {
-            var3.append("},");
-         }
+       for (Object o : par2Map.keySet()) {
+           StatBase var7 = (StatBase) o;
+           if (var5) {
+               var5 = false;
+           } else {
+               var3.append("},");
+           }
 
-         var3.append("\r\n    {\"").append(var7.statId).append("\":").append(par2Map.get(var7));
-         var4.append(var7.statGuid).append(",");
-         var4.append(par2Map.get(var7)).append(",");
-      }
+           var3.append("\r\n    {\"").append(var7.statId).append("\":").append(par2Map.get(var7));
+           var4.append(var7.statGuid).append(",");
+           var4.append(par2Map.get(var7)).append(",");
+       }
 
       if (!var5) {
          var3.append("}");

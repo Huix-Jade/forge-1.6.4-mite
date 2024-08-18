@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Random;
+
+import cpw.mods.fml.common.registry.VillagerRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentData;
@@ -65,8 +67,8 @@ public class EntityVillager extends EntityAgeable implements IMerchant, INpc {
    private String lastBuyingPlayer;
    private boolean field_82190_bM;
    private float field_82191_bN;
-   private static final Map villagerStockList = new HashMap();
-   private static final Map blacksmithSellingList = new HashMap();
+   public static final Map villagerStockList = new HashMap();
+   public static final Map blacksmithSellingList = new HashMap();
 
    public EntityVillager(World par1World) {
       this(par1World, 0);
@@ -351,6 +353,7 @@ public class EntityVillager extends EntityAgeable implements IMerchant, INpc {
 
       MerchantRecipeList var2;
       var2 = new MerchantRecipeList();
+      VillagerRegistry.manageVillagerTrades(var2, this, this.getProfession(), this.rand);
       int var6;
       label51:
       switch (this.getProfession()) {
@@ -474,7 +477,7 @@ public class EntityVillager extends EntityAgeable implements IMerchant, INpc {
    public void setRecipes(MerchantRecipeList par1MerchantRecipeList) {
    }
 
-   private static void addMerchantItem(MerchantRecipeList par0MerchantRecipeList, int par1, Random par2Random, float par3) {
+   public static void addMerchantItem(MerchantRecipeList par0MerchantRecipeList, int par1, Random par2Random, float par3) {
       if (par2Random.nextFloat() < par3) {
          par0MerchantRecipeList.add(new MerchantRecipe(getRandomSizedStack(par1, par2Random), Item.emerald));
       }
@@ -490,7 +493,7 @@ public class EntityVillager extends EntityAgeable implements IMerchant, INpc {
       return var2 == null ? 1 : ((Integer)var2.getFirst() >= (Integer)var2.getSecond() ? (Integer)var2.getFirst() : (Integer)var2.getFirst() + par1Random.nextInt((Integer)var2.getSecond() - (Integer)var2.getFirst()));
    }
 
-   private static void addBlacksmithItem(MerchantRecipeList par0MerchantRecipeList, int par1, Random par2Random, float par3) {
+   public static void addBlacksmithItem(MerchantRecipeList par0MerchantRecipeList, int par1, Random par2Random, float par3) {
       if (par2Random.nextFloat() < par3) {
          int var4 = getRandomCountForBlacksmithItem(par1, par2Random);
          ItemStack var5;

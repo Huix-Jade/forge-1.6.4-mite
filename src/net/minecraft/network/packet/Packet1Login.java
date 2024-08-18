@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+
+import cpw.mods.fml.common.network.FMLNetworkHandler;
 import net.minecraft.stats.Achievement;
 import net.minecraft.stats.StatList;
 import net.minecraft.world.EnumGameType;
@@ -29,7 +31,11 @@ public class Packet1Login extends Packet {
    public long world_creation_time;
    public long total_world_time;
 
-   public Packet1Login() {
+   private boolean vanillaCompatible;
+
+   public Packet1Login()
+   {
+      this.vanillaCompatible = FMLNetworkHandler.vanillaLoginPacketCompatibility();
    }
 
    public Packet1Login(int par1, WorldType par2WorldType, EnumGameType par3EnumGameType, boolean par4, int par5, int par6, int par7, int par8, byte village_conditions, HashMap achievements, int earliest_MITE_release_run_in, int latest_MITE_release_run_in, boolean are_skills_enabled, long world_creation_time, long total_world_time) {
@@ -48,6 +54,7 @@ public class Packet1Login extends Packet {
       this.are_skills_enabled = are_skills_enabled;
       this.world_creation_time = world_creation_time;
       this.total_world_time = total_world_time;
+      this.vanillaCompatible = false;
    }
 
    public void readPacketData(DataInput par1DataInput) throws IOException {
@@ -62,7 +69,16 @@ public class Packet1Login extends Packet {
       this.hardcoreMode = (var3 & 8) == 8;
       int var4 = var3 & -9;
       this.gameType = EnumGameType.getByID(var4);
-      this.dimension = par1DataInput.readByte();
+
+      if (vanillaCompatible)
+      {
+         this.dimension = par1DataInput.readByte();
+      }
+      else
+      {
+         this.dimension = par1DataInput.readInt();
+      }
+
       this.difficultySetting = par1DataInput.readByte();
       this.worldHeight = par1DataInput.readByte();
       this.maxPlayers = par1DataInput.readByte();
@@ -93,7 +109,16 @@ public class Packet1Login extends Packet {
       }
 
       par1DataOutput.writeByte(var2);
-      par1DataOutput.writeByte(this.dimension);
+
+      if (vanillaCompatible)
+      {
+         par1DataOutput.writeByte(this.dimension);
+      }
+      else
+      {
+         par1DataOutput.writeInt(this.dimension);
+      }
+
       par1DataOutput.writeByte(this.difficultySetting);
       par1DataOutput.writeByte(this.worldHeight);
       par1DataOutput.writeByte(this.maxPlayers);
@@ -134,6 +159,6 @@ public class Packet1Login extends Packet {
          wa = (WorldAchievement)entry.getValue();
       }
 
-      return 6 + 2 * var1 + 4 + 4 + 1 + 1 + 1 + 1 + 4 + 1 + num_achievement_bytes + 16;
+      return 6 + 2 * var1 + 4 + 4 + 1 + 1 + 1 + 1 + 4 + 1 + num_achievement_bytes + 16 + (vanillaCompatible ? 0 : 3);
    }
 }

@@ -119,8 +119,9 @@ public class ItemShears extends ItemTool {
       {
          return false;
       }
-      if (entity instanceof IShearable target)
+      if (entity instanceof IShearable)
       {
+         IShearable target = (IShearable) entity;
          ItemStack itemstack = player.itemInUse;
          if (target.isShearable(itemstack, entity.worldObj, (int)entity.posX, (int)entity.posY, (int)entity.posZ))
          {
@@ -150,8 +151,9 @@ public class ItemShears extends ItemTool {
          return false;
       }
       int id = player.worldObj.getBlockId(x, y, z);
-      if (Block.blocksList[id] instanceof IShearable target)
+      if (Block.blocksList[id] instanceof IShearable)
       {
+         IShearable target = (IShearable) Block.blocksList[id];
           if (target.isShearable(itemstack, player.worldObj, x, y, z))
          {
             ArrayList<ItemStack> drops = target.onSheared(itemstack, player.worldObj, x, y, z,

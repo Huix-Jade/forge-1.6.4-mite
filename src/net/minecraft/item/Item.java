@@ -7,6 +7,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+
+import cpw.mods.fml.common.registry.GameData;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBreakInfo;
 import net.minecraft.block.BlockMounted;
@@ -560,6 +562,7 @@ public class Item {
       this.recipes = new IRecipe[65];
       this.crafting_products_this_is_component_of = new ArrayList();
       this.itemID = 256 + par1;
+      GameData.newItemAdded(this);
       this.setTextureName(texture);
       if (itemsList[256 + par1] != null) {
          System.out.println("CONFLICT @ " + par1 + " item slot already occupied by " + itemsList[256 + par1] + " while adding " + this);

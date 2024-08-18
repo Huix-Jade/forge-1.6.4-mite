@@ -2044,8 +2044,8 @@ public abstract class World implements IBlockAccess {
       }
 
       if (var4 || this.chunkExists(var2, var3) && this.isWithinEntityDomain(par1Entity.posX, par1Entity.posZ)) {
-         if (par1Entity instanceof EntityPlayer var5) {
-             this.playerEntities.add(var5);
+         if (par1Entity instanceof EntityPlayer) {
+             this.playerEntities.add((EntityPlayer) par1Entity);
          }
 
          if (MinecraftForge.EVENT_BUS.post(new EntityJoinWorldEvent(par1Entity, this)) && !var4)

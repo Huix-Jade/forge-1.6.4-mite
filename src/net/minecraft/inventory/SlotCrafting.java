@@ -1,5 +1,6 @@
 package net.minecraft.inventory;
 
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFurnace;
 import net.minecraft.block.BlockWorkbench;
@@ -141,6 +142,7 @@ public class SlotCrafting extends Slot {
    }
 
    public void onPickupFromSlot(EntityPlayer par1EntityPlayer, ItemStack par2ItemStack) {
+      GameRegistry.onItemCrafted(par1EntityPlayer, par2ItemStack, craftMatrix);
       int consumption = this.crafting_result.consumption;
       this.amountCrafted = par2ItemStack.stackSize;
       this.onCrafting(par2ItemStack);
@@ -151,7 +153,8 @@ public class SlotCrafting extends Slot {
          ItemStack var4 = this.craftMatrix.getStackInSlot(var3);
          if (var4 != null) {
             Item item = var4.getItem();
-            if (item instanceof ItemCoin coin) {
+            if (item instanceof ItemCoin) {
+               ItemCoin coin = (ItemCoin) item;
                 xp_reclaimed += coin.getExperienceValue();
             }
 

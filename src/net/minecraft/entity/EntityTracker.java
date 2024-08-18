@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
+import cpw.mods.fml.common.registry.EntityRegistry;
 import net.minecraft.crash.CrashReport;
 import net.minecraft.crash.CrashReportCategory;
 import net.minecraft.entity.boss.EntityDragon;
@@ -48,6 +50,11 @@ public class EntityTracker {
    }
 
    public void addEntityToTracker(Entity par1Entity) {
+      if (EntityRegistry.instance().tryTrackingEntity(this, par1Entity))
+      {
+         return;
+      }
+
       if (par1Entity instanceof EntityPlayerMP) {
          this.addEntityToTracker(par1Entity, 512, 2);
          EntityPlayerMP var2 = (EntityPlayerMP)par1Entity;

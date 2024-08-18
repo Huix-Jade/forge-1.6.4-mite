@@ -13,6 +13,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+
+import cpw.mods.fml.common.FMLLog;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -56,7 +59,7 @@ public final class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
    public Chunk loadChunk(World par1World, int par2, int par3) throws IOException {
       NBTTagCompound var4 = null;
       ChunkCoordIntPair var5 = new ChunkCoordIntPair(par2, par3);
-      Object var6 = this.syncLockObject;
+//      Object var6 = this.syncLockObject;
       synchronized(this.syncLockObject) {
          if (this.pendingAnvilChunksCoordinates.contains(var5)) {
             for(int var7 = 0; var7 < this.chunksToRemove.size(); ++var7) {
@@ -381,11 +384,18 @@ public final class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
 
                   entities_checksum += this.calcEntityChecksum(var21);
                   var11 = new NBTTagCompound();
-                  if (var21.writeToNBTOptional(var11)) {
-                     var16.appendTag(var11);
-                     var21.last_chunk_saved_to = par1Chunk;
-                     var21.last_chunk_saved_to_entity_list_index = var8;
+                  try {
+                     if (var21.writeToNBTOptional(var11)) {
+                        var16.appendTag(var11);
+                        var21.last_chunk_saved_to = par1Chunk;
+                        var21.last_chunk_saved_to_entity_list_index = var8;
+                     }
+                  } catch (Exception e) {
+                     FMLLog.log(Level.SEVERE, e,
+                             "An Entity type %s has thrown an exception trying to write state. It will not persist. Report this to the mod author",
+                             var21.getClass().getName());
                   }
+
                }
             }
          }
@@ -401,8 +411,15 @@ public final class AnvilChunkLoader implements IChunkLoader, IThreadedFileIO {
          TileEntity var22 = (TileEntity)var18.next();
          tile_entities_checksum += this.calcTileEntityChecksum(var22);
          var11 = new NBTTagCompound();
-         var22.writeToNBT(var11);
-         var17.appendTag(var11);
+         try {
+            var22.writeToNBT(var11);
+            var17.appendTag(var11);
+         } catch (Exception e) {
+            FMLLog.log(Level.SEVERE, e,
+                    "A TileEntity type %s has throw an exception trying to write state. It will not persist. Report this to the mod author",
+                    var22.getClass().getName());
+         }
+
       }
 
       par3NBTTagCompound.setInteger("TileEntities", tile_entities_checksum);

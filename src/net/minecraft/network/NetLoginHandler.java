@@ -10,17 +10,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import javax.crypto.SecretKey;
+
+import cpw.mods.fml.common.network.FMLNetworkHandler;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.network.packet.NetHandler;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.Packet1Login;
-import net.minecraft.network.packet.Packet205ClientCommand;
-import net.minecraft.network.packet.Packet252SharedKey;
-import net.minecraft.network.packet.Packet253ServerAuthData;
-import net.minecraft.network.packet.Packet254ServerPing;
-import net.minecraft.network.packet.Packet255KickDisconnect;
-import net.minecraft.network.packet.Packet2ClientProtocol;
-import net.minecraft.network.packet.Packet85SimpleSignal;
+import net.minecraft.network.packet.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dedicated.DedicatedServer;
 import net.minecraft.server.dedicated.DedicatedServerListenThread;
@@ -53,7 +47,7 @@ public class NetLoginHandler extends NetHandler {
          this.initializePlayerConnection();
       }
 
-      if (this.connectionTimer++ == 600) {
+      if (this.connectionTimer++ == 6000) {
          this.raiseErrorAndDisconnect("Took too long to log in");
       } else {
          this.myTCPConnection.processReadPackets();
@@ -189,10 +183,14 @@ public class NetLoginHandler extends NetHandler {
    }
 
    public void handleLogin(Packet1Login par1Packet1Login) {
+      FMLNetworkHandler.handleLoginPacketOnServer(this, par1Packet1Login);
    }
 
    public void initializePlayerConnection() {
-      String var1 = this.mcServer.getConfigurationManager().allowUserToConnect(this.myTCPConnection.getSocketAddress(), this.clientUsername);
+      FMLNetworkHandler.onConnectionReceivedFromClient(this, this.mcServer, this.myTCPConnection.getSocketAddress(), this.clientUsername);
+   }
+
+   public void completeConnection(String var1) {
       if (var1 != null) {
          this.raiseErrorAndDisconnect(var1);
       } else {
@@ -282,15 +280,33 @@ public class NetLoginHandler extends NetHandler {
       return par0NetLoginHandler.sharedKey;
    }
 
-   static String getClientUsername(NetLoginHandler par0NetLoginHandler) {
+   public static String getClientUsername(NetLoginHandler par0NetLoginHandler) {
       return par0NetLoginHandler.clientUsername;
    }
 
-   static boolean func_72531_a(NetLoginHandler par0NetLoginHandler, boolean par1) {
+   public static boolean func_72531_a(NetLoginHandler par0NetLoginHandler, boolean par1) {
       return par0NetLoginHandler.field_72544_i = par1;
    }
 
    public INetworkManager getNetManager() {
       return this.myTCPConnection;
+   }
+
+   @Override
+   public void handleCustomPayload(Packet250CustomPayload p_72501_1_)
+   {
+      FMLNetworkHandler.handlePacket250Packet(p_72501_1_, this.getNetManager(), this);
+   }
+
+   @Override
+   public void handleVanilla250Packet(Packet250CustomPayload payload)
+   {
+      // NOOP for login
+   }
+
+   @Override
+   public EntityPlayer getPlayer()
+   {
+      return null;
    }
 }

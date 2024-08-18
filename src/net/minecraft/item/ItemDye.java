@@ -164,7 +164,8 @@ public class ItemDye extends Item {
       if (block == Block.grass) {
          BlockGrass grass = (BlockGrass)block;
          return grass.fertilize(world, x, y, z, item_stack);
-      } else if (block instanceof BlockCrops crops) {
+      } else if (block instanceof BlockCrops) {
+         BlockCrops crops = (BlockCrops)block;
           return crops.fertilize(world, x, y, z, item_stack);
       } else {
          return false;

@@ -17,7 +17,7 @@ public class Tessellator {
    private static int nativeBufferSize = 0x200000;
    private static int trivertsInBuffer = (nativeBufferSize / 48) * 6;
    public static boolean renderingWorldRenderer = false;
-   public boolean defaultTexture = false;
+//   public boolean defaultTexture = false;
    private int rawBufferSize = 0;
    public int textureID = 0;
 
@@ -61,7 +61,6 @@ public class Tessellator {
 
    static
    {
-      instance.defaultTexture = true;
       useVBO = tryVBO && GLContext.getCapabilities().GL_ARB_vertex_buffer_object;
 
       if (useVBO)

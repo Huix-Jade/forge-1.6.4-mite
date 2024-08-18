@@ -1,5 +1,7 @@
 package net.minecraft.logging;
 
+import cpw.mods.fml.common.FMLLog;
+
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -23,14 +25,12 @@ public class LogAgent implements ILogAgent {
    private void setupLogger() {
       this.serverLogger.setUseParentHandlers(false);
       Handler[] var1 = this.serverLogger.getHandlers();
-      int var2 = var1.length;
 
-      for(int var3 = 0; var3 < var2; ++var3) {
-         Handler var4 = var1[var3];
-         this.serverLogger.removeHandler(var4);
-      }
+       for (Handler var4 : var1) {
+           this.serverLogger.removeHandler(var4);
+       }
 
-      LogFormatter var6 = new LogFormatter(this, (LogAgentEmptyAnon)null);
+      LogFormatter var6 = new LogFormatter(this, null);
       ConsoleHandler var7 = new ConsoleHandler();
       var7.setFormatter(var6);
       this.serverLogger.addHandler(var7);

@@ -171,7 +171,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting {
    private int chatVisibility;
    private boolean chatColours = true;
    private long field_143005_bX = 0L;
-   private int currentWindowId;
+   public int currentWindowId;
    public boolean playerInventoryBeingManipulated;
    public int ping;
    public boolean playerConqueredTheEnd;
@@ -1266,7 +1266,7 @@ public class EntityPlayerMP extends EntityPlayer implements ICrafting {
 
    }
 
-   private void incrementWindowID() {
+   public void incrementWindowID() {
       this.currentWindowId = this.currentWindowId % 100 + 1;
    }
 

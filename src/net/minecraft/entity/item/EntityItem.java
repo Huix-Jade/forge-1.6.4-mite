@@ -1,6 +1,8 @@
 package net.minecraft.entity.item;
 
 import java.util.Iterator;
+
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBreakInfo;
 import net.minecraft.block.BlockInfo;
@@ -677,6 +679,7 @@ public class EntityItem extends Entity {
                      this.worldObj.worldInfo.fullfillVillageCondition(8, (WorldServer)this.worldObj);
                   }
 
+                  GameRegistry.onPickupNotification(par1EntityPlayer, this);
                   this.playSound("random.pop", 0.2F, ((this.rand.nextFloat() - this.rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
                   par1EntityPlayer.onItemPickup(this, var3);
                   if (var2.stackSize <= 0) {

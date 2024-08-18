@@ -106,12 +106,14 @@ public interface ISpecialArmor
                     continue;
                 }
                 ArmorProperties prop = null;
-                if (stack.getItem() instanceof ISpecialArmor armor)
+                if (stack.getItem() instanceof ISpecialArmor)
                 {
+                    ISpecialArmor armor = (ISpecialArmor) stack.getItem();
                     prop = armor.getProperties(entity, stack, source, damage / 25D, x).copy();
                 }
-                else if (stack.getItem() instanceof ItemArmor armor && !source.isUnblockable())
+                else if (stack.getItem() instanceof ItemArmor && !source.isUnblockable())
                 {
+                    ItemArmor armor = (ItemArmor) stack.getItem();
                     prop = new ArmorProperties(0, armor.getMaterialProtection() / 25D, stack.getItemDamage() + 1 - stack.getItemDamage());
                 }
                 if (prop != null)

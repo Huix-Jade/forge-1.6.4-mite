@@ -122,7 +122,8 @@ public class BlockPane extends Block {
    }
 
    public void onEntityCollidedWithBlock(World par1World, int par2, int par3, int par4, Entity par5Entity) {
-      if (!par1World.isRemote && this == thinGlass && par5Entity instanceof EntityArrow arrow) {
+      if (!par1World.isRemote && this == thinGlass && par5Entity instanceof EntityArrow) {
+         EntityArrow arrow = (EntityArrow)par5Entity;
           if (arrow.speed_before_collision_sq > 4.0F) {
             par1World.destroyBlock(new BlockBreakInfo(par1World, par2, par3, par4), true);
          }

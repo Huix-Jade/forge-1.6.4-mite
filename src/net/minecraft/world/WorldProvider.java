@@ -96,17 +96,12 @@ public abstract class WorldProvider {
    }
 
    protected void registerWorldChunkManager() {
-      if (this.worldObj.getWorldInfo().getTerrainType() == WorldType.FLAT) {
-         FlatGeneratorInfo var1 = FlatGeneratorInfo.createFlatGeneratorFromString(this.worldObj.getWorldInfo().getGeneratorOptions());
-         this.worldChunkMgr = new WorldChunkManagerHell(BiomeGenBase.biomeList[var1.getBiome()], 0.5F, 0.5F);
-      } else {
-         this.worldChunkMgr = new WorldChunkManager(this.worldObj);
-      }
+      this.worldChunkMgr =this.terrainType.getChunkManager(this.worldObj);
 
    }
 
    public IChunkProvider createChunkGenerator() {
-      return (IChunkProvider)(this.terrainType == WorldType.FLAT ? new ChunkProviderFlat(this.worldObj, this.worldObj.getSeed(), this.worldObj.getWorldInfo().isMapFeaturesEnabled(), this.field_82913_c) : new ChunkProviderGenerate(this.worldObj, this.worldObj.getSeed(), this.worldObj.getWorldInfo().isMapFeaturesEnabled()));
+      return this.terrainType.getChunkGenerator(this.worldObj, field_82913_c);
    }
 
    public boolean canCoordinateBeSpawn(int par1, int par2) {
@@ -272,11 +267,11 @@ public abstract class WorldProvider {
    }
 
    public int getAverageGroundLevel() {
-      return this.terrainType == WorldType.FLAT ? 4 : 64;
+      return this.terrainType.getMinimumSpawnHeight(this.worldObj);
    }
 
    public boolean getWorldHasVoidParticles() {
-      return !this.isTheEnd();
+      return this.terrainType.hasVoidParticles(this.isTheEnd());
    }
 
    public boolean getWorldHasVoidFog() {
@@ -284,7 +279,7 @@ public abstract class WorldProvider {
    }
 
    public double getVoidFogYFactor() {
-      return this.terrainType == WorldType.FLAT ? 1.0 : 0.03125;
+      return this.terrainType.voidFadeMagnitude();
    }
 
    public boolean doesXZShowFog(int x, int y, int z) {

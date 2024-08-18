@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+
+import cpw.mods.fml.common.FMLLog;
 import net.minecraft.network.NetLoginHandler;
 import net.minecraft.network.NetworkListenThread;
 
@@ -38,6 +41,7 @@ public class ServerListenThread extends Thread {
                var3.tryLogin();
             } catch (Exception var6) {
                var3.raiseErrorAndDisconnect("Internal server error");
+               FMLLog.log(Level.SEVERE, var6, "Error handling login related packet - connection from %s refused", var3.getUsernameAndAddress());
                this.myNetworkListenThread.getServer().getLogAgent().logWarningException("Failed to handle packet for " + var3.getUsernameAndAddress() + ": " + var6, var6);
             }
 

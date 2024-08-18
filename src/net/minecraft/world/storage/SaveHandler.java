@@ -9,6 +9,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
+
+import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -91,15 +93,21 @@ public class SaveHandler implements ISaveHandler, IPlayerFileData {
       NBTTagCompound var2;
       NBTTagCompound var3;
       Exception var4;
+      WorldInfo worldInfo = null;
       if (var1.exists()) {
          try {
             var2 = CompressedStreamTools.readCompressed(new FileInputStream(var1));
             var3 = var2.getCompoundTag("Data");
-            return new WorldInfo(var3);
+            worldInfo = new WorldInfo(var3);
+            FMLCommonHandler.instance().handleWorldDataLoad(this, worldInfo, var2);
+            return worldInfo;
          } catch (Exception var6) {
-            var4 = var6;
+            if (FMLCommonHandler.instance().shouldServerBeKilledQuietly())
+            {
+               throw (RuntimeException)var6;
+            }
             NBTBase.loading_world_info = false;
-            var4.printStackTrace();
+            var6.printStackTrace();
          }
       }
 
@@ -108,7 +116,9 @@ public class SaveHandler implements ISaveHandler, IPlayerFileData {
          try {
             var2 = CompressedStreamTools.readCompressed(new FileInputStream(var1));
             var3 = var2.getCompoundTag("Data");
-            return new WorldInfo(var3);
+            worldInfo = new WorldInfo(var3);
+            FMLCommonHandler.instance().handleWorldDataLoad(this, worldInfo, var2);
+            return worldInfo;
          } catch (Exception var5) {
             var4 = var5;
             NBTBase.loading_world_info = false;
@@ -123,7 +133,7 @@ public class SaveHandler implements ISaveHandler, IPlayerFileData {
       NBTTagCompound var3 = par1WorldInfo.cloneNBTCompound(par2NBTTagCompound);
       NBTTagCompound var4 = new NBTTagCompound();
       var4.setTag("Data", var3);
-
+      FMLCommonHandler.instance().handleWorldDataSave(this, par1WorldInfo, var4);
       try {
          File var5 = new File(this.worldDirectory, "level.dat_new");
          File var6 = new File(this.worldDirectory, "level.dat_old");
@@ -174,7 +184,7 @@ public class SaveHandler implements ISaveHandler, IPlayerFileData {
       NBTTagCompound var2 = par1WorldInfo.getNBTTagCompound();
       NBTTagCompound var3 = new NBTTagCompound();
       var3.setTag("Data", var2);
-
+      FMLCommonHandler.instance().handleWorldDataSave(this, par1WorldInfo, var3);
       try {
          File var4 = new File(this.worldDirectory, "level.dat_new");
          File var5 = new File(this.worldDirectory, "level.dat_old");

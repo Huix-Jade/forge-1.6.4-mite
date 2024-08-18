@@ -45,7 +45,7 @@ public class ItemMap extends ItemMapBase {
          int var5 = 128 * (1 << var4.scale);
          var4.xCenter = Math.round((float)par2World.getWorldInfo().getSpawnX() / (float)var5) * var5;
          var4.zCenter = Math.round((float)(par2World.getWorldInfo().getSpawnZ() / var5)) * var5;
-         var4.dimension = (byte)par2World.provider.dimensionId;
+         var4.dimension = par2World.provider.dimensionId;
          var4.markDirty();
          par2World.setItemData(var3, var4);
       }

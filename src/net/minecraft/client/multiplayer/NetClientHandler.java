@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import javax.crypto.SecretKey;
+
+import cpw.mods.fml.common.network.FMLNetworkHandler;
 import net.minecraft.block.BitHelper;
 import net.minecraft.client.ClientBrandRetriever;
 import net.minecraft.client.Minecraft;
@@ -258,10 +260,13 @@ public class NetClientHandler extends NetHandler {
    private static Class[] classes = new Class[]{ContainerPlayer.class, ContainerWorkbench.class, MITEConstant.class, MITEContainerCrafting.class, EntityClientPlayerMP.class, EntityPlayer.class, EntityPlayerSP.class, FoodStats.class, Minecraft.class, MovementInputFromOptions.class, NetClientHandler.class, PlayerControllerMP.class, Packet13PlayerLookMove.class, Packet27PlayerInput.class, Packet82AddHunger.class, Packet85SimpleSignal.class, Packet202PlayerAbilities.class, PlayerCapabilities.class, TcpConnection.class};
    private static int class_hash_sum = 0;
 
+   private static byte connectionCompatibilityLevel;
+
    public NetClientHandler(Minecraft par1Minecraft, String par2Str, int par3) throws IOException {
       this.mc = par1Minecraft;
       Socket var4 = new Socket(InetAddress.getByName(par2Str), par3);
       this.netManager = new TcpConnection(par1Minecraft.getLogAgent(), var4, "Client", this);
+      FMLNetworkHandler.onClientConnectionToRemoteServer(this, par2Str, par3, this.netManager);
    }
 
    public NetClientHandler(Minecraft par1Minecraft, String par2Str, int par3, GuiScreen par4GuiScreen) throws IOException {
@@ -269,12 +274,14 @@ public class NetClientHandler extends NetHandler {
       this.field_98183_l = par4GuiScreen;
       Socket var5 = new Socket(InetAddress.getByName(par2Str), par3);
       this.netManager = new TcpConnection(par1Minecraft.getLogAgent(), var5, "Client", this);
+      FMLNetworkHandler.onClientConnectionToRemoteServer(this, par2Str, par3, this.netManager);
    }
 
    public NetClientHandler(Minecraft par1Minecraft, IntegratedServer par2IntegratedServer) throws IOException {
       this.mc = par1Minecraft;
       this.netManager = new MemoryConnection(par1Minecraft.getLogAgent(), this);
       par2IntegratedServer.getServerListeningThread().func_71754_a((MemoryConnection)this.netManager, par1Minecraft.getSession().getUsername());
+      FMLNetworkHandler.onClientConnectionToIntegratedServer(this, par2IntegratedServer, this.netManager);
    }
 
    public void cleanup() {
@@ -328,6 +335,7 @@ public class NetClientHandler extends NetHandler {
    }
 
    public void handleSharedKey(Packet252SharedKey par1Packet252SharedKey) {
+      this.addToSendQueue(FMLNetworkHandler.getFMLFakeLoginPacket());
       this.addToSendQueue(new Packet205ClientCommand(0));
    }
 
@@ -340,6 +348,7 @@ public class NetClientHandler extends NetHandler {
       this.mc.thePlayer.entityId = par1Packet1Login.clientEntityId;
       this.currentServerMaxPlayers = par1Packet1Login.maxPlayers;
       this.mc.playerController.setGameType(par1Packet1Login.gameType);
+      FMLNetworkHandler.onConnectionEstablishedToServer(this, this.netManager, par1Packet1Login);
       this.mc.gameSettings.sendSettingsToServer();
       this.mc.theWorld.worldInfo.setVillageConditions(par1Packet1Login.village_conditions);
       this.mc.theWorld.worldInfo.setAchievements(par1Packet1Login.achievements);
@@ -744,6 +753,7 @@ public class NetClientHandler extends NetHandler {
       if (!this.disconnected) {
          this.netManager.addToSendQueue(par1Packet);
          this.netManager.serverShutdown();
+         FMLNetworkHandler.onConnectionClosed(this.netManager, this.getPlayer());
       }
 
    }
@@ -774,6 +784,12 @@ public class NetClientHandler extends NetHandler {
    }
 
    public void handleChat(Packet3Chat par1Packet3Chat) {
+      par1Packet3Chat = FMLNetworkHandler.handleChatMessage(this, par1Packet3Chat);
+      if (par1Packet3Chat == null)
+      {
+         return;
+      }
+
       ClientChatReceivedEvent event = new ClientChatReceivedEvent(par1Packet3Chat.message);
       if (!MinecraftForge.EVENT_BUS.post(event) && event.message != null)
       {
@@ -1197,8 +1213,11 @@ public class NetClientHandler extends NetHandler {
       }
 
    }
-
    public void handleMapData(Packet131MapData par1Packet131MapData) {
+      FMLNetworkHandler.handlePacket131Packet(this, par1Packet131MapData);
+   }
+
+   public void fmlPacket131Callback(Packet131MapData par1Packet131MapData) {
       if (par1Packet131MapData.itemID == Item.map.itemID) {
          ItemMap.getMPMapData(par1Packet131MapData.uniqueID, this.mc.theWorld).updateMPMapData(par1Packet131MapData.itemData);
       } else {
@@ -1595,6 +1614,11 @@ public class NetClientHandler extends NetHandler {
    }
 
    public void handleCustomPayload(Packet250CustomPayload par1Packet250CustomPayload) {
+      FMLNetworkHandler.handlePacket250Packet(par1Packet250CustomPayload, netManager, this);
+   }
+
+   public void handleVanilla250Packet(Packet250CustomPayload par1Packet250CustomPayload)
+   {
       if ("MC|TrList".equals(par1Packet250CustomPayload.channel)) {
          DataInputStream var2 = new DataInputStream(new ByteArrayInputStream(par1Packet250CustomPayload.data));
 
@@ -1992,9 +2016,25 @@ public class NetClientHandler extends NetHandler {
    }
 
    static {
-      for(int i = 0; i < classes.length; ++i) {
-         class_hash_sum += getHash(classes[i]);
-      }
+       for (Class aClass : classes) {
+           class_hash_sum += getHash(aClass);
+       }
 
+   }
+
+   @Override
+   public EntityPlayer getPlayer()
+   {
+      return this.mc.thePlayer;
+   }
+
+   public static void setConnectionCompatibilityLevel(byte connectionCompatibilityLevel)
+   {
+      NetClientHandler.connectionCompatibilityLevel = connectionCompatibilityLevel;
+   }
+
+   public static byte getConnectionCompatibilityLevel()
+   {
+      return connectionCompatibilityLevel;
    }
 }

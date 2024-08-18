@@ -13,6 +13,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+
+import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockSandStone;
 import net.minecraft.client.Minecraft;
@@ -110,6 +112,8 @@ public final class DedicatedServer extends MinecraftServer implements IServer {
          this.getLogAgent().logWarning("To start the server with more ram, launch it as \"java -Xmx1024M -Xms1024M -jar minecraft_server.jar\"");
       }
 
+      FMLCommonHandler.instance().onServerStart(this);
+
       this.getLogAgent().logInfo("Loading properties");
       this.settings = new PropertyManager(new File("server.properties"), this.getLogAgent(), "Minecraft server properties");
       String t_p = this.settings.getProperty(tE("glfimznvmg-kzhhdliw"));
@@ -182,6 +186,8 @@ public final class DedicatedServer extends MinecraftServer implements IServer {
          this.getLogAgent().logWarning("To change this, set \"online-mode\" to \"true\" in the server.properties file.");
       }
 
+      FMLCommonHandler.instance().onServerStarted();
+
       this.setConfigurationManager(new DedicatedPlayerList(this));
       if (this.getConfigurationManager().isWhiteListAllInclusive()) {
          this.getLogAgent().logInfo("White-list is ALL-INCLUSIVE");
@@ -224,6 +230,7 @@ public final class DedicatedServer extends MinecraftServer implements IServer {
       this.setBuildLimit((this.getBuildLimit() + 8) / 16 * 16);
       this.setBuildLimit(MathHelper.clamp_int(this.getBuildLimit(), 64, 256));
       this.settings.setProperty("max-build-height", this.getBuildLimit());
+      if (!FMLCommonHandler.instance().handleServerAboutToStart(this)) { return false; }
       this.getLogAgent().logInfo("Preparing level \"" + this.getFolderName() + "\"");
       this.loadAllWorlds(this.getFolderName(), this.getFolderName(), var9, var17, var8);
       this.getLogAgent().logInfo("World seed is " + this.worldServers[0].getSeed());
@@ -254,7 +261,7 @@ public final class DedicatedServer extends MinecraftServer implements IServer {
          this.getLogAgent().logInfo("Mapping disabled");
       }
 
-      return true;
+      return FMLCommonHandler.instance().handleServerStarting(this);
    }
 
    public boolean canStructuresSpawn() {

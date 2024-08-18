@@ -17,6 +17,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import javax.imageio.ImageIO;
+
+import com.google.common.collect.MapDifference;
 import net.minecraft.block.Block;
 import net.minecraft.client.audio.SoundManager;
 import net.minecraft.client.entity.EntityClientPlayerMP;
@@ -160,6 +162,11 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GLContext;
 import org.lwjgl.opengl.PixelFormat;
 import org.lwjgl.util.glu.GLU;
+import cpw.mods.fml.client.FMLClientHandler;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.registry.GameData;
+import cpw.mods.fml.common.registry.ItemData;
+import cpw.mods.fml.relauncher.Side;
 
 public final class Minecraft implements IPlayerUsage {
 	private static boolean in_dev_mode = false;
@@ -475,9 +482,15 @@ public final class Minecraft implements IPlayerUsage {
 		this.renderEngine = new TextureManager(this.mcResourceManager);
 		this.mcResourceManager.registerReloadListener(this.renderEngine);
 		this.sndManager = new SoundManager(this.mcResourceManager, this.gameSettings, this.fileAssets);
+
+		this.sndManager.LOAD_SOUND_SYSTEM = false;
+
 		this.mcResourceManager.registerReloadListener(this.sndManager);
 		this.loadScreen();
 		this.fontRenderer = new FontRenderer(this.gameSettings, new ResourceLocation("textures/font/ascii.png"), this.renderEngine, false);
+
+		FMLClientHandler.instance().beginMinecraftLoading(this, this.defaultResourcePacks, this.mcResourceManager);
+
 		if (this.gameSettings.language != null) {
 			this.fontRenderer.setUnicodeFlag(this.mcLanguageManager.isCurrentLocaleUnicode());
 			this.fontRenderer.setBidiFlag(this.mcLanguageManager.isCurrentLanguageBidirectional());
@@ -511,6 +524,7 @@ public final class Minecraft implements IPlayerUsage {
 		this.renderEngine.loadTextureMap(TextureMap.locationItemsTexture, new TextureMap(1, "textures/items"));
 		GL11.glViewport(0, 0, this.displayWidth, this.displayHeight);
 		this.effectRenderer = new EffectRenderer(this.theWorld, this.renderEngine);
+		FMLClientHandler.instance().finishMinecraftLoading();
 		this.checkGLError("Post startup");
 		this.ingameGUI = new GuiIngameForge(this);
 		if (this.serverName != null) {
@@ -526,6 +540,7 @@ public final class Minecraft implements IPlayerUsage {
 			Display.setVSyncEnabled(this.gameSettings.isVsyncEnabled());
 		}
 
+		FMLClientHandler.instance().onInitializationComplete();
 		ReferenceFileWriter.write();
 	}
 
@@ -895,9 +910,11 @@ public final class Minecraft implements IPlayerUsage {
 
 		this.mcProfiler.endSection();
 		if (!this.skipRenderWorld) {
+			FMLCommonHandler.instance().onRenderTickStart(this.timer.renderPartialTicks);
 			this.mcProfiler.endStartSection("gameRenderer");
 			this.entityRenderer.updateCameraAndRender(this.timer.renderPartialTicks);
 			this.mcProfiler.endSection();
+			FMLCommonHandler.instance().onRenderTickEnd(this.timer.renderPartialTicks);
 		}
 
 		GL11.glFlush();
@@ -1521,12 +1538,14 @@ public final class Minecraft implements IPlayerUsage {
 	}
 
 	public void runTick() {
+		FMLCommonHandler.instance().rescheduleTicks(Side.CLIENT);
 		if (this.thePlayer != null && this.theWorld != null && this.currentScreen instanceof GuiGameOver && !this.theWorld.getWorldInfo().isHardcoreModeEnabled()) {
 			this.thePlayer.sendPacket((new Packet85SimpleSignal(EnumSignal.respawn_screen)).setShort(0));
 		}
 
 		boolean game_is_paused_or_player_is_sleeping = this.isGamePaused || this.thePlayer != null && this.thePlayer.isSleeping();
 		this.mcProfiler.startSection("stats");
+		FMLCommonHandler.instance().onPreClientTick();
 		this.statFileWriter.func_77449_e();
 		this.mcProfiler.endStartSection("gui");
 		if (!game_is_paused_or_player_is_sleeping) {
@@ -2072,12 +2091,13 @@ public final class Minecraft implements IPlayerUsage {
 			this.myNetworkManager.processReadPackets();
 		}
 
+		FMLCommonHandler.instance().onPostClientTick();
 		this.mcProfiler.endSection();
 		this.systemTime = getSystemTime();
 	}
 
 	public void launchIntegratedServer(String par1Str, String par2Str, WorldSettings par3WorldSettings) {
-		this.loadWorld((WorldClient)null);
+		this.loadWorld(null);
 		System.gc();
 		ISaveHandler var4 = this.saveLoader.getSaveLoader(par1Str, false);
 		WorldInfo var5 = var4.loadWorldInfo();
@@ -2091,10 +2111,22 @@ public final class Minecraft implements IPlayerUsage {
 		}
 
 		this.statFileWriter.readStat(StatList.startGameStat, 1);
+
+		GameData.initializeServerGate(2);
+
 		this.theIntegratedServer = new IntegratedServer(this, par1Str, par2Str, par3WorldSettings);
 		this.theIntegratedServer.startServerThread();
-		this.integratedServerIsRunning = true;
-		this.loadingScreen.displayProgressMessage(I18n.getString("menu.loadingLevel"));
+
+		MapDifference<Integer, ItemData> idDifferences = GameData.gateWorldLoadingForValidation();
+		if (idDifferences!=null)
+		{
+			FMLClientHandler.instance().warnIDMismatch(idDifferences, true);
+		}
+		else
+		{
+			GameData.releaseGate(true);
+			continueWorldLoading();
+		}
 
 		while(!this.theIntegratedServer.serverIsInRunLoop()) {
 			String var6 = this.theIntegratedServer.getUserMessage();
@@ -2121,6 +2153,12 @@ public final class Minecraft implements IPlayerUsage {
 		}
 
 		this.increment_startGameStat_asap = true;
+	}
+
+	public void continueWorldLoading()
+	{
+		this.integratedServerIsRunning = true;
+		this.loadingScreen.displayProgressMessage(I18n.getString("menu.loadingLevel"));
 	}
 
 	public void loadWorld(WorldClient par1WorldClient) {

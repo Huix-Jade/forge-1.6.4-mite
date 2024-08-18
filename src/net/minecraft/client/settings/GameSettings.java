@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+
+import cpw.mods.fml.client.FMLClientHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiNewChat;
 import net.minecraft.client.main.Main;
@@ -609,6 +611,7 @@ public class GameSettings {
    }
 
    public void saveOptions() {
+      if (FMLClientHandler.instance().isLoading()) return;
       try {
          PrintWriter var1 = new PrintWriter(new FileWriter(this.optionsFile));
          var1.println("music:" + this.musicVolume);

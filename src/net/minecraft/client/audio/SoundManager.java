@@ -30,12 +30,12 @@ public class SoundManager implements ResourceManagerReloadListener {
    private static final String[] field_130084_a = new String[]{"ogg"};
    private SoundSystem sndSystem;
    private boolean loaded;
-   private final SoundPool soundPoolSounds;
-   private final SoundPool soundPoolStreaming;
-   private final SoundPool soundPoolMusic;
+   private SoundPool soundPoolSounds;
+   private SoundPool soundPoolStreaming;
+   private SoundPool soundPoolMusic;
    private int latestSoundID;
-   private final GameSettings options;
-   private final File fileAssets;
+   private GameSettings options;
+   private File fileAssets;
    private final Set playingSounds = new HashSet();
    private final List field_92072_h = new ArrayList();
    private Random rand = new Random();
@@ -43,9 +43,11 @@ public class SoundManager implements ResourceManagerReloadListener {
    public SoundsMITE sounds_MITE;
    public static boolean muted;
 
+   public boolean LOAD_SOUND_SYSTEM = true;
    public static int MUSIC_INTERVAL = 12000;
 
    public SoundManager(ResourceManager par1ResourceManager, GameSettings par2GameSettings, File par3File) {
+      if (!this.LOAD_SOUND_SYSTEM) return;
       this.ticksBeforeMusic = this.rand.nextInt(MUSIC_INTERVAL);
       this.options = par2GameSettings;
       this.fileAssets = par3File;

@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+
+import cpw.mods.fml.common.network.FMLNetworkHandler;
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -116,12 +119,12 @@ public abstract class ServerConfigurationManager
       WorldServer var5 = this.mcServer.worldServerForDimension(par2EntityPlayerMP.dimension);
       ChunkCoordinates var6 = var5.getSpawnPoint();
       this.func_72381_a(par2EntityPlayerMP, (EntityPlayerMP)null, var5);
-      NetServerHandler var7 = new NetServerHandler(this.mcServer, par1INetworkManager, par2EntityPlayerMP);
-      var7.sendPacketToPlayer(new Packet1Login(par2EntityPlayerMP.entityId, var5.getWorldInfo().getTerrainType(), par2EntityPlayerMP.theItemInWorldManager.getGameType(), var5.getWorldInfo().isHardcoreModeEnabled(), var5.provider.dimensionId, var5.difficultySetting, var5.getHeight(), this.getMaxPlayers(), var5.worldInfo.getVillageConditions(), var5.worldInfo.getAchievements(), var5.worldInfo.getEarliestMITEReleaseRunIn(), var5.worldInfo.getLatestMITEReleaseRunIn(), var5.areSkillsEnabled(), var5.getWorldCreationTime(), var5.getTotalWorldTime()));
-      var7.sendPacketToPlayer(new Packet250CustomPayload("MC|Brand", this.getServerInstance().getServerModName().getBytes(Charsets.UTF_8)));
-      var7.sendPacketToPlayer(new Packet6SpawnPosition(var6.posX, var6.posY, var6.posZ));
-      var7.sendPacketToPlayer(new Packet202PlayerAbilities(par2EntityPlayerMP.capabilities));
-      var7.sendPacketToPlayer(new Packet16BlockItemSwitch(par2EntityPlayerMP.inventory.currentItem));
+      NetServerHandler netServerHandler = new NetServerHandler(this.mcServer, par1INetworkManager, par2EntityPlayerMP);
+      netServerHandler.sendPacketToPlayer(new Packet1Login(par2EntityPlayerMP.entityId, var5.getWorldInfo().getTerrainType(), par2EntityPlayerMP.theItemInWorldManager.getGameType(), var5.getWorldInfo().isHardcoreModeEnabled(), var5.provider.dimensionId, var5.difficultySetting, var5.getHeight(), this.getMaxPlayers(), var5.worldInfo.getVillageConditions(), var5.worldInfo.getAchievements(), var5.worldInfo.getEarliestMITEReleaseRunIn(), var5.worldInfo.getLatestMITEReleaseRunIn(), var5.areSkillsEnabled(), var5.getWorldCreationTime(), var5.getTotalWorldTime()));
+      netServerHandler.sendPacketToPlayer(new Packet250CustomPayload("MC|Brand", this.getServerInstance().getServerModName().getBytes(Charsets.UTF_8)));
+      netServerHandler.sendPacketToPlayer(new Packet6SpawnPosition(var6.posX, var6.posY, var6.posZ));
+      netServerHandler.sendPacketToPlayer(new Packet202PlayerAbilities(par2EntityPlayerMP.capabilities));
+      netServerHandler.sendPacketToPlayer(new Packet16BlockItemSwitch(par2EntityPlayerMP.inventory.currentItem));
       this.func_96456_a((ServerScoreboard)var5.getScoreboard(), par2EntityPlayerMP);
       this.updateTimeAndWeatherForPlayer(par2EntityPlayerMP, var5);
 
@@ -132,29 +135,29 @@ public abstract class ServerConfigurationManager
 
       if (Minecraft.isInTournamentMode())
       {
-         var7.sendPacketToPlayer((new Packet85SimpleSignal(EnumSignal.tournament_mode)).setByte(DedicatedServer.tournament_type.ordinal()));
-         var7.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(DedicatedServer.getTournamentNotice()).setColor(EnumChatFormatting.YELLOW)));
+         netServerHandler.sendPacketToPlayer((new Packet85SimpleSignal(EnumSignal.tournament_mode)).setByte(DedicatedServer.tournament_type.ordinal()));
+         netServerHandler.sendPacketToPlayer(new Packet3Chat(ChatMessageComponent.createFromText(DedicatedServer.getTournamentNotice()).setColor(EnumChatFormatting.YELLOW)));
       }
       else
       {
-         var7.sendPacketToPlayer((new Packet85SimpleSignal(EnumSignal.tournament_mode)).setByte(-1));
+         netServerHandler.sendPacketToPlayer((new Packet85SimpleSignal(EnumSignal.tournament_mode)).setByte(-1));
       }
 
-      var7.sendPacketToPlayer((new Packet85SimpleSignal(EnumSignal.allotted_time)).setInteger(par2EntityPlayerMP.allotted_time));
+      netServerHandler.sendPacketToPlayer((new Packet85SimpleSignal(EnumSignal.allotted_time)).setInteger(par2EntityPlayerMP.allotted_time));
 
       if (this.mcServer.isDedicatedServer())
       {
-         var7.sendPacketToPlayer(new Packet85SimpleSignal(EnumSignal.dedicated_server));
+         netServerHandler.sendPacketToPlayer(new Packet85SimpleSignal(EnumSignal.dedicated_server));
       }
 
       if (var5.peekUniqueDataId("map") > 0)
       {
-         var7.sendPacketToPlayer((new Packet85SimpleSignal(EnumSignal.last_issued_map_id)).setShort(var5.peekUniqueDataId("map") - 1));
+         netServerHandler.sendPacketToPlayer((new Packet85SimpleSignal(EnumSignal.last_issued_map_id)).setShort(var5.peekUniqueDataId("map") - 1));
       }
 
       this.playerLoggedIn(par2EntityPlayerMP);
-      var7.setPlayerLocation(par2EntityPlayerMP.posX, par2EntityPlayerMP.posY, par2EntityPlayerMP.posZ, par2EntityPlayerMP.rotationYaw, par2EntityPlayerMP.rotationPitch);
-      this.mcServer.getNetworkThread().addPlayer(var7);
+      netServerHandler.setPlayerLocation(par2EntityPlayerMP.posX, par2EntityPlayerMP.posY, par2EntityPlayerMP.posZ, par2EntityPlayerMP.rotationYaw, par2EntityPlayerMP.rotationPitch);
+      this.mcServer.getNetworkThread().addPlayer(netServerHandler);
       par2EntityPlayerMP.sendWorldAgesToClient();
 
       if (this.mcServer.getTexturePack().length() > 0)
@@ -167,10 +170,12 @@ public abstract class ServerConfigurationManager
       while (var8.hasNext())
       {
          PotionEffect var9 = (PotionEffect)var8.next();
-         var7.sendPacketToPlayer(new Packet41EntityEffect(par2EntityPlayerMP.entityId, var9));
+         netServerHandler.sendPacketToPlayer(new Packet41EntityEffect(par2EntityPlayerMP.entityId, var9));
       }
 
       par2EntityPlayerMP.addSelfToInternalCraftingInventory();
+
+      FMLNetworkHandler.handlePlayerLogin(par2EntityPlayerMP, netServerHandler, par1INetworkManager);
 
       if (var3 != null && var3.hasKey("Riding"))
       {
@@ -305,6 +310,7 @@ public abstract class ServerConfigurationManager
     */
    public void playerLoggedOut(EntityPlayerMP par1EntityPlayerMP)
    {
+      GameRegistry.onPlayerLogout(par1EntityPlayerMP);
       this.writePlayerData(par1EntityPlayerMP);
       WorldServer var2 = par1EntityPlayerMP.getServerForPlayer();
 
@@ -504,6 +510,7 @@ public abstract class ServerConfigurationManager
       var8.spawnEntityInWorld(var7);
       this.playerEntityList.add(var7);
       var7.addSelfToInternalCraftingInventory();
+      GameRegistry.onPlayerRespawn(var7);
       var7.setHealth(var7.getHealth());
       var7.afterRespawn();
       return var7;
@@ -562,6 +569,7 @@ public abstract class ServerConfigurationManager
          par1EntityPlayerMP.playerNetServerHandler.sendPacketToPlayer(new Packet41EntityEffect(par1EntityPlayerMP.entityId, var7));
       }
 
+      GameRegistry.onPlayerChangedDimension(par1EntityPlayerMP);
       par1EntityPlayerMP.syncClientPlayer();
    }
 

@@ -17,6 +17,8 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.crypto.SecretKey;
+
+import cpw.mods.fml.common.network.FMLNetworkHandler;
 import net.minecraft.client.main.Main;
 import net.minecraft.client.multiplayer.NetClientHandler;
 import net.minecraft.logging.ILogAgent;
@@ -313,6 +315,7 @@ public class TcpConnection implements INetworkManager {
                this.wakeThreads();
                if (this.isTerminating && this.readPackets.isEmpty()) {
                   this.theNetHandler.handleErrorMessage(this.terminationReason, this.shutdownDescription);
+                  FMLNetworkHandler.onConnectionClosed(this, this.theNetHandler.getPlayer());
                }
 
                return;

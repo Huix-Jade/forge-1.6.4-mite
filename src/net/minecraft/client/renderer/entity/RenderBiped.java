@@ -2,6 +2,8 @@ package net.minecraft.client.renderer.entity;
 
 import com.google.common.collect.Maps;
 import java.util.Map;
+import java.util.Optional;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.model.ModelBiped;
@@ -51,7 +53,7 @@ public abstract class RenderBiped extends RenderLiving {
 	@Deprecated //Use the more sensitve version getArmorResource below
 	public static ResourceLocation func_110858_a(ItemArmor par0ItemArmor, int par1, String par2Str) {
 		String var3 = String.format("textures/models/armor/%s_layer_%d%s.png", par0ItemArmor.getTextureFilenamePrefix(),
-				par1 == 2 ? 2 : 1, par2Str == null ? "" : String.format("_%s", par2Str));
+                Optional.of(par1 == 2 ? 2 : 1), par2Str == null ? "" : String.format("_%s", par2Str));
 		ResourceLocation var4 = (ResourceLocation)field_110859_k.get(var3);
 		if (var4 == null) {
 			var4 = new ResourceLocation(var3);
@@ -74,7 +76,7 @@ public abstract class RenderBiped extends RenderLiving {
 	{
 		ItemArmor item = (ItemArmor)stack.getItem();
 		String s1 = String.format("textures/models/armor/%s_layer_%d%s.png",
-				item.getTextureFilenamePrefix(), (slot == 2 ? 2 : 1), type == null ? "" : String.format("_%s", type));
+				item.getTextureFilenamePrefix(), Optional.of(slot == 2 ? 2 : 1), type == null ? "" : String.format("_%s", type));
 
 		s1 = ForgeHooksClient.getArmorTexture(entity, stack, s1, slot, type);
 		ResourceLocation resourcelocation = (ResourceLocation)field_110859_k.get(s1);
@@ -92,7 +94,8 @@ public abstract class RenderBiped extends RenderLiving {
 		ItemStack var4 = par1EntityLiving.func_130225_q(3 - par2);
 		if (var4 != null) {
 			Item var5 = var4.getItem();
-			if (var5 instanceof ItemArmor var6) {
+			if (var5 instanceof ItemArmor) {
+				ItemArmor var6 = (ItemArmor)var5;
 				this.bindTexture(getArmorResource(par1EntityLiving, var4, par2, null));
 				ModelBiped var7 = par2 == 2 ? this.field_82425_h : this.field_82423_g;
 				var7.bipedHead.showModel = par2 == 0;
