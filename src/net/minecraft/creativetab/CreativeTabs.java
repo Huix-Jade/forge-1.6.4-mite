@@ -36,10 +36,7 @@ public class CreativeTabs {
       if (par1 >= creativeTabArray.length)
       {
          CreativeTabs[] tmp = new CreativeTabs[par1 + 1];
-         for (int x = 0; x < creativeTabArray.length; x++)
-         {
-            tmp[x] = creativeTabArray[x];
-         }
+         System.arraycopy(creativeTabArray, 0, tmp, 0, creativeTabArray.length);
          creativeTabArray = tmp;
       }
 
@@ -105,8 +102,7 @@ public class CreativeTabs {
    }
 
    public boolean isTabInFirstRow() {
-      if (tabIndex > 11)
-      {
+      if (tabIndex > 11) {
          return ((tabIndex - 12) % 10) < 5;
       }
 

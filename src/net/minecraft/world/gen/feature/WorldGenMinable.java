@@ -44,53 +44,68 @@ public class WorldGenMinable extends WorldGenerator {
       return this.generate(par1World, par2Random, par3, par4, par5, false);
    }
 
-   public int growVein(World world, Random rand, int blocks_to_grow, int x, int y, int z, boolean must_be_supported, boolean is_dirt) {
-      Block block = Block.blocksList[world.getBlockId(x, y, z)];
-      if (blocks_to_grow >= 1 && world.blockExists(x, y, z) && world.getBlockId(x, y, z) == this.blockToReplace
-              && (block != null && block.isGenMineableReplaceable(world, x, y, z, this.blockToReplace))) {
-         if (must_be_supported && (y < 1 || world.isAirOrPassableBlock(x, y - 1, z, true))) {
+   public int growVein(World world, Random rand, int blocks_to_grow, int x, int y, int z, boolean must_be_supported, boolean is_dirt)
+   {
+      if (blocks_to_grow >= 1 && world.blockExists(x, y, z) && world.getBlockId(x, y, z) == this.blockToReplace)
+      {
+         if (must_be_supported && (y < 1 || world.isAirOrPassableBlock(x, y - 1, z, true)))
+         {
             return 0;
-         } else {
-            if (is_dirt && world.canBlockSeeTheSky(x, y + 1, z)) {
-               BiomeGenBase biome = world.getBiomeGenForCoords(x, z);
-               world.setBlock(x, y, z, biome != BiomeGenBase.desert && biome != BiomeGenBase.desertHills ? Block.grass.blockID : Block.sand.blockID, minableBlockMeta, 2);
-            } else {
+         }
+         else
+         {
+            if (is_dirt && world.canBlockSeeTheSky(x, y + 1, z))
+            {
+               BiomeGenBase ore_blocks_grown = world.getBiomeGenForCoords(x, z);
+               world.setBlock(x, y, z, ore_blocks_grown != BiomeGenBase.desert && ore_blocks_grown != BiomeGenBase.desertHills ? Block.grass.blockID : Block.sand.blockID, 0, 2);
+            }
+            else
+            {
                world.setBlock(x, y, z, this.minableBlockId, this.minable_block_metadata, 2);
             }
 
-            int ore_blocks_grown = 1;
+            int var15 = 1;
 
-            for(int attempts = 0; attempts < 16; ++attempts) {
+            for (int attempts = 0; attempts < 16; ++attempts)
+            {
                int dx = 0;
                int dy = 0;
                int dz = 0;
                int axis = rand.nextInt(3);
-               if (axis == 0) {
+
+               if (axis == 0)
+               {
                   dx = rand.nextInt(2) == 0 ? -1 : 1;
-               } else if (axis == 1) {
+               }
+               else if (axis == 1)
+               {
                   dy = rand.nextInt(2) == 0 ? -1 : 1;
-               } else {
+               }
+               else
+               {
                   dz = rand.nextInt(2) == 0 ? -1 : 1;
                }
 
-               ore_blocks_grown += this.growVein(world, rand, blocks_to_grow - ore_blocks_grown, x + dx, y + dy, z + dz, must_be_supported, is_dirt);
-               if (ore_blocks_grown == blocks_to_grow) {
+               var15 += this.growVein(world, rand, blocks_to_grow - var15, x + dx, y + dy, z + dz, must_be_supported, is_dirt);
+
+               if (var15 == blocks_to_grow)
+               {
                   break;
                }
             }
 
-            return ore_blocks_grown;
+            return var15;
          }
-      } else {
+      }
+      else
+      {
          return 0;
       }
    }
 
    public boolean generate(World world, Random rand, int x, int y, int z, boolean vein_size_increases_with_depth) {
       if (world.blockExists(x, y, z) && world.getBlockId(x, y, z) == this.blockToReplace) {
-         int block_id = this.minableBlockId;
          int vein_size = this.numberOfBlocks;
-         Block var10000 = Block.blocksList[block_id];
 
          float scale;
          for(scale = 1.0F; rand.nextInt(2) == 0; scale = (float)((double)scale * ((double)rand.nextFloat() * 0.6 + 0.699999988079071))) {

@@ -614,6 +614,14 @@ public class GuiContainerCreative extends InventoryEffectRenderer {
    }
 
    protected boolean func_74232_a(CreativeTabs par1CreativeTabs, int par2, int par3) {
+      if (par1CreativeTabs.getTabPage() != tabPage)
+      {
+         if (par1CreativeTabs != CreativeTabs.tabAllSearch &&
+                 par1CreativeTabs != CreativeTabs.tabInventory)
+         {
+            return false;
+         }
+      }
       int var4 = par1CreativeTabs.getTabColumn();
       int var5 = 28 * var4;
       byte var6 = 0;
@@ -685,6 +693,7 @@ public class GuiContainerCreative extends InventoryEffectRenderer {
       }
 
       GL11.glDisable(2896);
+      GL11.glColor3f(1F, 1F, 1F);
       this.drawTexturedModalRect(var7, var8, var5, var6, 28, var9);
       this.zLevel = 100.0F;
       itemRenderer.zLevel = 100.0F;
@@ -692,7 +701,7 @@ public class GuiContainerCreative extends InventoryEffectRenderer {
       var8 += 8 + (var3 ? 1 : -1);
       GL11.glEnable(2896);
       GL11.glEnable(32826);
-      ItemStack var10 = new ItemStack(par1CreativeTabs.getTabIconItem());
+      ItemStack var10 = par1CreativeTabs.getIconItemStack();
       itemRenderer.renderItemAndEffectIntoGUI(this.fontRenderer, this.mc.getTextureManager(), var10, var7, var8);
       itemRenderer.renderItemOverlayIntoGUI(this.fontRenderer, this.mc.getTextureManager(), var10, var7, var8);
       GL11.glDisable(2896);
@@ -707,6 +716,15 @@ public class GuiContainerCreative extends InventoryEffectRenderer {
 
       if (par1GuiButton.id == 1) {
          this.mc.displayGuiScreen(new GuiStats(this, this.mc.statFileWriter));
+      }
+
+      if (par1GuiButton.id == 101)
+      {
+         tabPage = Math.max(tabPage - 1, 0);
+      }
+      else if (par1GuiButton.id == 102)
+      {
+         tabPage = Math.min(tabPage + 1, maxPages);
       }
 
    }
