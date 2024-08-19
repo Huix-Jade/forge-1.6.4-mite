@@ -65,17 +65,22 @@ public final class IntegratedServer extends MinecraftServer
 
    protected void loadAllWorlds(String par1Str, String par2Str, long par3, WorldType par5WorldType, String par6Str)
    {
+      this.worldServers = new WorldServer[DimensionManager.world_size];
       this.convertMapIfNeeded(par1Str);
       ISaveHandler var7 = this.getActiveAnvilConverter().getSaveLoader(par1Str, true);
 
+      int i = 0;
       WorldServer overWorld = (isDemo() ? new DemoWorldServer(this, var7, par2Str, 0, theProfiler, getLogAgent()) : new WorldServer(this, var7, par2Str, 0, theWorldSettings, theProfiler, getLogAgent()));
       for (int dim : DimensionManager.getStaticDimensionIDs()) {
-         WorldServer world = (dim == 0 ? overWorld : new WorldServerMulti(this, var7, par2Str, dim, theWorldSettings, overWorld, theProfiler, getLogAgent()));
+         WorldServer world = (dim == 0 ? overWorld :
+                 new WorldServerMulti(this, var7, par2Str, dim, theWorldSettings, overWorld, theProfiler, getLogAgent()));
+         worldServers[i] = world;
          world.addWorldAccess(new WorldManager(this, world));
 
          if (!this.isSinglePlayer()) {
             world.getWorldInfo().setGameType(this.getGameType());
          }
+         ++i;
          MinecraftForge.EVENT_BUS.post(new WorldEvent.Load(world));
       }
 

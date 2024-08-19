@@ -269,10 +269,6 @@ public final class DedicatedServer extends MinecraftServer implements IServer {
    }
 
    public EnumGameType getGameType() {
-      if (!Minecraft.inDevMode()) {
-         this.gameType = EnumGameType.SURVIVAL;
-      }
-
       return this.gameType;
    }
 

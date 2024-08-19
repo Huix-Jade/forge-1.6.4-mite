@@ -794,16 +794,23 @@ public class NetServerHandler extends NetHandler {
       this.playerEntity.capabilities.isFlying = par1Packet202PlayerAbilities.getFlying() && this.playerEntity.capabilities.allowFlying;
    }
 
-   public void handleAutoComplete(Packet203AutoComplete par1Packet203AutoComplete) {
+   public void handleAutoComplete(Packet203AutoComplete par1Packet203AutoComplete)
+   {
       StringBuilder var2 = new StringBuilder();
+      String var3;
 
-      String var4;
-      for(Iterator var3 = this.mcServer.getPossibleCompletions(this.playerEntity, par1Packet203AutoComplete.getText()).iterator(); var3.hasNext(); var2.append(var4)) {
-         var4 = (String)var3.next();
-         if (var2.length() > 0) {
+      for (Iterator var4 = this.mcServer.getPossibleCompletions(this.playerEntity, par1Packet203AutoComplete.getText()).iterator(); var4.hasNext(); var2.append(var3))
+      {
+         var3 = (String)var4.next();
+
+         if (var2.length() > 0)
+         {
             var2.append("\u0000");
          }
       }
+
+
+
 
       this.playerEntity.playerNetServerHandler.sendPacketToPlayer(new Packet203AutoComplete(var2.toString()));
    }

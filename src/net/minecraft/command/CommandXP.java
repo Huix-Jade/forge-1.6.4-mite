@@ -17,7 +17,7 @@ public class CommandXP extends CommandBase {
    }
 
    public void processCommand(ICommandSender par1ICommandSender, String[] par2ArrayOfStr) {
-      notifyAdmins(par1ICommandSender, "Command '" + this.getCommandName() + "' not available", new Object[0]);
+      notifyAdmins(par1ICommandSender, "Command '" + this.getCommandName() + "' not available");
    }
 
    public List addTabCompletionOptions(ICommandSender par1ICommandSender, String[] par2ArrayOfStr) {

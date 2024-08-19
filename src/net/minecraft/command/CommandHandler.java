@@ -1252,22 +1252,32 @@ public class CommandHandler implements ICommandManager {
    public List getPossibleCommands(ICommandSender par1ICommandSender, String par2Str) {
       String[] var3 = par2Str.split(" ", -1);
       String var4 = var3[0];
-      if (var3.length == 1) {
+
+      if (var3.length == 1)
+      {
          ArrayList var8 = new ArrayList();
          Iterator var6 = this.commandMap.entrySet().iterator();
 
-         while(var6.hasNext()) {
-            Map.Entry dx_ = (Map.Entry)var6.next();
-            if (CommandBase.doesStringStartWith(var4, (String)dx_.getKey()) && ((ICommand)dx_.getValue()).canCommandSenderUseCommand(par1ICommandSender)) {
-               var8.add(dx_.getKey());
+         while (var6.hasNext())
+         {
+            Map.Entry var7 = (Map.Entry)var6.next();
+
+            if (CommandBase.doesStringStartWith(var4, (String)var7.getKey()) && ((ICommand)var7.getValue()).canCommandSenderUseCommand(par1ICommandSender))
+            {
+               var8.add(var7.getKey());
             }
          }
 
          return var8;
-      } else {
-         if (var3.length > 1) {
+      }
+      else
+      {
+         if (var3.length > 1)
+         {
             ICommand var5 = (ICommand)this.commandMap.get(var4);
-            if (var5 != null) {
+
+            if (var5 != null)
+            {
                return var5.addTabCompletionOptions(par1ICommandSender, dropFirstString(var3));
             }
          }

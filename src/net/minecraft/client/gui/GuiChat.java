@@ -52,6 +52,9 @@ public class GuiChat extends GuiScreen {
       this.inputField.updateCursorCounter();
    }
 
+   /**
+    * Fired when a key is typed. This is the equivalent of KeyListener.keyTyped(KeyEvent e).
+    */
    protected void keyTyped(char par1, int par2) {
       this.field_73905_m = false;
       if (par2 == 15) {
@@ -213,7 +216,6 @@ public class GuiChat extends GuiScreen {
          this.mc.ingameGUI.getChatGUI().printChatMessageWithOptionalDeletion(var4.toString(), 1);
       }
 
-      this.inputField.writeText((String)this.field_73904_o.get(this.field_73903_n++));
       this.inputField.writeText(EnumChatFormatting.func_110646_a((String)this.field_73904_o.get(this.field_73903_n++)));
    }
 
@@ -267,8 +269,7 @@ public class GuiChat extends GuiScreen {
          int var3 = par1ArrayOfStr.length;
 
          String[] complete = ClientCommandHandler.instance.latestAutoComplete;
-         if (complete != null)
-         {
+         if (complete != null) {
             var2 = ObjectArrays.concat(complete, var2, String.class);
             var3 = var2.length;
          }

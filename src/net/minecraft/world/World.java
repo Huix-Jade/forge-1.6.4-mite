@@ -481,8 +481,7 @@ public abstract class World implements IBlockAccess {
                }
             }
          } catch (Throwable var11) {
-            Throwable var8 = var11;
-            CrashReport var6 = CrashReport.makeCrashReport(var8, "Exception getting block type in world");
+             CrashReport var6 = CrashReport.makeCrashReport(var11, "Exception getting block type in world");
             CrashReportCategory var7 = var6.makeCategory("Requested block coordinates");
             var7.addCrashSection("Found chunk", var4 == null);
             var7.addCrashSection("Location", CrashReportCategory.getLocationInfo(par1, par2, par3));

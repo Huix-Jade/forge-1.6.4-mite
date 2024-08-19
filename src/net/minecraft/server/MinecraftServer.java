@@ -92,7 +92,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
    private int serverPort = -1;
 
    /** The server world instances. */
-   public WorldServer[] worldServers = new WorldServer[0];
+   public WorldServer[] worldServers;
 
    /** The ServerConfigurationManager instance. */
    private ServerConfigurationManager serverConfigManager;
@@ -186,6 +186,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
 
    public MinecraftServer(File par1File)
    {
+      this.worldServers = new WorldServer[DimensionManager.world_size];
       this.serverProxy = Proxy.NO_PROXY;
       this.field_143008_E = 0;
       this.sentPacketCountArray = new long[100];
@@ -249,7 +250,7 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
    {
       this.convertMapIfNeeded(par1Str);
       this.setUserMessage("menu.loadingLevel");
-//      this.worldServers = new WorldServer[4];
+      this.worldServers = new WorldServer[DimensionManager.world_size];
 //      this.timeOfLastDimensionTick = new long[this.worldServers.length][100];
       ISaveHandler saveLoader = this.anvilConverterForAnvilFile.getSaveLoader(par1Str, true);
       WorldInfo var8 = saveLoader.loadWorldInfo();
@@ -273,14 +274,16 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
       WorldServer overWorld = (isDemo() ? new DemoWorldServer(this, saveLoader, par2Str, 0, theProfiler, getLogAgent()) : new WorldServer(this, saveLoader, par2Str, 0, var9, theProfiler, getLogAgent()));
       for (int dim : DimensionManager.getStaticDimensionIDs())
       {
+         int i = 0;
          WorldServer world = (dim == 0 ? overWorld : new WorldServerMulti(this, saveLoader, par2Str, dim, var9, overWorld, theProfiler, getLogAgent()));
+         worldServers[i] = world;
          world.addWorldAccess(new WorldManager(this, world));
 
          if (!this.isSinglePlayer())
          {
             world.getWorldInfo().setGameType(this.getGameType());
          }
-
+         ++i;
          this.serverConfigManager.setPlayerManager(this.worldServers);
          MinecraftForge.EVENT_BUS.post(new WorldEvent.Load(world));
       }
@@ -1186,29 +1189,22 @@ public abstract class MinecraftServer implements ICommandSender, Runnable, IPlay
    {
       ArrayList var3 = new ArrayList();
 
-      if (par2Str.startsWith("/"))
-      {
+      if (par2Str.startsWith("/")) {
          par2Str = par2Str.substring(1);
          boolean var10 = !par2Str.contains(" ");
          List var11 = this.commandManager.getPossibleCommands(par1ICommandSender, par2Str);
 
-         if (var11 != null)
-         {
-            Iterator var12 = var11.iterator();
+         if (var11 != null) {
 
-            while (var12.hasNext())
-            {
-               String var13 = (String)var12.next();
+             for (Object o : var11) {
+                 String var13 = (String) o;
 
-               if (var10)
-               {
-                  var3.add("/" + var13);
-               }
-               else
-               {
-                  var3.add(var13);
-               }
-            }
+                 if (var10) {
+                     var3.add("/" + var13);
+                 } else {
+                     var3.add(var13);
+                 }
+             }
          }
 
          return var3;

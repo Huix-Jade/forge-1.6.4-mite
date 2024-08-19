@@ -1064,7 +1064,8 @@ public class Chunk
 		this.worldObj.theProfiler.startSection("recheckGaps");
 		boolean update_occured;
 
-		if (!trusted_xz_for_this_chunk_and_immediate_neighbors && !this.worldObj.canUpdateLightByType(this.xPosition * 16, this.zPosition * 16))
+		if (!trusted_xz_for_this_chunk_and_immediate_neighbors &&
+				!this.worldObj.canUpdateLightByType(this.xPosition * 16, this.zPosition * 16))
 		{
 			update_occured = false;
 			Debug.setErrorMessage("updateSkylight_do: wasn\'t able to update");

@@ -1050,7 +1050,7 @@ public final class EntityRenderer {
             GL11.glShadeModel(7424);
          } else {
             this.mc.mcProfiler.endStartSection("water");
-            var5.sortAndRender(var4, 1, (double)par1);
+            var5.sortAndRender(var4, 1, par1);
          }
 
          if (this.debugViewDirection == 0) //Only render if render pass 0 happens as well.

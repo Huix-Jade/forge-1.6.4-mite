@@ -27,10 +27,10 @@ public class GuiScreen extends Gui {
    private int field_92018_d;
 
    public void drawScreen(int par1, int par2, float par3) {
-      for(int var4 = 0; var4 < this.buttonList.size(); ++var4) {
-         GuiButton var5 = (GuiButton)this.buttonList.get(var4);
-         var5.drawButton(this.mc, par1, par2);
-      }
+       for (Object o : this.buttonList) {
+           GuiButton var5 = (GuiButton) o;
+           var5.drawButton(this.mc, par1, par2);
+       }
 
    }
 
@@ -149,10 +149,10 @@ public class GuiScreen extends Gui {
    }
 
    public void handleKeyboardInput() {
-      if (Keyboard.getEventKeyState()) {
-         int var1 = Keyboard.getEventKey();
-         char var2 = Keyboard.getEventCharacter();
-         if (var1 == 87) {
+      int key = Keyboard.getEventKey();
+      char character = Keyboard.getEventCharacter();
+      if (Keyboard.getEventKeyState() || (key == 0 && Character.isDefined(character))) {
+         if (key == 87) {
             if (!Main.is_MITE_DS) {
                this.mc.toggleFullscreen();
             }
@@ -160,7 +160,7 @@ public class GuiScreen extends Gui {
             return;
          }
 
-         this.keyTyped(var2, var1);
+         this.keyTyped(character, key);
       }
 
    }

@@ -407,25 +407,25 @@ public class BiomeDecorator {
       if (this.currentWorld.isOverworld()) {
          MinecraftForge.ORE_GEN_BUS.post(new OreGenEvent.Pre(currentWorld, randomGenerator, chunk_X, chunk_Z));
          if (TerrainGen.generateOre(currentWorld, randomGenerator, dirtGen, chunk_X, chunk_Z, DIRT))
-         this.genMinable(200, this.dirtGen);
+            this.genMinable(200, this.dirtGen);
          if (TerrainGen.generateOre(currentWorld, randomGenerator, gravelGen, chunk_X, chunk_Z, GRAVEL))
-         this.genMinable(200, this.gravelGen);
+            this.genMinable(200, this.gravelGen);
          if (TerrainGen.generateOre(currentWorld, randomGenerator, coalGen, chunk_X, chunk_Z, COAL))
-         this.genMinable(50, this.coalGen);
+            this.genMinable(50, this.coalGen);
          this.genMinable(40, this.copperGen, true);
          this.genMinable(10, this.silverGen, true);
          if (TerrainGen.generateOre(currentWorld, randomGenerator, goldGen, chunk_X, chunk_Z, GOLD))
-         this.genMinable(20, this.goldGen, true);
+            this.genMinable(20, this.goldGen, true);
          if (TerrainGen.generateOre(currentWorld, randomGenerator, ironGen, chunk_X, chunk_Z, IRON))
-         this.genMinable(60, this.ironGen, true);
+            this.genMinable(60, this.ironGen, true);
          this.genMinable(10, this.mithrilGen, true);
          this.genMinable(5, this.silverfishGen, true);
          if (TerrainGen.generateOre(currentWorld, randomGenerator, redstoneGen, chunk_X, chunk_Z, REDSTONE))
-         this.genMinable(10, this.redstoneGen);
+            this.genMinable(10, this.redstoneGen);
          if (TerrainGen.generateOre(currentWorld, randomGenerator, diamondGen, chunk_X, chunk_Z, DIAMOND))
-         this.genMinable(5, this.diamondGen);
+            this.genMinable(5, this.diamondGen);
          if (TerrainGen.generateOre(currentWorld, randomGenerator, lapisGen, chunk_X, chunk_Z, LAPIS))
-         this.genMinable(5, this.lapisGen);
+            this.genMinable(5, this.lapisGen);
          MinecraftForge.ORE_GEN_BUS.post(new OreGenEvent.Post(currentWorld, randomGenerator, chunk_X, chunk_Z));
       } else if (this.currentWorld.isUnderworld()) {
          this.genMinable(300, this.gravelGen);

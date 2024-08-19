@@ -46,6 +46,9 @@ public class DimensionManager
     private static ConcurrentMap<World, World> weakWorldMap = new MapMaker().weakKeys().weakValues().<World,World>makeMap();
     private static Multiset<Integer> leakedWorlds = HashMultiset.create();
 
+
+    public static int world_size = worlds.size();
+
     public static boolean registerProviderType(int id, Class<? extends WorldProvider> provider, boolean keepLoaded)
     {
         if (providers.containsKey(id))
